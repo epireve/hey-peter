@@ -29,3 +29,5 @@ node_modules/
 .taskmaster
 .roomodes
 .windsurfrules
+.kilocode/mcp.json
+reqs.pdf
