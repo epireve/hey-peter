@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Implemented user authentication with Supabase, including login and sign-up forms.
 - Created a basic admin portal layout with a sidebar and main content area.
 - Added UI components from shadcn/ui: Button, Card, Input, and Label.
+- Implemented password reset and update functionality.
 
 ### Fixed
 - Resolved dependency conflicts by downgrading Next.js and other packages.
