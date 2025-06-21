@@ -31,3 +31,5 @@ node_modules/
 .windsurfrules
 .kilocode/mcp.json
 reqs.pdf
+heypeter-academy/supabase/migrations/supabase/.temp/*
+heypeter-academy/supabase/.temp/*
