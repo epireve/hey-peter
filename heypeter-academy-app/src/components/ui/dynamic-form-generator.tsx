@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MultiSelect } from "@/components/ui/multi-select";
 import { FileUpload } from "@/components/ui/file-upload";
 import {
   DatePicker,
@@ -259,6 +260,19 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({ field, form }) => {
           </Select>
         );
 
+      case "multiselect":
+        const multiSelectField = field as SelectFieldConfig;
+        return (
+          <MultiSelect
+            options={multiSelectField.options}
+            disabled={field.disabled}
+            placeholder={field.placeholder}
+            className={field.className}
+            value={form.watch(field.name) || []}
+            onValueChange={(value) => form.setValue(field.name, value)}
+          />
+        );
+
       case "checkbox":
         const checkboxField = field as CheckboxFieldConfig;
         return (
@@ -381,7 +395,7 @@ const FieldRenderer: React.FC<FieldRendererProps> = ({ field, form }) => {
           {field.description && (
             <FormDescription>{field.description}</FormDescription>
           )}
-          <FormMessage />
+          <FormMessage aria-live="polite" />
         </FormItem>
       )}
     />
@@ -426,6 +440,115 @@ const SectionRenderer: React.FC<SectionRendererProps> = ({
   );
 };
 
+export const generateFormSchema = (
+  fields: FieldConfig[],
+  sections?: FormSection[]
+): z.ZodSchema => {
+  const schemaFields: Record<string, z.ZodTypeAny> = {};
+  const allFields = sections
+    ? sections.flatMap((section) => section.fields)
+    : fields || [];
+
+  function processField(field: FieldConfig) {
+    if (field.validation) {
+      schemaFields[field.name] = field.validation;
+    } else {
+      let fieldSchema: z.ZodTypeAny;
+      const requiredMessage = `${field.name.toLowerCase()} is required`;
+
+      switch (field.type) {
+        case "email":
+          fieldSchema = field.required
+            ? z
+                .string({ required_error: requiredMessage })
+                .email("invalid email address")
+            : z.string().email("invalid email address").optional();
+          break;
+        case "password":
+          fieldSchema = field.required
+            ? z
+                .string({ required_error: requiredMessage })
+                .min(8, "password must be at least 8 characters")
+            : z
+                .string()
+                .min(8, "password must be at least 8 characters")
+                .optional();
+          break;
+        case "number":
+          fieldSchema = field.required
+            ? z.coerce.number({ required_error: requiredMessage })
+            : z.coerce.number().optional();
+          break;
+        case "checkbox":
+        case "switch":
+          if (field.required) {
+            fieldSchema = z
+              .boolean({ required_error: requiredMessage })
+              .refine((val) => val === true, {
+                message: requiredMessage,
+              });
+          } else {
+            fieldSchema = z.boolean().optional();
+          }
+          break;
+        case "multiselect":
+          fieldSchema = field.required
+            ? z
+                .array(z.string(), { required_error: requiredMessage })
+                .min(1, requiredMessage)
+            : z.array(z.string()).optional();
+          break;
+        case "file":
+          fieldSchema = field.required
+            ? z.any().refine((val) => val !== undefined && val !== null, {
+                message: requiredMessage,
+              })
+            : z.any().optional();
+          break;
+        case "date":
+        case "datetime":
+          fieldSchema = field.required
+            ? z.coerce.date({ required_error: requiredMessage })
+            : z.coerce.date().optional();
+          break;
+        case "daterange":
+          if (field.required) {
+            fieldSchema = z.object(
+              {
+                from: z.date({
+                  required_error: `${field.name.toLowerCase()} start date is required`,
+                }),
+                to: z.date({
+                  required_error: `${field.name.toLowerCase()} end date is required`,
+                }),
+              },
+              { required_error: requiredMessage }
+            );
+          } else {
+            fieldSchema = z
+              .object({
+                from: z.date(),
+                to: z.date(),
+              })
+              .optional();
+          }
+          break;
+        default:
+          fieldSchema = field.required
+            ? z
+                .string({ required_error: requiredMessage })
+                .min(1, requiredMessage)
+            : z.string().optional();
+          break;
+      }
+      schemaFields[field.name] = fieldSchema;
+    }
+  }
+
+  allFields.forEach(processField);
+  return z.object(schemaFields);
+};
+
 // Main DynamicFormGenerator component
 export interface DynamicFormGeneratorProps extends DynamicFormConfig {
   loading?: boolean;
@@ -444,120 +567,12 @@ export const DynamicFormGenerator: React.FC<DynamicFormGeneratorProps> = ({
   defaultValues = {},
   loading = false,
 }) => {
-  // Generate schema from field configurations if not provided
-  const formSchema = React.useMemo(() => {
-    if (schema) return schema;
-
-    const schemaFields: Record<string, z.ZodTypeAny> = {};
-    const allFields = sections
-      ? sections.flatMap((section) => section.fields)
-      : fields || [];
-
-    // Define processField function before using it
-    function processField(field: FieldConfig) {
-      if (field.validation) {
-        schemaFields[field.name] = field.validation;
-      } else {
-        // Auto-generate basic validation based on field type with custom required messages
-        let fieldSchema: z.ZodTypeAny;
-        const requiredMessage = `${field.name.toLowerCase()} is required`;
-
-        switch (field.type) {
-          case "email":
-            fieldSchema = field.required
-              ? z
-                  .string({ required_error: requiredMessage })
-                  .email("invalid email address")
-              : z.string().email("invalid email address").optional();
-            break;
-          case "password":
-            fieldSchema = field.required
-              ? z
-                  .string({ required_error: requiredMessage })
-                  .min(8, "password must be at least 8 characters")
-              : z
-                  .string()
-                  .min(8, "password must be at least 8 characters")
-                  .optional();
-            break;
-          case "number":
-            fieldSchema = field.required
-              ? z.coerce.number({ required_error: requiredMessage })
-              : z.coerce.number().optional();
-            break;
-          case "checkbox":
-          case "switch":
-            if (field.required) {
-              fieldSchema = z
-                .boolean({ required_error: requiredMessage })
-                .refine((val) => val === true, {
-                  message: requiredMessage,
-                });
-            } else {
-              fieldSchema = z.boolean().optional();
-            }
-            break;
-          case "multiselect":
-            fieldSchema = field.required
-              ? z
-                  .array(z.string(), { required_error: requiredMessage })
-                  .min(1, requiredMessage)
-              : z.array(z.string()).optional();
-            break;
-          case "file":
-            fieldSchema = field.required
-              ? z.any().refine((val) => val !== undefined && val !== null, {
-                  message: requiredMessage,
-                })
-              : z.any().optional();
-            break;
-          case "date":
-          case "datetime":
-            fieldSchema = field.required
-              ? z.coerce.date({ required_error: requiredMessage })
-              : z.coerce.date().optional();
-            break;
-          case "daterange":
-            if (field.required) {
-              fieldSchema = z.object(
-                {
-                  from: z.date({
-                    required_error: `${field.name.toLowerCase()} start date is required`,
-                  }),
-                  to: z.date({
-                    required_error: `${field.name.toLowerCase()} end date is required`,
-                  }),
-                },
-                { required_error: requiredMessage }
-              );
-            } else {
-              fieldSchema = z
-                .object({
-                  from: z.date(),
-                  to: z.date(),
-                })
-                .optional();
-            }
-            break;
-          default:
-            // Default case for string-based fields (text, textarea, select, etc.)
-            fieldSchema = field.required
-              ? z
-                  .string({ required_error: requiredMessage })
-                  .min(1, requiredMessage)
-              : z.string().optional();
-            break;
-        }
-
-        schemaFields[field.name] = fieldSchema;
-      }
-    }
-
-    // Process all fields using the defined function
-    allFields.forEach(processField);
-
-    return z.object(schemaFields);
-  }, [sections, fields, schema]);
+  const formSchema =
+    schema ||
+    React.useMemo(
+      () => generateFormSchema(fields || [], sections),
+      [fields, sections]
+    );
 
   // Initialize form
   const form = useForm<any>({

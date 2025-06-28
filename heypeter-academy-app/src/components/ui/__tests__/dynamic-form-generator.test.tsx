@@ -230,6 +230,53 @@ describe("DynamicFormGenerator", () => {
         );
       });
     });
+    it("should render and handle multiselect field", async () => {
+      const onSubmit = jest.fn();
+      const fields: SelectFieldConfig[] = [
+        {
+          type: "multiselect",
+          name: "interests",
+          label: "Interests",
+          placeholder: "Select your interests",
+          options: [
+            { value: "sports", label: "Sports" },
+            { value: "music", label: "Music" },
+            { value: "movies", label: "Movies" },
+          ],
+          required: true,
+        },
+      ];
+
+      render(
+        <DynamicFormGenerator
+          fields={fields}
+          onSubmit={onSubmit}
+          submitLabel="Submit"
+        />
+      );
+
+      const selectTrigger = screen.getByRole("combobox");
+      await user.click(selectTrigger);
+
+      const sportsOption = screen.getByText("Sports");
+      await user.click(sportsOption);
+
+      const musicOption = screen.getByText("Music");
+      await user.click(musicOption);
+
+      // Close the dropdown
+      await user.click(selectTrigger);
+
+      const submitButton = screen.getByRole("button", { name: /submit/i });
+      await user.click(submitButton);
+
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledWith(
+          { interests: ["sports", "music"] },
+          expect.any(Object)
+        );
+      });
+    });
 
     it("should render and handle checkbox field", async () => {
       const onSubmit = jest.fn();

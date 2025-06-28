@@ -2,7 +2,10 @@ import * as React from "react";
 
 import { cn } from "@/lib/utils";
 
-function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
+const Textarea = React.forwardRef<
+  HTMLTextAreaElement,
+  React.ComponentProps<"textarea">
+>(({ className, ...props }, ref) => {
   return (
     <textarea
       data-slot="textarea"
@@ -13,9 +16,12 @@ function Textarea({ className, ...props }: React.ComponentProps<"textarea">) {
         "resize-vertical",
         className
       )}
+      ref={ref}
       {...props}
     />
   );
-}
+});
+
+Textarea.displayName = "Textarea";
 
 export { Textarea };
