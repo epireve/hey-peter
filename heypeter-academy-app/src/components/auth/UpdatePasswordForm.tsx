@@ -13,14 +13,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 import { useState } from "react";
 import { resetPasswordUpdateSchema } from "@/lib/validations";
 import { resetPasswordUpdate } from "@/lib/actions/auth";
 import { useRouter } from "next/navigation";
 
 export default function UpdatePasswordForm() {
-  const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const form = useForm<z.infer<typeof resetPasswordUpdateSchema>>({
@@ -35,16 +34,9 @@ export default function UpdatePasswordForm() {
     setIsLoading(true);
     const result = await resetPasswordUpdate(values);
     if (result?.error) {
-      toast({
-        title: "Error",
-        description: result.error.message,
-        variant: "destructive",
-      });
+      toast.error(result.error.message || "Failed to update password");
     } else {
-      toast({
-        title: "Success",
-        description: result.data.message,
-      });
+      toast.success(result?.data?.message || "Password updated successfully");
       router.push("/login");
     }
     setIsLoading(false);
