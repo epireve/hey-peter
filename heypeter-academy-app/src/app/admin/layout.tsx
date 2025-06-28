@@ -8,14 +8,17 @@ import {
   BookOpen,
   BarChart3, 
   Settings,
-  UserCheck
+  UserCheck,
+  FileText
 } from "lucide-react";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/students", label: "Students", icon: GraduationCap },
   { href: "/admin/teachers", label: "Teachers", icon: UserCheck },
+  { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
+  { href: "/admin/content", label: "Content", icon: FileText },
   { href: "/admin/classes", label: "Classes", icon: Calendar },
   { href: "/admin/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/admin/settings", label: "Settings", icon: Settings },
