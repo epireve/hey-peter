@@ -1,319 +1,334 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Upload, Download, FileSpreadsheet, AlertCircle } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Upload, Download, FileUp, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ImportExportService, type ImportResult } from '@/lib/utils/import-export';
+import { cn } from '@/lib/utils';
+import {
+  parseImportFile,
+  exportToCSV,
+  exportToExcel,
+  type ImportResult,
+  type ImportOptions,
+  type ExportOptions,
+  type ColumnMapping
+} from '@/lib/utils/import-export';
 
 interface ImportExportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  entityType: 'students' | 'teachers' | 'courses';
+  title: string;
+  description?: string;
+  columns: ColumnMapping[];
   onImport: (data: any[]) => Promise<void>;
   onExport: () => Promise<any[]>;
-  columns: Array<{
-    key: string;
-    header: string;
-    required?: boolean;
-    transform?: (value: any) => any;
-  }>;
+  templateUrl?: string;
 }
 
 export function ImportExportDialog({
   open,
   onOpenChange,
-  entityType,
+  title,
+  description,
+  columns,
   onImport,
   onExport,
-  columns,
+  templateUrl
 }: ImportExportDialogProps) {
   const [mode, setMode] = useState<'import' | 'export'>('import');
-  const [format, setFormat] = useState<'csv' | 'xlsx'>('csv');
-  const [importing, setImporting] = useState(false);
-  const [exporting, setExporting] = useState(false);
-  const [importResult, setImportResult] = useState<ImportResult<any> | null>(null);
+  const [format, setFormat] = useState<'csv' | 'excel'>('csv');
+  const [file, setFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [result, setResult] = useState<ImportResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      setImportResult(null);
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  }, []);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    
+    const droppedFile = e.dataTransfer.files[0];
+    if (droppedFile) {
+      setFile(droppedFile);
+      setResult(null);
+      setError(null);
+    }
+  }, []);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setResult(null);
+      setError(null);
     }
   };
 
   const handleImport = async () => {
-    if (!selectedFile) return;
+    if (!file) return;
 
-    setImporting(true);
+    setIsProcessing(true);
     setProgress(0);
+    setError(null);
+    setResult(null);
 
     try {
-      let result: ImportResult<any>;
+      const options: ImportOptions = {
+        columnMappings: columns,
+        onProgress: setProgress,
+        batchSize: 50
+      };
 
-      if (format === 'csv') {
-        const content = await selectedFile.text();
-        result = await ImportExportService.parseCSV(content, {
-          columns: columns.map(col => col.key),
-          validator: (row) => {
-            const errors: string[] = [];
-            columns.forEach(col => {
-              if (col.required && !row[col.key]) {
-                errors.push(`${col.header} is required`);
-              }
-            });
-            return { valid: errors.length === 0, errors };
-          },
-        });
-      } else {
-        const buffer = await selectedFile.arrayBuffer();
-        result = await ImportExportService.parseExcel(buffer, {
-          validator: (row) => {
-            const errors: string[] = [];
-            columns.forEach(col => {
-              if (col.required && !row[col.header]) {
-                errors.push(`${col.header} is required`);
-              }
-            });
-            return { valid: errors.length === 0, errors };
-          },
-        });
+      const importResult = await parseImportFile(file, options);
+      setResult(importResult);
+
+      if (importResult.success && importResult.data) {
+        await onImport(importResult.data);
+        onOpenChange(false);
       }
-
-      setImportResult(result);
-
-      if (result.successCount > 0) {
-        await ImportExportService.batchImport(result.data, {
-          batchSize: 50,
-          processor: async (batch) => {
-            await onImport(batch);
-          },
-          onProgress: (processed, total) => {
-            setProgress((processed / total) * 100);
-          },
-        });
-      }
-    } catch (error) {
-      setImportResult({
-        data: [],
-        errors: [{
-          row: 0,
-          message: error instanceof Error ? error.message : 'Import failed',
-        }],
-        totalRows: 0,
-        successCount: 0,
-        errorCount: 1,
-      });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Import failed');
     } finally {
-      setImporting(false);
+      setIsProcessing(false);
     }
   };
 
   const handleExport = async () => {
-    setExporting(true);
+    setIsProcessing(true);
+    setError(null);
 
     try {
       const data = await onExport();
-      const filename = `${entityType}_${new Date().toISOString().split('T')[0]}`;
+      
+      const options: ExportOptions = {
+        filename: `${title.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.${format}`,
+        columns,
+        format
+      };
 
       if (format === 'csv') {
-        const csv = ImportExportService.exportToCSV(data, {
-          format: 'csv',
-          filename: `${filename}.csv`,
-          columns,
-        });
-        ImportExportService.downloadFile(csv, `${filename}.csv`, 'text/csv');
+        exportToCSV(data, options);
       } else {
-        const buffer = ImportExportService.exportToExcel(data, {
-          format: 'xlsx',
-          filename: `${filename}.xlsx`,
-          columns,
-        });
-        ImportExportService.downloadFile(
-          buffer,
-          `${filename}.xlsx`,
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        );
+        exportToExcel(data, options);
       }
-    } catch (error) {
-      console.error('Export failed:', error);
+
+      onOpenChange(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Export failed');
     } finally {
-      setExporting(false);
+      setIsProcessing(false);
     }
   };
 
-  const getTemplateUrl = () => {
-    const baseUrl = '/templates';
-    return `${baseUrl}/${entityType}_template.${format}`;
+  const resetState = () => {
+    setFile(null);
+    setResult(null);
+    setError(null);
+    setProgress(0);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={open} onOpenChange={(open) => {
+      onOpenChange(open);
+      if (!open) resetState();
+    }}>
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Import/Export {entityType}</DialogTitle>
-          <DialogDescription>
-            Import or export {entityType} data using CSV or Excel format
-          </DialogDescription>
+          <DialogTitle>{title}</DialogTitle>
+          {description && <DialogDescription>{description}</DialogDescription>}
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <RadioGroup value={mode} onValueChange={(value: any) => setMode(value)}>
+        <div className="space-y-4 pt-4">
+          <RadioGroup value={mode} onValueChange={(value) => setMode(value as 'import' | 'export')}>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="import" id="import" />
-              <Label htmlFor="import" className="flex items-center gap-2 cursor-pointer">
-                <Upload className="h-4 w-4" />
+              <Label htmlFor="import" className="flex items-center cursor-pointer">
+                <Upload className="w-4 h-4 mr-2" />
                 Import Data
               </Label>
             </div>
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="export" id="export" />
-              <Label htmlFor="export" className="flex items-center gap-2 cursor-pointer">
-                <Download className="h-4 w-4" />
+              <Label htmlFor="export" className="flex items-center cursor-pointer">
+                <Download className="w-4 h-4 mr-2" />
                 Export Data
               </Label>
             </div>
           </RadioGroup>
 
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="format">File Format</Label>
-              <Select value={format} onValueChange={(value: any) => setFormat(value)}>
-                <SelectTrigger id="format">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="csv">
-                    <div className="flex items-center gap-2">
-                      <FileSpreadsheet className="h-4 w-4" />
-                      CSV (.csv)
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="xlsx">
-                    <div className="flex items-center gap-2">
-                      <FileSpreadsheet className="h-4 w-4" />
-                      Excel (.xlsx)
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {mode === 'import' && (
-              <>
-                <div className="space-y-2">
-                  <Label htmlFor="file">Select File</Label>
-                  <input
-                    id="file"
-                    type="file"
-                    accept={format === 'csv' ? '.csv' : '.xlsx,.xls'}
-                    onChange={handleFileSelect}
-                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                  />
-                  <p className="text-sm text-muted-foreground">
-                    <a
-                      href={getTemplateUrl()}
-                      download
-                      className="text-primary hover:underline"
-                    >
-                      Download template
-                    </a>{' '}
-                    to see the required format
-                  </p>
-                </div>
-
-                {selectedFile && (
-                  <Alert>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      Selected: {selectedFile.name} ({(selectedFile.size / 1024).toFixed(2)} KB)
-                    </AlertDescription>
-                  </Alert>
+          {mode === 'import' ? (
+            <div className="space-y-4">
+              <div
+                className={cn(
+                  "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
+                  isDragging ? "border-primary bg-primary/10" : "border-muted-foreground/25",
+                  file && "border-primary"
                 )}
-
-                {importing && (
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+              >
+                {file ? (
                   <div className="space-y-2">
-                    <Label>Import Progress</Label>
-                    <Progress value={progress} />
+                    <FileUp className="w-10 h-10 mx-auto text-primary" />
+                    <p className="text-sm font-medium">{file.name}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFile(null)}
+                      className="text-muted-foreground"
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <Upload className="w-10 h-10 mx-auto text-muted-foreground" />
                     <p className="text-sm text-muted-foreground">
-                      Processing... {progress.toFixed(0)}%
+                      Drag & drop your file here, or click to browse
                     </p>
+                    <p className="text-xs text-muted-foreground">
+                      Supported formats: CSV, Excel (.xlsx, .xls)
+                    </p>
+                    <input
+                      type="file"
+                      accept=".csv,.xlsx,.xls"
+                      onChange={handleFileSelect}
+                      className="hidden"
+                      id="file-upload"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('file-upload')?.click()}
+                    >
+                      Choose File
+                    </Button>
                   </div>
                 )}
+              </div>
 
-                {importResult && (
-                  <Alert variant={importResult.errorCount > 0 ? 'destructive' : 'default'}>
-                    <AlertCircle className="h-4 w-4" />
-                    <AlertDescription>
-                      <div className="space-y-2">
-                        <p>
-                          Total rows: {importResult.totalRows} | Success: {importResult.successCount} | 
-                          Errors: {importResult.errorCount}
-                        </p>
-                        {importResult.errors.length > 0 && (
-                          <div className="mt-2 max-h-32 overflow-y-auto">
-                            <p className="font-semibold">Errors:</p>
-                            {importResult.errors.slice(0, 5).map((error, index) => (
-                              <p key={index} className="text-sm">
-                                Row {error.row}: {error.message}
-                              </p>
-                            ))}
-                            {importResult.errors.length > 5 && (
-                              <p className="text-sm">
-                                ... and {importResult.errors.length - 5} more errors
-                              </p>
-                            )}
-                          </div>
+              {templateUrl && (
+                <div className="text-center">
+                  <a
+                    href={templateUrl}
+                    download
+                    className="text-sm text-primary hover:underline"
+                  >
+                    Download template file
+                  </a>
+                </div>
+              )}
+
+              {isProcessing && (
+                <div className="space-y-2">
+                  <div className="flex justify-between text-sm">
+                    <span>Processing...</span>
+                    <span>{Math.round(progress)}%</span>
+                  </div>
+                  <Progress value={progress} />
+                </div>
+              )}
+
+              {result && !result.success && (
+                <Alert variant="destructive">
+                  <AlertDescription>
+                    <div className="space-y-1">
+                      <p>Import failed with {result.errorCount} errors:</p>
+                      <ul className="text-xs list-disc list-inside max-h-32 overflow-auto">
+                        {result.errors?.slice(0, 5).map((error, i) => (
+                          <li key={i}>
+                            Row {error.row}: {error.message}
+                          </li>
+                        ))}
+                        {result.errors && result.errors.length > 5 && (
+                          <li>... and {result.errors.length - 5} more errors</li>
                         )}
-                      </div>
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </>
+                      </ul>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {result && result.success && (
+                <Alert>
+                  <AlertDescription>
+                    Successfully imported {result.successCount} records
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          ) : (
+            <div className="space-y-4">
+              <RadioGroup value={format} onValueChange={(value) => setFormat(value as 'csv' | 'excel')}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="csv" id="csv" />
+                  <Label htmlFor="csv">CSV Format</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="excel" id="excel" />
+                  <Label htmlFor="excel">Excel Format (.xlsx)</Label>
+                </div>
+              </RadioGroup>
+            </div>
+          )}
+
+          {error && (
+            <Alert variant="destructive">
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={isProcessing}
+            >
+              Cancel
+            </Button>
+            {mode === 'import' ? (
+              <Button
+                onClick={handleImport}
+                disabled={!file || isProcessing}
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Import
+              </Button>
+            ) : (
+              <Button
+                onClick={handleExport}
+                disabled={isProcessing}
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
             )}
           </div>
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          {mode === 'import' ? (
-            <Button
-              onClick={handleImport}
-              disabled={!selectedFile || importing}
-              className="gap-2"
-            >
-              <Upload className="h-4 w-4" />
-              Import
-            </Button>
-          ) : (
-            <Button onClick={handleExport} disabled={exporting} className="gap-2">
-              <Download className="h-4 w-4" />
-              Export
-            </Button>
-          )}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

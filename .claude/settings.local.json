@@ -22,7 +22,10 @@
       "Bash(git format-patch:*)",
       "Bash(cp:*)",
       "Bash(git reset:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npm run lint)",
+      "Bash(^C)",
+      "Bash(npx tsc:*)"
     ],
     "deny": []
   }

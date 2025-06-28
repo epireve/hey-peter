@@ -7,8 +7,12 @@ import { UserManagementWorkflow } from './UserManagementWorkflow';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Shield, Activity, UserPlus } from 'lucide-react';
+import { Users, Shield, Activity, UserPlus, Upload, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ImportExportDialog } from '@/components/admin/ImportExportDialog';
+import { toast } from '@/hooks/use-toast';
+import { createClient } from '@/lib/supabase/client';
+import { validators, mappers } from '@/lib/utils/import-export';
 
 interface UserManagementClientProps {
   initialUsers: any[];
@@ -16,10 +20,109 @@ interface UserManagementClientProps {
 
 export function UserManagementClient({ initialUsers }: UserManagementClientProps) {
   const [users] = useState(initialUsers);
+  const [showImportExport, setShowImportExport] = useState(false);
   const router = useRouter();
+  const supabase = createClient();
 
   const handleRefresh = () => {
     router.refresh();
+  };
+
+  const columnMappings = [
+    {
+      field: 'email',
+      label: 'Email',
+      required: true,
+      validator: validators.email
+    },
+    {
+      field: 'fullName',
+      label: 'Full Name',
+      required: true
+    },
+    {
+      field: 'role',
+      label: 'Role',
+      required: true,
+      validator: validators.enum(['student', 'teacher', 'admin'])
+    }
+  ];
+
+  const handleImport = async (data: any[]) => {
+    try {
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const record of data) {
+        try {
+          // Create user via Supabase Admin API
+          const { data: newUser, error: userError } = await supabase.auth.admin.createUser({
+            email: record.email,
+            email_confirm: true,
+            user_metadata: {
+              full_name: record.fullName,
+              role: record.role
+            }
+          });
+
+          if (userError) throw userError;
+
+          // Create corresponding profile based on role
+          if (newUser.user) {
+            if (record.role === 'student') {
+              const { error: profileError } = await supabase
+                .from('students')
+                .insert({
+                  id: newUser.user.id,
+                  email: record.email,
+                  full_name: record.fullName,
+                  created_at: new Date().toISOString()
+                });
+              if (profileError) throw profileError;
+            } else if (record.role === 'teacher') {
+              const { error: profileError } = await supabase
+                .from('teachers')
+                .insert({
+                  id: newUser.user.id,
+                  email: record.email,
+                  full_name: record.fullName,
+                  created_at: new Date().toISOString()
+                });
+              if (profileError) throw profileError;
+            }
+          }
+
+          successCount++;
+        } catch (error) {
+          errorCount++;
+          console.error('Error importing user:', error);
+        }
+      }
+
+      toast({
+        title: 'Import completed',
+        description: `Successfully imported ${successCount} users. ${errorCount} errors.`,
+      });
+
+      handleRefresh();
+    } catch (error) {
+      toast({
+        title: 'Import failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const handleExport = async () => {
+    return users.map(user => ({
+      email: user.email,
+      fullName: user.user_metadata?.full_name || '',
+      role: user.user_metadata?.role || 'student',
+      created: new Date(user.created_at).toLocaleDateString(),
+      lastSignIn: user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleDateString() : 'Never',
+      status: user.banned ? 'Banned' : (!user.email_confirmed_at ? 'Pending' : 'Active')
+    }));
   };
 
   // Calculate statistics
@@ -37,10 +140,16 @@ export function UserManagementClient({ initialUsers }: UserManagementClientProps
     <div className="container mx-auto py-10 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">User Management</h1>
-        <Button onClick={() => router.push('/admin/users/new')}>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add User
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowImportExport(true)}>
+            <Upload className="mr-2 h-4 w-4" />
+            Import/Export
+          </Button>
+          <Button onClick={() => router.push('/admin/users/new')}>
+            <UserPlus className="mr-2 h-4 w-4" />
+            Add User
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
@@ -122,6 +231,17 @@ export function UserManagementClient({ initialUsers }: UserManagementClientProps
           <UserManagementWorkflow users={users} onRefresh={handleRefresh} />
         </TabsContent>
       </Tabs>
+
+      <ImportExportDialog
+        open={showImportExport}
+        onOpenChange={setShowImportExport}
+        title="Import/Export Users"
+        description="Import users from CSV or Excel files, or export existing users"
+        columns={columnMappings}
+        onImport={handleImport}
+        onExport={handleExport}
+        templateUrl="/templates/users_template.csv"
+      />
     </div>
   );
 }
