@@ -25,7 +25,10 @@
       "Bash(cat:*)",
       "Bash(npm run lint)",
       "Bash(^C)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(timeout 15 npm run dev 2 >& 1)"
     ],
     "deny": []
   }
