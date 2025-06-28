@@ -10,7 +10,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Users, Shield, Activity, UserPlus, Upload, Download } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ImportExportDialog } from '@/components/admin/ImportExportDialog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { createClient } from '@/lib/supabase/client';
 import { validators, mappers } from '@/lib/utils/import-export';
 

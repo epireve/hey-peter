@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 import { Plus, Save, Edit, Trash2, Users, Percent } from 'lucide-react';
 import type { FeatureFlag } from '@/types/settings';
 
