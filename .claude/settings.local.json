@@ -21,7 +21,8 @@
       "Bash(npm run build:*)",
       "Bash(git format-patch:*)",
       "Bash(cp:*)",
-      "Bash(git reset:*)"
+      "Bash(git reset:*)",
+      "Bash(cat:*)"
     ],
     "deny": []
   }
