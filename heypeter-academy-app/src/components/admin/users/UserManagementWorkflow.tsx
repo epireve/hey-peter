@@ -36,7 +36,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { format } from 'date-fns';
 
 interface User {
@@ -73,7 +73,7 @@ export function UserManagementWorkflow({ users, onRefresh }: UserManagementWorkf
   const [notes, setNotes] = useState('');
   
   const { toast } = useToast();
-  const supabase = createClient();
+  // supabase instance is already imported
 
   const getUserStatus = (user: User) => {
     if (user.banned) return { label: 'Banned', variant: 'destructive' as const };

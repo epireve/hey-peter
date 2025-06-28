@@ -11,7 +11,7 @@ import { Users, Shield, Activity, UserPlus, Upload, Download } from 'lucide-reac
 import { useRouter } from 'next/navigation';
 import { ImportExportDialog } from '@/components/admin/ImportExportDialog';
 import { toast } from '@/components/ui/use-toast';
-import { createClient } from '@/lib/supabase/client';
+import { supabase } from '@/lib/supabase';
 import { validators, mappers } from '@/lib/utils/import-export';
 
 interface UserManagementClientProps {
@@ -22,7 +22,7 @@ export function UserManagementClient({ initialUsers }: UserManagementClientProps
   const [users] = useState(initialUsers);
   const [showImportExport, setShowImportExport] = useState(false);
   const router = useRouter();
-  const supabase = createClient();
+  // supabase instance is already imported
 
   const handleRefresh = () => {
     router.refresh();
