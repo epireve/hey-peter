@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(task-master list:*)",
+      "Bash(task-master show:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx shadcn-ui:*)",
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm add:*)",
+      "Bash(npm test:*)",
+      "Bash(task-master set-status:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(task-master:*)",
+      "Bash(find:*)",
+      "Bash(diff:*)",
+      "Bash(rm:*)",
+      "Bash(ls:*)",
+      "Bash(npm run build:*)",
+      "Bash(git format-patch:*)",
+      "Bash(cp:*)",
+      "Bash(git reset:*)"
+    ],
+    "deny": []
+  }
+}

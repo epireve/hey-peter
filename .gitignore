@@ -33,3 +33,6 @@ node_modules/
 reqs.pdf
 heypeter-academy/supabase/migrations/supabase/.temp/*
 heypeter-academy/supabase/.temp/*
+
+# Ignore the old heypeter-academy directory
+heypeter-academy/
