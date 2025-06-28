@@ -1,346 +1,245 @@
-import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ImportExportDialog } from '../ImportExportDialog';
-import { ImportExportService } from '@/lib/utils/import-export';
 
-// Mock the ImportExportService
+// Mock the toast hook
+jest.mock('@/components/ui/use-toast', () => ({
+  toast: jest.fn(),
+}));
+
+// Mock the import-export utilities
 jest.mock('@/lib/utils/import-export', () => ({
-  ImportExportService: {
-    parseCSV: jest.fn(),
-    parseExcel: jest.fn(),
-    exportToCSV: jest.fn(),
-    exportToExcel: jest.fn(),
-    downloadFile: jest.fn(),
-    batchImport: jest.fn(),
+  parseImportFile: jest.fn(),
+  exportToCSV: jest.fn(),
+  exportToExcel: jest.fn(),
+  validators: {
+    email: jest.fn(() => true),
   },
 }));
 
-describe('ImportExportDialog', () => {
-  const defaultProps = {
-    open: true,
-    onOpenChange: jest.fn(),
-    entityType: 'students' as const,
-    onImport: jest.fn(),
-    onExport: jest.fn(),
-    columns: [
-      { key: 'name', header: 'Name', required: true },
-      { key: 'email', header: 'Email', required: true },
-      { key: 'phone', header: 'Phone' },
-    ],
-  };
+const mockProps = {
+  open: true,
+  onOpenChange: jest.fn(),
+  title: 'Test Import/Export',
+  description: 'Test description',
+  columns: [
+    { field: 'name', label: 'Name', required: true },
+    { field: 'email', label: 'Email' },
+  ],
+  onImport: jest.fn(),
+  onExport: jest.fn(),
+  templateUrl: '/templates/test.csv',
+};
 
+describe('ImportExportDialog', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the dialog with correct title', () => {
-    render(<ImportExportDialog {...defaultProps} />);
-    expect(screen.getByText('Import/Export students')).toBeInTheDocument();
+  it('renders correctly when open', () => {
+    render(<ImportExportDialog {...mockProps} />);
+    
+    expect(screen.getByText('Test Import/Export')).toBeInTheDocument();
+    expect(screen.getByText('Test description')).toBeInTheDocument();
+    expect(screen.getByText('Import Data')).toBeInTheDocument();
+    expect(screen.getByText('Export Data')).toBeInTheDocument();
   });
 
-  it('toggles between import and export modes', () => {
-    render(<ImportExportDialog {...defaultProps} />);
-
-    const importRadio = screen.getByLabelText('Import Data');
-    const exportRadio = screen.getByLabelText('Export Data');
-
-    expect(importRadio).toBeChecked();
-    expect(exportRadio).not.toBeChecked();
-
-    fireEvent.click(exportRadio);
-
-    expect(importRadio).not.toBeChecked();
-    expect(exportRadio).toBeChecked();
+  it('does not render when closed', () => {
+    render(<ImportExportDialog {...mockProps} open={false} />);
+    
+    expect(screen.queryByText('Test Import/Export')).not.toBeInTheDocument();
   });
 
-  it('changes file format selection', async () => {
-    render(<ImportExportDialog {...defaultProps} />);
+  it('switches between import and export modes', async () => {
     const user = userEvent.setup();
-
-    const formatSelect = screen.getByRole('combobox');
-    await user.click(formatSelect);
-
-    const excelOption = screen.getByText('Excel (.xlsx)');
-    await user.click(excelOption);
-
-    expect(screen.getByText('Excel (.xlsx)')).toBeInTheDocument();
+    render(<ImportExportDialog {...mockProps} />);
+    
+    // Should default to import mode
+    expect(screen.getByText('Drag & drop your file here, or click to browse')).toBeInTheDocument();
+    
+    // Switch to export mode
+    await user.click(screen.getByLabelText('Export Data'));
+    
+    expect(screen.getByText('CSV Format')).toBeInTheDocument();
+    expect(screen.getByText('Excel Format (.xlsx)')).toBeInTheDocument();
   });
 
-  describe('Import mode', () => {
-    it('handles file selection', async () => {
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      const file = new File(['test,data'], 'test.csv', { type: 'text/csv' });
-      const input = screen.getByLabelText('Select File');
-
-      await user.upload(input, file);
-
-      expect(screen.getByText(/Selected: test.csv/)).toBeInTheDocument();
-    });
-
-    it('imports CSV file successfully', async () => {
-      const mockImportResult = {
-        data: [
-          { name: 'John Doe', email: 'john@example.com' },
-          { name: 'Jane Smith', email: 'jane@example.com' },
-        ],
-        errors: [],
-        totalRows: 2,
-        successCount: 2,
-        errorCount: 0,
-      };
-
-      (ImportExportService.parseCSV as jest.Mock).mockResolvedValue(mockImportResult);
-      (ImportExportService.batchImport as jest.Mock).mockImplementation(
-        async (data, options) => {
-          await options.processor(data);
-          options.onProgress(data.length, data.length);
-        }
-      );
-
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      const file = new File(['name,email\nJohn,john@example.com'], 'test.csv', {
-        type: 'text/csv',
-      });
-      const input = screen.getByLabelText('Select File');
-      await user.upload(input, file);
-
-      const importButton = screen.getByRole('button', { name: /Import/i });
-      await user.click(importButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Total rows: 2/)).toBeInTheDocument();
-        expect(screen.getByText(/Success: 2/)).toBeInTheDocument();
-        expect(screen.getByText(/Errors: 0/)).toBeInTheDocument();
-      });
-
-      expect(defaultProps.onImport).toHaveBeenCalledWith(mockImportResult.data);
-    });
-
-    it('handles import errors', async () => {
-      const mockImportResult = {
-        data: [],
-        errors: [
-          { row: 2, message: 'Name is required' },
-          { row: 3, message: 'Email is required' },
-        ],
-        totalRows: 3,
-        successCount: 1,
-        errorCount: 2,
-      };
-
-      (ImportExportService.parseCSV as jest.Mock).mockResolvedValue(mockImportResult);
-
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      const file = new File(['invalid data'], 'test.csv', { type: 'text/csv' });
-      const input = screen.getByLabelText('Select File');
-      await user.upload(input, file);
-
-      const importButton = screen.getByRole('button', { name: /Import/i });
-      await user.click(importButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Errors: 2/)).toBeInTheDocument();
-        expect(screen.getByText(/Row 2: Name is required/)).toBeInTheDocument();
-        expect(screen.getByText(/Row 3: Email is required/)).toBeInTheDocument();
-      });
-    });
-
-    it('imports Excel file', async () => {
-      const mockImportResult = {
-        data: [{ name: 'John Doe', email: 'john@example.com' }],
-        errors: [],
-        totalRows: 1,
-        successCount: 1,
-        errorCount: 0,
-      };
-
-      (ImportExportService.parseExcel as jest.Mock).mockResolvedValue(mockImportResult);
-      (ImportExportService.batchImport as jest.Mock).mockResolvedValue(undefined);
-
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      // Change format to Excel
-      const formatSelect = screen.getByRole('combobox');
-      await user.click(formatSelect);
-      const excelOption = screen.getByText('Excel (.xlsx)');
-      await user.click(excelOption);
-
-      const file = new File(['excel data'], 'test.xlsx', {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      });
-      const input = screen.getByLabelText('Select File');
-      await user.upload(input, file);
-
-      const importButton = screen.getByRole('button', { name: /Import/i });
-      await user.click(importButton);
-
-      await waitFor(() => {
-        expect(ImportExportService.parseExcel).toHaveBeenCalled();
-      });
-    });
-
-    it('shows progress during import', async () => {
-      let progressCallback: ((processed: number, total: number) => void) | undefined;
-
-      (ImportExportService.parseCSV as jest.Mock).mockResolvedValue({
-        data: Array(100).fill({ name: 'Test', email: 'test@example.com' }),
-        errors: [],
-        totalRows: 100,
-        successCount: 100,
-        errorCount: 0,
-      });
-
-      (ImportExportService.batchImport as jest.Mock).mockImplementation(
-        async (data, options) => {
-          progressCallback = options.onProgress;
-          // Simulate progress
-          options.onProgress(50, 100);
-        }
-      );
-
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      const file = new File(['data'], 'test.csv', { type: 'text/csv' });
-      const input = screen.getByLabelText('Select File');
-      await user.upload(input, file);
-
-      const importButton = screen.getByRole('button', { name: /Import/i });
-      await user.click(importButton);
-
-      await waitFor(() => {
-        expect(screen.getByText(/Processing... 50%/)).toBeInTheDocument();
-      });
-    });
-  });
-
-  describe('Export mode', () => {
-    beforeEach(() => {
-      const { rerender } = render(<ImportExportDialog {...defaultProps} />);
-      const exportRadio = screen.getByLabelText('Export Data');
-      fireEvent.click(exportRadio);
-    });
-
-    it('exports data as CSV', async () => {
-      const mockData = [
-        { name: 'John Doe', email: 'john@example.com', phone: '123-456-7890' },
-        { name: 'Jane Smith', email: 'jane@example.com', phone: '098-765-4321' },
-      ];
-
-      defaultProps.onExport.mockResolvedValue(mockData);
-      (ImportExportService.exportToCSV as jest.Mock).mockReturnValue('csv content');
-
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      const exportRadio = screen.getByLabelText('Export Data');
-      await user.click(exportRadio);
-
-      const exportButton = screen.getByRole('button', { name: /Export/i });
-      await user.click(exportButton);
-
-      await waitFor(() => {
-        expect(defaultProps.onExport).toHaveBeenCalled();
-        expect(ImportExportService.exportToCSV).toHaveBeenCalledWith(mockData, {
-          format: 'csv',
-          filename: expect.stringContaining('students_'),
-          columns: defaultProps.columns,
-        });
-        expect(ImportExportService.downloadFile).toHaveBeenCalledWith(
-          'csv content',
-          expect.stringContaining('.csv'),
-          'text/csv'
-        );
-      });
-    });
-
-    it('exports data as Excel', async () => {
-      const mockData = [{ name: 'John Doe', email: 'john@example.com' }];
-      const mockBuffer = new ArrayBuffer(0);
-
-      defaultProps.onExport.mockResolvedValue(mockData);
-      (ImportExportService.exportToExcel as jest.Mock).mockReturnValue(mockBuffer);
-
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      const exportRadio = screen.getByLabelText('Export Data');
-      await user.click(exportRadio);
-
-      // Change format to Excel
-      const formatSelect = screen.getByRole('combobox');
-      await user.click(formatSelect);
-      const excelOption = screen.getByText('Excel (.xlsx)');
-      await user.click(excelOption);
-
-      const exportButton = screen.getByRole('button', { name: /Export/i });
-      await user.click(exportButton);
-
-      await waitFor(() => {
-        expect(ImportExportService.exportToExcel).toHaveBeenCalledWith(mockData, {
-          format: 'xlsx',
-          filename: expect.stringContaining('students_'),
-          columns: defaultProps.columns,
-        });
-        expect(ImportExportService.downloadFile).toHaveBeenCalledWith(
-          mockBuffer,
-          expect.stringContaining('.xlsx'),
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        );
-      });
-    });
-
-    it('handles export errors gracefully', async () => {
-      const consoleError = jest.spyOn(console, 'error').mockImplementation();
-      defaultProps.onExport.mockRejectedValue(new Error('Export failed'));
-
-      render(<ImportExportDialog {...defaultProps} />);
-      const user = userEvent.setup();
-
-      const exportRadio = screen.getByLabelText('Export Data');
-      await user.click(exportRadio);
-
-      const exportButton = screen.getByRole('button', { name: /Export/i });
-      await user.click(exportButton);
-
-      await waitFor(() => {
-        expect(consoleError).toHaveBeenCalledWith('Export failed:', expect.any(Error));
-      });
-
-      consoleError.mockRestore();
-    });
-  });
-
-  it('closes dialog when cancel is clicked', async () => {
-    render(<ImportExportDialog {...defaultProps} />);
+  it('handles file selection', async () => {
     const user = userEvent.setup();
-
-    const cancelButton = screen.getByRole('button', { name: /Cancel/i });
-    await user.click(cancelButton);
-
-    expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false);
+    render(<ImportExportDialog {...mockProps} />);
+    
+    const file = new File(['name,email\nJohn,john@test.com'], 'test.csv', { type: 'text/csv' });
+    const input = document.getElementById('file-upload') as HTMLInputElement;
+    
+    // Simulate file selection
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      writable: false,
+    });
+    
+    fireEvent.change(input);
+    
+    await waitFor(() => {
+      expect(screen.getByText('test.csv')).toBeInTheDocument();
+    });
   });
 
-  it('generates correct template URLs', () => {
-    const { rerender } = render(<ImportExportDialog {...defaultProps} />);
+  it('shows template download link when provided', () => {
+    render(<ImportExportDialog {...mockProps} />);
+    
+    const templateLink = screen.getByText('Download template file');
+    expect(templateLink).toBeInTheDocument();
+    expect(templateLink.getAttribute('href')).toBe('/templates/test.csv');
+  });
 
-    expect(screen.getByText('Download template')).toHaveAttribute(
-      'href',
-      '/templates/students_template.csv'
-    );
+  it('handles import operation', async () => {
+    const { parseImportFile } = require('@/lib/utils/import-export');
+    parseImportFile.mockResolvedValue({
+      success: true,
+      data: [{ name: 'John', email: 'john@test.com' }],
+      successCount: 1,
+    });
 
-    rerender(<ImportExportDialog {...defaultProps} entityType="teachers" />);
-    expect(screen.getByText('Download template')).toHaveAttribute(
-      'href',
-      '/templates/teachers_template.csv'
-    );
+    const user = userEvent.setup();
+    render(<ImportExportDialog {...mockProps} />);
+    
+    const file = new File(['name,email\nJohn,john@test.com'], 'test.csv', { type: 'text/csv' });
+    const input = document.getElementById('file-upload') as HTMLInputElement;
+    
+    // Simulate file selection
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      writable: false,
+    });
+    
+    fireEvent.change(input);
+    
+    await waitFor(() => {
+      expect(screen.getByText('test.csv')).toBeInTheDocument();
+    });
+    
+    const importButton = screen.getByRole('button', { name: /import/i });
+    await user.click(importButton);
+    
+    await waitFor(() => {
+      expect(mockProps.onImport).toHaveBeenCalledWith([{ name: 'John', email: 'john@test.com' }]);
+      expect(mockProps.onOpenChange).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('handles export operation', async () => {
+    mockProps.onExport.mockResolvedValue([
+      { name: 'John', email: 'john@test.com' },
+      { name: 'Jane', email: 'jane@test.com' },
+    ]);
+
+    const { exportToCSV } = require('@/lib/utils/import-export');
+
+    const user = userEvent.setup();
+    render(<ImportExportDialog {...mockProps} />);
+    
+    // Switch to export mode
+    await user.click(screen.getByLabelText('Export Data'));
+    
+    const exportButton = screen.getByRole('button', { name: /export/i });
+    await user.click(exportButton);
+    
+    await waitFor(() => {
+      expect(mockProps.onExport).toHaveBeenCalled();
+      expect(exportToCSV).toHaveBeenCalled();
+      expect(mockProps.onOpenChange).toHaveBeenCalledWith(false);
+    });
+  });
+
+  it('shows error when import fails', async () => {
+    const { parseImportFile } = require('@/lib/utils/import-export');
+    parseImportFile.mockResolvedValue({
+      success: false,
+      errors: [{ row: 2, message: 'Invalid email format' }],
+      errorCount: 1,
+    });
+
+    const user = userEvent.setup();
+    render(<ImportExportDialog {...mockProps} />);
+    
+    const file = new File(['name,email\nJohn,invalid-email'], 'test.csv', { type: 'text/csv' });
+    const input = document.getElementById('file-upload') as HTMLInputElement;
+    
+    // Simulate file selection
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      writable: false,
+    });
+    
+    fireEvent.change(input);
+    
+    await waitFor(() => {
+      expect(screen.getByText('test.csv')).toBeInTheDocument();
+    });
+    
+    const importButton = screen.getByRole('button', { name: /import/i });
+    await user.click(importButton);
+    
+    await waitFor(() => {
+      expect(screen.getByText(/import failed with 1 errors/i)).toBeInTheDocument();
+      expect(screen.getByText(/row 2: invalid email format/i)).toBeInTheDocument();
+    });
+  });
+
+  it('disables import button when no file is selected', () => {
+    render(<ImportExportDialog {...mockProps} />);
+    
+    const importButton = screen.getByRole('button', { name: /import/i });
+    expect(importButton).toBeDisabled();
+  });
+
+  it('handles drag and drop', async () => {
+    render(<ImportExportDialog {...mockProps} />);
+    
+    const dropZone = screen.getByText(/drag & drop your file here/i).closest('div');
+    const file = new File(['name,email\nJohn,john@test.com'], 'test.csv', { type: 'text/csv' });
+    
+    fireEvent.dragOver(dropZone!, {
+      dataTransfer: {
+        files: [file],
+      },
+    });
+    
+    fireEvent.drop(dropZone!, {
+      dataTransfer: {
+        files: [file],
+      },
+    });
+    
+    await waitFor(() => {
+      expect(screen.getByText('test.csv')).toBeInTheDocument();
+    });
+  });
+
+  it('removes selected file when remove button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<ImportExportDialog {...mockProps} />);
+    
+    const file = new File(['name,email\nJohn,john@test.com'], 'test.csv', { type: 'text/csv' });
+    const input = document.getElementById('file-upload') as HTMLInputElement;
+    
+    // Simulate file selection
+    Object.defineProperty(input, 'files', {
+      value: [file],
+      writable: false,
+    });
+    
+    fireEvent.change(input);
+    
+    await waitFor(() => {
+      expect(screen.getByText('test.csv')).toBeInTheDocument();
+    });
+    
+    const removeButton = screen.getByRole('button', { name: /remove/i });
+    await user.click(removeButton);
+    
+    expect(screen.queryByText('test.csv')).not.toBeInTheDocument();
+    expect(screen.getByText(/drag & drop your file here/i)).toBeInTheDocument();
   });
 });

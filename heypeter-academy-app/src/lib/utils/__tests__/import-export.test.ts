@@ -1,434 +1,463 @@
-import { ImportExportService, validators, fieldMappers } from '../import-export';
-import * as XLSX from 'xlsx';
+import { 
+  validators, 
+  mappers, 
+  exportToCSV, 
+  exportToExcel,
+  parseImportFile,
+  type ColumnMapping,
+  type ImportOptions,
+  type ExportOptions
+} from '../import-export';
 
 // Mock XLSX module
 jest.mock('xlsx', () => ({
   read: jest.fn(),
-  write: jest.fn(),
   utils: {
     sheet_to_json: jest.fn(),
-    json_to_sheet: jest.fn(),
+    aoa_to_sheet: jest.fn(),
     book_new: jest.fn(),
     book_append_sheet: jest.fn(),
   },
+  write: jest.fn(),
 }));
 
-describe('ImportExportService', () => {
+// Mock csv-parse
+jest.mock('csv-parse/browser/esm', () => ({
+  parse: jest.fn(),
+}));
+
+// Mock DOM methods
+Object.defineProperty(global, 'URL', {
+  value: {
+    createObjectURL: jest.fn(() => 'mock-url'),
+    revokeObjectURL: jest.fn(),
+  },
+});
+
+Object.defineProperty(global, 'FileReader', {
+  value: class MockFileReader {
+    readAsText = jest.fn();
+    readAsArrayBuffer = jest.fn();
+    onload: ((event: any) => void) | null = null;
+    onerror: (() => void) | null = null;
+    result: string | ArrayBuffer | null = null;
+  },
+});
+
+Object.defineProperty(global, 'Blob', {
+  value: class MockBlob {
+    constructor(public content: any[], public options?: { type?: string }) {}
+  },
+});
+
+// Mock document methods
+Object.defineProperty(global.document, 'createElement', {
+  value: jest.fn(() => ({
+    href: '',
+    download: '',
+    click: jest.fn(),
+  })),
+});
+
+Object.defineProperty(global.document.body, 'appendChild', {
+  value: jest.fn(),
+});
+
+Object.defineProperty(global.document.body, 'removeChild', {
+  value: jest.fn(),
+});
+
+describe('Import/Export Utilities', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('parseCSV', () => {
-    it('should parse valid CSV content', async () => {
-      const csvContent = `name,email,age
-John Doe,john@example.com,30
-Jane Smith,jane@example.com,25`;
-
-      const result = await ImportExportService.parseCSV(csvContent);
-
-      expect(result.data).toHaveLength(2);
-      expect(result.data[0]).toEqual({
-        name: 'John Doe',
-        email: 'john@example.com',
-        age: '30',
-      });
-      expect(result.successCount).toBe(2);
-      expect(result.errorCount).toBe(0);
-    });
-
-    it('should handle CSV with custom columns', async () => {
-      const csvContent = `John Doe,john@example.com,30
-Jane Smith,jane@example.com,25`;
-
-      const result = await ImportExportService.parseCSV(csvContent, {
-        columns: ['name', 'email', 'age'],
+  describe('Validators', () => {
+    describe('required validator', () => {
+      it('should return error message for empty values', () => {
+        expect(validators.required('')).toBe('This field is required');
+        expect(validators.required(null)).toBe('This field is required');
+        expect(validators.required(undefined)).toBe('This field is required');
       });
 
-      expect(result.data[0]).toEqual({
-        name: 'John Doe',
-        email: 'john@example.com',
-        age: '30',
+      it('should return true for valid values', () => {
+        expect(validators.required('test')).toBe(true);
+        expect(validators.required(0)).toBe(true);
+        expect(validators.required(false)).toBe(true);
       });
     });
 
-    it('should skip header when specified', async () => {
-      const csvContent = `Name,Email,Age
-John Doe,john@example.com,30`;
-
-      const result = await ImportExportService.parseCSV(csvContent, {
-        skipHeader: true,
-        columns: ['Name', 'Email', 'Age'],
+    describe('email validator', () => {
+      it('should return true for valid emails', () => {
+        expect(validators.email('test@example.com')).toBe(true);
+        expect(validators.email('user.name+tag@domain.co.uk')).toBe(true);
+        expect(validators.email('')).toBe(true); // Empty is allowed
       });
 
-      expect(result.data).toHaveLength(1);
-      expect(result.totalRows).toBe(1);
-    });
-
-    it('should validate rows when validator is provided', async () => {
-      const csvContent = `name,email,age
-John Doe,invalid-email,30
-Jane Smith,jane@example.com,25`;
-
-      const validator = (row: any) => {
-        const errors: string[] = [];
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
-          errors.push('Invalid email');
-        }
-        return { valid: errors.length === 0, errors };
-      };
-
-      const result = await ImportExportService.parseCSV(csvContent, { validator });
-
-      expect(result.successCount).toBe(1);
-      expect(result.errorCount).toBe(1);
-      expect(result.errors[0]).toEqual({
-        row: 2,
-        message: 'Invalid email',
+      it('should return error message for invalid emails', () => {
+        expect(validators.email('invalid-email')).toBe('Invalid email format');
+        expect(validators.email('test@')).toBe('Invalid email format');
+        expect(validators.email('@domain.com')).toBe('Invalid email format');
       });
     });
 
-    it('should handle CSV parsing errors', async () => {
-      // Our simple CSV parser doesn't throw on invalid CSV, it just parses it
-      // So we'll test a different scenario
-      const invalidCsv = '';
+    describe('phone validator', () => {
+      it('should return true for valid phone numbers', () => {
+        expect(validators.phone('+1-234-567-8900')).toBe(true);
+        expect(validators.phone('(123) 456-7890')).toBe(true);
+        expect(validators.phone('1234567890')).toBe(true);
+        expect(validators.phone('')).toBe(true); // Empty is allowed
+      });
 
-      const result = await ImportExportService.parseCSV(invalidCsv);
+      it('should return error message for invalid phone numbers', () => {
+        expect(validators.phone('invalid-phone')).toBe('Invalid phone format');
+        expect(validators.phone('123-abc-7890')).toBe('Invalid phone format');
+      });
+    });
 
-      expect(result.data).toHaveLength(0);
-      expect(result.totalRows).toBe(0);
+    describe('date validator', () => {
+      it('should return true for valid dates', () => {
+        expect(validators.date('2024-01-01')).toBe(true);
+        expect(validators.date('Jan 1, 2024')).toBe(true);
+        expect(validators.date('')).toBe(true); // Empty is allowed
+      });
+
+      it('should return error message for invalid dates', () => {
+        expect(validators.date('invalid-date')).toBe('Invalid date format');
+        expect(validators.date('2024-13-01')).toBe('Invalid date format');
+      });
+    });
+
+    describe('enum validator', () => {
+      const enumValidator = validators.enum(['admin', 'user', 'guest']);
+
+      it('should return true for valid enum values', () => {
+        expect(enumValidator('admin')).toBe(true);
+        expect(enumValidator('user')).toBe(true);
+        expect(enumValidator('')).toBe(true); // Empty is allowed
+      });
+
+      it('should return error message for invalid enum values', () => {
+        expect(enumValidator('invalid')).toBe('Value must be one of: admin, user, guest');
+      });
     });
   });
 
-  describe('parseExcel', () => {
-    it('should parse valid Excel content', async () => {
-      const mockData = [
-        { name: 'John Doe', email: 'john@example.com', age: 30 },
-        { name: 'Jane Smith', email: 'jane@example.com', age: 25 },
-      ];
-
-      (XLSX.read as jest.Mock).mockReturnValue({
-        SheetNames: ['Sheet1'],
-        Sheets: {
-          Sheet1: {},
-        },
+  describe('Mappers', () => {
+    describe('date mapper', () => {
+      it('should convert valid dates to ISO string', () => {
+        const result = mappers.date('2024-01-01');
+        expect(result).toBe(new Date('2024-01-01').toISOString());
       });
-      (XLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockData);
 
-      const buffer = new ArrayBuffer(0);
-      const result = await ImportExportService.parseExcel(buffer);
-
-      expect(result.data).toEqual(mockData);
-      expect(result.successCount).toBe(2);
-      expect(result.errorCount).toBe(0);
+      it('should return null for invalid dates', () => {
+        expect(mappers.date('invalid-date')).toBe(null);
+        expect(mappers.date('')).toBe(null);
+        expect(mappers.date(null)).toBe(null);
+      });
     });
 
-    it('should handle specific sheet name', async () => {
-      const mockData = [{ name: 'John Doe' }];
-
-      (XLSX.read as jest.Mock).mockReturnValue({
-        SheetNames: ['Sheet1', 'Teachers'],
-        Sheets: {
-          Sheet1: {},
-          Teachers: {},
-        },
-      });
-      (XLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockData);
-
-      const buffer = new ArrayBuffer(0);
-      const result = await ImportExportService.parseExcel(buffer, {
-        sheetName: 'Teachers',
+    describe('boolean mapper', () => {
+      it('should convert truthy strings to true', () => {
+        expect(mappers.boolean('true')).toBe(true);
+        expect(mappers.boolean('TRUE')).toBe(true);
+        expect(mappers.boolean('1')).toBe(true);
+        expect(mappers.boolean('yes')).toBe(true);
+        expect(mappers.boolean('Y')).toBe(true);
       });
 
-      expect(result.data).toEqual(mockData);
+      it('should convert falsy strings to false', () => {
+        expect(mappers.boolean('false')).toBe(false);
+        expect(mappers.boolean('0')).toBe(false);
+        expect(mappers.boolean('no')).toBe(false);
+        expect(mappers.boolean('')).toBe(false);
+      });
+
+      it('should handle boolean values directly', () => {
+        expect(mappers.boolean(true)).toBe(true);
+        expect(mappers.boolean(false)).toBe(false);
+      });
     });
 
-    it('should validate Excel rows', async () => {
-      const mockData = [
-        { name: 'John Doe', email: 'invalid' },
-        { name: 'Jane Smith', email: 'jane@example.com' },
-      ];
-
-      (XLSX.read as jest.Mock).mockReturnValue({
-        SheetNames: ['Sheet1'],
-        Sheets: { Sheet1: {} },
+    describe('number mapper', () => {
+      it('should convert valid numbers', () => {
+        expect(mappers.number('123')).toBe(123);
+        expect(mappers.number('123.45')).toBe(123.45);
+        expect(mappers.number('-456')).toBe(-456);
       });
-      (XLSX.utils.sheet_to_json as jest.Mock).mockReturnValue(mockData);
 
-      const validator = (row: any) => {
-        const errors: string[] = [];
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
-          errors.push('Invalid email');
+      it('should return null for invalid numbers', () => {
+        expect(mappers.number('invalid')).toBe(null);
+        expect(mappers.number('')).toBe(null);
+      });
+    });
+  });
+
+  describe('Export Functions', () => {
+    const testData = [
+      { name: 'John Doe', email: 'john@example.com', age: 30 },
+      { name: 'Jane Smith', email: 'jane@example.com', age: 25 },
+    ];
+
+    const testColumns: ColumnMapping[] = [
+      { field: 'name', label: 'Full Name' },
+      { field: 'email', label: 'Email Address' },
+      { field: 'age', label: 'Age' },
+    ];
+
+    describe('exportToCSV', () => {
+      it('should generate CSV content correctly', () => {
+        const options: ExportOptions = {
+          filename: 'test.csv',
+          columns: testColumns,
+          format: 'csv',
+        };
+
+        exportToCSV(testData, options);
+
+        expect(global.document.createElement).toHaveBeenCalledWith('a');
+        expect(global.URL.createObjectURL).toHaveBeenCalled();
+      });
+
+      it('should handle values with commas and quotes', () => {
+        const dataWithSpecialChars = [
+          { name: 'John, Jr.', email: 'john@example.com', description: 'Says "Hello"' },
+        ];
+
+        const columnsWithDescription: ColumnMapping[] = [
+          { field: 'name', label: 'Name' },
+          { field: 'email', label: 'Email' },
+          { field: 'description', label: 'Description' },
+        ];
+
+        const options: ExportOptions = {
+          filename: 'test.csv',
+          columns: columnsWithDescription,
+          format: 'csv',
+        };
+
+        exportToCSV(dataWithSpecialChars, options);
+
+        expect(global.URL.createObjectURL).toHaveBeenCalled();
+      });
+    });
+
+    describe('exportToExcel', () => {
+      it('should generate Excel content correctly', () => {
+        const mockWorksheet = {};
+        const mockWorkbook = {};
+
+        const XLSX = require('xlsx');
+        XLSX.utils.aoa_to_sheet.mockReturnValue(mockWorksheet);
+        XLSX.utils.book_new.mockReturnValue(mockWorkbook);
+        XLSX.write.mockReturnValue(new ArrayBuffer(8));
+
+        const options: ExportOptions = {
+          filename: 'test.xlsx',
+          columns: testColumns,
+          format: 'excel',
+        };
+
+        exportToExcel(testData, options);
+
+        expect(XLSX.utils.aoa_to_sheet).toHaveBeenCalled();
+        expect(XLSX.utils.book_new).toHaveBeenCalled();
+        expect(XLSX.utils.book_append_sheet).toHaveBeenCalledWith(mockWorkbook, mockWorksheet, 'Data');
+        expect(XLSX.write).toHaveBeenCalledWith(mockWorkbook, { bookType: 'xlsx', type: 'array' });
+      });
+    });
+  });
+
+  describe('File Parsing', () => {
+    describe('parseImportFile', () => {
+      it('should detect CSV files correctly', async () => {
+        const csvFile = new File(['name,email\nJohn,john@test.com'], 'test.csv', { type: 'text/csv' });
+        const options: ImportOptions = {
+          columnMappings: [
+            { field: 'name', label: 'name' },
+            { field: 'email', label: 'email' },
+          ],
+        };
+
+        // Mock FileReader for CSV
+        const mockFileReader = new (global as any).FileReader();
+        jest.spyOn(global as any, 'FileReader').mockImplementation(() => mockFileReader);
+
+        // Mock csv-parse
+        const { parse } = require('csv-parse/browser/esm');
+        parse.mockImplementation((text: string, config: any, callback: Function) => {
+          callback(null, [{ name: 'John', email: 'john@test.com' }]);
+        });
+
+        const promise = parseImportFile(csvFile, options);
+
+        // Simulate successful file read
+        mockFileReader.result = 'name,email\nJohn,john@test.com';
+        if (mockFileReader.onload) {
+          mockFileReader.onload({ target: { result: mockFileReader.result } } as any);
         }
-        return { valid: errors.length === 0, errors };
+
+        const result = await promise;
+        expect(result.success).toBe(true);
+        expect(result.data).toHaveLength(1);
+      });
+
+      it('should reject unsupported file formats', async () => {
+        const unsupportedFile = new File(['content'], 'test.txt', { type: 'text/plain' });
+        const options: ImportOptions = {
+          columnMappings: [{ field: 'test', label: 'Test' }],
+        };
+
+        const result = await parseImportFile(unsupportedFile, options);
+        expect(result.success).toBe(false);
+        expect(result.errors).toHaveLength(1);
+        expect(result.errors![0].message).toBe('Unsupported file format. Please use CSV or Excel files.');
+      });
+
+      it('should handle file read errors', async () => {
+        const csvFile = new File(['name,email\nJohn,john@test.com'], 'test.csv', { type: 'text/csv' });
+        const options: ImportOptions = {
+          columnMappings: [{ field: 'name', label: 'name' }],
+        };
+
+        const mockFileReader = new (global as any).FileReader();
+        jest.spyOn(global as any, 'FileReader').mockImplementation(() => mockFileReader);
+
+        const promise = parseImportFile(csvFile, options);
+
+        // Simulate file read error
+        if (mockFileReader.onerror) {
+          mockFileReader.onerror();
+        }
+
+        const result = await promise;
+        expect(result.success).toBe(false);
+        expect(result.errors![0].message).toBe('Failed to read file');
+      });
+    });
+  });
+
+  describe('Data Processing', () => {
+    it('should validate required fields', async () => {
+      const csvFile = new File(['name,email\n,john@test.com'], 'test.csv', { type: 'text/csv' });
+      const options: ImportOptions = {
+        columnMappings: [
+          { field: 'name', label: 'name', required: true },
+          { field: 'email', label: 'email' },
+        ],
       };
 
-      const buffer = new ArrayBuffer(0);
-      const result = await ImportExportService.parseExcel(buffer, { validator });
+      const mockFileReader = new (global as any).FileReader();
+      jest.spyOn(global as any, 'FileReader').mockImplementation(() => mockFileReader);
 
-      expect(result.successCount).toBe(1);
-      expect(result.errorCount).toBe(1);
-    });
-
-    it('should handle Excel parsing errors', async () => {
-      (XLSX.read as jest.Mock).mockImplementation(() => {
-        throw new Error('Invalid file format');
+      const { parse } = require('csv-parse/browser/esm');
+      parse.mockImplementation((text: string, config: any, callback: Function) => {
+        callback(null, [{ name: '', email: 'john@test.com' }]);
       });
 
-      const buffer = new ArrayBuffer(0);
-      const result = await ImportExportService.parseExcel(buffer);
+      const promise = parseImportFile(csvFile, options);
 
+      mockFileReader.result = 'name,email\n,john@test.com';
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: { result: mockFileReader.result } } as any);
+      }
+
+      const result = await promise;
+      expect(result.success).toBe(false);
       expect(result.errors).toHaveLength(1);
-      expect(result.errors[0].message).toContain('Invalid file format');
+      expect(result.errors![0].message).toBe('name is required');
     });
-  });
 
-  describe('exportToCSV', () => {
-    it('should export data to CSV format', () => {
-      const data = [
-        { id: 1, name: 'John Doe', createdAt: new Date('2024-01-01') },
-        { id: 2, name: 'Jane Smith', createdAt: new Date('2024-01-02') },
-      ];
-
-      const options = {
-        format: 'csv' as const,
-        filename: 'users.csv',
-        columns: [
-          { key: 'id', header: 'ID' },
-          { key: 'name', header: 'Name' },
-          {
-            key: 'createdAt',
-            header: 'Created Date',
-            transform: (value: Date) => value.toLocaleDateString(),
-          },
+    it('should apply validators correctly', async () => {
+      const csvFile = new File(['name,email\nJohn,invalid-email'], 'test.csv', { type: 'text/csv' });
+      const options: ImportOptions = {
+        columnMappings: [
+          { field: 'name', label: 'name' },
+          { field: 'email', label: 'email', validator: validators.email },
         ],
       };
 
-      const csv = ImportExportService.exportToCSV(data, options);
+      const mockFileReader = new (global as any).FileReader();
+      jest.spyOn(global as any, 'FileReader').mockImplementation(() => mockFileReader);
 
-      const lines = csv.split('\n');
-      expect(lines[0]).toBe('ID,Name,Created Date');
-      expect(lines[1]).toMatch(/^1,John Doe,/);
-      expect(lines[2]).toMatch(/^2,Jane Smith,/);
-    });
-  });
-
-  describe('exportToExcel', () => {
-    it('should export data to Excel format', () => {
-      const mockWorkbook = {};
-      const mockWorksheet = { '!cols': [] };
-
-      (XLSX.utils.json_to_sheet as jest.Mock).mockReturnValue(mockWorksheet);
-      (XLSX.utils.book_new as jest.Mock).mockReturnValue(mockWorkbook);
-      (XLSX.write as jest.Mock).mockReturnValue(new ArrayBuffer(0));
-
-      const data = [
-        { id: 1, name: 'John Doe' },
-        { id: 2, name: 'Jane Smith' },
-      ];
-
-      const options = {
-        format: 'xlsx' as const,
-        filename: 'users.xlsx',
-        columns: [
-          { key: 'id', header: 'ID' },
-          { key: 'name', header: 'Name' },
-        ],
-      };
-
-      const buffer = ImportExportService.exportToExcel(data, options);
-
-      expect(XLSX.utils.json_to_sheet).toHaveBeenCalled();
-      expect(XLSX.utils.book_append_sheet).toHaveBeenCalledWith(
-        mockWorkbook,
-        mockWorksheet,
-        'Data'
-      );
-      expect(buffer).toBeInstanceOf(ArrayBuffer);
-    });
-
-    it('should auto-size columns', () => {
-      const mockWorksheet = { '!cols': [] };
-      (XLSX.utils.json_to_sheet as jest.Mock).mockReturnValue(mockWorksheet);
-      (XLSX.utils.book_new as jest.Mock).mockReturnValue({});
-      (XLSX.write as jest.Mock).mockReturnValue(new ArrayBuffer(0));
-
-      const data = [
-        { name: 'A very long name that should be truncated' },
-        { name: 'Short' },
-      ];
-
-      const options = {
-        format: 'xlsx' as const,
-        filename: 'test.xlsx',
-        columns: [{ key: 'name', header: 'Name' }],
-      };
-
-      ImportExportService.exportToExcel(data, options);
-
-      expect(mockWorksheet['!cols']).toBeDefined();
-      expect(mockWorksheet['!cols'][0].wch).toBeLessThanOrEqual(50);
-    });
-  });
-
-  describe('downloadFile', () => {
-    it('should trigger file download', () => {
-      const createElementSpy = jest.spyOn(document, 'createElement');
-      const appendChildSpy = jest.spyOn(document.body, 'appendChild');
-      const removeChildSpy = jest.spyOn(document.body, 'removeChild');
-      const clickSpy = jest.fn();
-
-      createElementSpy.mockReturnValue({
-        click: clickSpy,
-        href: '',
-        download: '',
-      } as any);
-
-      global.URL.createObjectURL = jest.fn(() => 'blob:url');
-      global.URL.revokeObjectURL = jest.fn();
-
-      ImportExportService.downloadFile('content', 'test.csv', 'text/csv');
-
-      expect(createElementSpy).toHaveBeenCalledWith('a');
-      expect(clickSpy).toHaveBeenCalled();
-      expect(appendChildSpy).toHaveBeenCalled();
-      expect(removeChildSpy).toHaveBeenCalled();
-      expect(global.URL.revokeObjectURL).toHaveBeenCalledWith('blob:url');
-
-      createElementSpy.mockRestore();
-      appendChildSpy.mockRestore();
-      removeChildSpy.mockRestore();
-    });
-  });
-
-  describe('batchImport', () => {
-    it('should process data in batches', async () => {
-      const data = Array.from({ length: 250 }, (_, i) => ({ id: i }));
-      const processor = jest.fn().mockResolvedValue(undefined);
-      const onProgress = jest.fn();
-
-      await ImportExportService.batchImport(data, {
-        batchSize: 100,
-        processor,
-        onProgress,
+      const { parse } = require('csv-parse/browser/esm');
+      parse.mockImplementation((text: string, config: any, callback: Function) => {
+        callback(null, [{ name: 'John', email: 'invalid-email' }]);
       });
 
-      expect(processor).toHaveBeenCalledTimes(3);
-      expect(processor).toHaveBeenNthCalledWith(1, data.slice(0, 100));
-      expect(processor).toHaveBeenNthCalledWith(2, data.slice(100, 200));
-      expect(processor).toHaveBeenNthCalledWith(3, data.slice(200, 250));
+      const promise = parseImportFile(csvFile, options);
 
-      expect(onProgress).toHaveBeenCalledTimes(3);
-      expect(onProgress).toHaveBeenLastCalledWith(250, 250);
+      mockFileReader.result = 'name,email\nJohn,invalid-email';
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: { result: mockFileReader.result } } as any);
+      }
+
+      const result = await promise;
+      expect(result.success).toBe(false);
+      expect(result.errors).toHaveLength(1);
+      expect(result.errors![0].message).toBe('Invalid email format');
     });
 
-    it('should use default batch size', async () => {
-      const data = Array.from({ length: 150 }, (_, i) => ({ id: i }));
-      const processor = jest.fn().mockResolvedValue(undefined);
+    it('should apply mappers correctly', async () => {
+      const csvFile = new File(['name,active\nJohn,true'], 'test.csv', { type: 'text/csv' });
+      const options: ImportOptions = {
+        columnMappings: [
+          { field: 'name', label: 'name' },
+          { field: 'active', label: 'active', mapper: mappers.boolean },
+        ],
+      };
 
-      await ImportExportService.batchImport(data, { processor });
+      const mockFileReader = new (global as any).FileReader();
+      jest.spyOn(global as any, 'FileReader').mockImplementation(() => mockFileReader);
 
-      expect(processor).toHaveBeenCalledTimes(2);
+      const { parse } = require('csv-parse/browser/esm');
+      parse.mockImplementation((text: string, config: any, callback: Function) => {
+        callback(null, [{ name: 'John', active: 'true' }]);
+      });
+
+      const promise = parseImportFile(csvFile, options);
+
+      mockFileReader.result = 'name,active\nJohn,true';
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: { result: mockFileReader.result } } as any);
+      }
+
+      const result = await promise;
+      expect(result.success).toBe(true);
+      expect(result.data![0].active).toBe(true);
     });
-  });
-});
 
-describe('validators', () => {
-  describe('required', () => {
-    it('should return error for empty values', () => {
-      const validator = validators.required('Name');
-      expect(validator('')).toBe('Name is required');
-      expect(validator('   ')).toBe('Name is required');
-      expect(validator(null)).toBe('Name is required');
-      expect(validator(undefined)).toBe('Name is required');
-    });
+    it('should report progress correctly', async () => {
+      const progressCallback = jest.fn();
+      const csvFile = new File(['name\nJohn\nJane\nBob'], 'test.csv', { type: 'text/csv' });
+      const options: ImportOptions = {
+        columnMappings: [{ field: 'name', label: 'name' }],
+        onProgress: progressCallback,
+        batchSize: 1,
+      };
 
-    it('should return null for valid values', () => {
-      const validator = validators.required('Name');
-      expect(validator('John')).toBeNull();
-      expect(validator(123)).toBeNull();
-    });
-  });
+      const mockFileReader = new (global as any).FileReader();
+      jest.spyOn(global as any, 'FileReader').mockImplementation(() => mockFileReader);
 
-  describe('email', () => {
-    it('should validate email format', () => {
-      expect(validators.email('john@example.com')).toBeNull();
-      expect(validators.email('john.doe+tag@example.co.uk')).toBeNull();
-      expect(validators.email('invalid')).toBe('Invalid email format');
-      expect(validators.email('missing@domain')).toBe('Invalid email format');
-      expect(validators.email('@example.com')).toBe('Invalid email format');
-    });
-  });
+      const { parse } = require('csv-parse/browser/esm');
+      parse.mockImplementation((text: string, config: any, callback: Function) => {
+        callback(null, [
+          { name: 'John' },
+          { name: 'Jane' },
+          { name: 'Bob' },
+        ]);
+      });
 
-  describe('phone', () => {
-    it('should validate phone format', () => {
-      expect(validators.phone('+1234567890')).toBeNull();
-      expect(validators.phone('123-456-7890')).toBeNull();
-      expect(validators.phone('(123) 456-7890')).toBeNull();
-      expect(validators.phone('invalid phone')).toBe('Invalid phone format');
-    });
-  });
+      const promise = parseImportFile(csvFile, options);
 
-  describe('date', () => {
-    it('should validate date format', () => {
-      expect(validators.date('2024-01-01')).toBeNull();
-      expect(validators.date('01/01/2024')).toBeNull();
-      expect(validators.date(new Date().toISOString())).toBeNull();
-      expect(validators.date('invalid date')).toBe('Invalid date format');
-    });
-  });
+      mockFileReader.result = 'name\nJohn\nJane\nBob';
+      if (mockFileReader.onload) {
+        mockFileReader.onload({ target: { result: mockFileReader.result } } as any);
+      }
 
-  describe('enum', () => {
-    it('should validate enum values', () => {
-      const validator = validators.enum(['active', 'inactive', 'pending']);
-      expect(validator('active')).toBeNull();
-      expect(validator('inactive')).toBeNull();
-      expect(validator('invalid')).toBe('Must be one of: active, inactive, pending');
-    });
-  });
-});
-
-describe('fieldMappers', () => {
-  describe('date', () => {
-    it('should map date values', () => {
-      expect(fieldMappers.date('2024-01-01')).toMatch(/2024-01-01T/);
-      expect(fieldMappers.date(new Date('2024-01-01'))).toMatch(/2024-01-01T/);
-      expect(fieldMappers.date('invalid')).toBeNull();
-      expect(fieldMappers.date(null)).toBeNull();
-    });
-  });
-
-  describe('boolean', () => {
-    it('should map boolean values', () => {
-      expect(fieldMappers.boolean(true)).toBe(true);
-      expect(fieldMappers.boolean(false)).toBe(false);
-      expect(fieldMappers.boolean('true')).toBe(true);
-      expect(fieldMappers.boolean('True')).toBe(true);
-      expect(fieldMappers.boolean('yes')).toBe(true);
-      expect(fieldMappers.boolean('1')).toBe(true);
-      expect(fieldMappers.boolean('false')).toBe(false);
-      expect(fieldMappers.boolean('no')).toBe(false);
-      expect(fieldMappers.boolean('0')).toBe(false);
-      expect(fieldMappers.boolean(1)).toBe(true);
-      expect(fieldMappers.boolean(0)).toBe(false);
-    });
-  });
-
-  describe('number', () => {
-    it('should map number values', () => {
-      expect(fieldMappers.number('123')).toBe(123);
-      expect(fieldMappers.number('123.45')).toBe(123.45);
-      expect(fieldMappers.number(456)).toBe(456);
-      expect(fieldMappers.number('invalid')).toBeNull();
-      expect(fieldMappers.number('')).toBeNull();
-    });
-  });
-
-  describe('trim', () => {
-    it('should trim string values', () => {
-      expect(fieldMappers.trim('  hello  ')).toBe('hello');
-      expect(fieldMappers.trim('world')).toBe('world');
-      expect(fieldMappers.trim(123)).toBe(123);
-      expect(fieldMappers.trim(null)).toBeNull();
+      await promise;
+      expect(progressCallback).toHaveBeenCalled();
+      expect(progressCallback).toHaveBeenLastCalledWith(100);
     });
   });
 });
