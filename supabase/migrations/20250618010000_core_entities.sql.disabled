@@ -1,0 +1,1 @@
+-- Core entities are created in 20250617221047_initial_schema_combined.sql
