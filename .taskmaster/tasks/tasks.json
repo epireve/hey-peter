@@ -1,0 +1,1560 @@
+{
+  "master": {
+    "tasks": [
+      {
+        "id": 1,
+        "title": "Setup Next.js Project with Supabase and Vercel",
+        "description": "Initialize Next.js 14 project with TypeScript, Tailwind CSS, Supabase integration, and Vercel deployment setup for HeyPeter Academy LMS",
+        "status": "done",
+        "priority": "high",
+        "complexity": 6,
+        "dependencies": [],
+        "created_at": "2024-06-17T10:00:00Z",
+        "updated_at": "2024-06-29T06:35:00Z",
+        "tags": [
+          "next.js",
+          "typescript",
+          "supabase",
+          "vercel",
+          "setup"
+        ],
+        "subtasks": [
+          {
+            "id": "1.1",
+            "title": "Initialize Next.js 14 Project with TypeScript",
+            "status": "done",
+            "dependencies": []
+          },
+          {
+            "id": "1.2",
+            "title": "Configure Tailwind CSS and shadcn/ui Components",
+            "status": "done",
+            "dependencies": [
+              "1.1"
+            ]
+          },
+          {
+            "id": "1.3",
+            "title": "Setup Supabase Client and Environment Variables",
+            "status": "done",
+            "dependencies": [
+              "1.1"
+            ]
+          },
+          {
+            "id": "1.4",
+            "title": "Configure Vercel Deployment Pipeline",
+            "status": "done",
+            "dependencies": [
+              "1.2",
+              "1.3"
+            ]
+          },
+          {
+            "id": "1.5",
+            "title": "Setup Development Scripts and Build Configuration",
+            "status": "done",
+            "dependencies": [
+              "1.4"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Implement Authentication System with Role-Based Access",
+        "description": "Build comprehensive authentication system using Supabase Auth with role-based access control for admin, teacher, and student users",
+        "status": "done",
+        "priority": "high",
+        "complexity": 8,
+        "dependencies": [
+          1
+        ],
+        "created_at": "2024-06-17T10:30:00Z",
+        "updated_at": "2024-06-29T06:35:00Z",
+        "tags": [
+          "auth",
+          "supabase",
+          "security",
+          "rbac"
+        ],
+        "subtasks": [
+          {
+            "id": "2.1",
+            "title": "Setup Supabase Auth Configuration",
+            "status": "done",
+            "dependencies": []
+          },
+          {
+            "id": "2.2",
+            "title": "Create Authentication Forms (Login, Signup, Password Reset)",
+            "status": "done",
+            "dependencies": [
+              "2.1"
+            ]
+          },
+          {
+            "id": "2.3",
+            "title": "Implement Next.js Middleware for Route Protection",
+            "status": "done",
+            "dependencies": [
+              "2.1"
+            ]
+          },
+          {
+            "id": "2.4",
+            "title": "Add Role-Based Access Control (Admin, Teacher, Student)",
+            "status": "done",
+            "dependencies": [
+              "2.2",
+              "2.3"
+            ]
+          },
+          {
+            "id": "2.5",
+            "title": "Create User Context and Authentication Hooks",
+            "status": "done",
+            "dependencies": [
+              "2.4"
+            ]
+          },
+          {
+            "id": "2.6",
+            "title": "Implement Server-Side Authentication Helpers",
+            "status": "done",
+            "dependencies": [
+              "2.3"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Design and Implement Database Schema",
+        "description": "Create comprehensive database schema with all tables, relationships, RLS policies, and migration files for the LMS system",
+        "status": "done",
+        "priority": "high",
+        "complexity": 9,
+        "dependencies": [
+          1
+        ],
+        "created_at": "2024-06-17T11:00:00Z",
+        "updated_at": "2024-06-29T06:35:00Z",
+        "tags": [
+          "database",
+          "schema",
+          "migrations",
+          "supabase"
+        ],
+        "subtasks": [
+          {
+            "id": "3.1",
+            "title": "Design Core Entity Tables (Users, Students, Teachers, Courses)",
+            "status": "done",
+            "dependencies": []
+          },
+          {
+            "id": "3.2",
+            "title": "Create Junction Tables for Many-to-Many Relationships",
+            "status": "done",
+            "dependencies": [
+              "3.1"
+            ]
+          },
+          {
+            "id": "3.3",
+            "title": "Implement Row Level Security (RLS) Policies",
+            "status": "done",
+            "dependencies": [
+              "3.1"
+            ]
+          },
+          {
+            "id": "3.4",
+            "title": "Add Performance Indexes and Query Optimization",
+            "status": "done",
+            "dependencies": [
+              "3.2"
+            ]
+          },
+          {
+            "id": "3.5",
+            "title": "Create Database Views for Complex Queries",
+            "status": "done",
+            "dependencies": [
+              "3.3"
+            ]
+          },
+          {
+            "id": "3.6",
+            "title": "Setup Database Functions and Triggers",
+            "status": "done",
+            "dependencies": [
+              "3.4"
+            ]
+          },
+          {
+            "id": "3.7",
+            "title": "Implement Audit Logging System",
+            "status": "done",
+            "dependencies": [
+              "3.5"
+            ]
+          },
+          {
+            "id": "3.8",
+            "title": "Create Migration Scripts and Version Control",
+            "status": "done",
+            "dependencies": [
+              "3.6",
+              "3.7"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Build Admin Portal for User Management",
+        "description": "Create admin dashboard with teacher account creation, user management, and system administration features [Updated: 6/18/2025]",
+        "status": "done",
+        "priority": "high",
+        "complexity": 7,
+        "dependencies": [
+          2,
+          3
+        ],
+        "created_at": "2024-06-17T11:30:00Z",
+        "updated_at": "2024-06-29T06:35:00Z",
+        "tags": [
+          "admin",
+          "dashboard",
+          "management"
+        ],
+        "implementation_details": [
+          "1. Create admin dashboard layout with navigation",
+          "2. Build teacher creation form with validation using react-hook-form",
+          "3. Implement teacher list view with search and filtering",
+          "4. Create teacher profile editing interface",
+          "5. Add bulk teacher import functionality",
+          "6. Implement user role management interface",
+          "7. Create system settings configuration panel",
+          "8. Add user activity monitoring dashboard",
+          "9. Implement teacher account activation/deactivation",
+          "10. Create audit log for admin actions",
+          "11. Use Shadcn UI components for consistent design",
+          "12. Implement data tables with sorting and pagination"
+        ],
+        "test_strategy": "Test teacher account creation flow, verify email credentials are sent via Mailgun, validate form validation works, test bulk import functionality, confirm role assignments work correctly",
+        "subtasks": [
+          {
+            "id": "4.1",
+            "title": "Design Admin Portal Layout and Navigation",
+            "status": "done",
+            "dependencies": []
+          },
+          {
+            "id": "4.2",
+            "title": "Implement Authentication and Authorization Components",
+            "status": "done",
+            "dependencies": [
+              "4.1"
+            ]
+          },
+          {
+            "id": "4.3",
+            "title": "Develop Dashboard and Analytics UI Components",
+            "status": "done",
+            "dependencies": [
+              "4.1",
+              "4.2"
+            ]
+          },
+          {
+            "id": "4.4",
+            "title": "Build Data Table and List View Components",
+            "status": "done",
+            "dependencies": [
+              "4.1"
+            ]
+          },
+          {
+            "id": "4.5",
+            "title": "Implement Form Components and Validation System",
+            "status": "done",
+            "dependencies": [
+              "4.1"
+            ]
+          },
+          {
+            "id": "4.6",
+            "title": "Create CRUD Operation Forms",
+            "status": "done",
+            "dependencies": [
+              "4.4",
+              "4.5"
+            ]
+          },
+          {
+            "id": "4.7",
+            "title": "Develop Data Management API Integration",
+            "status": "done",
+            "dependencies": [
+              "4.2"
+            ]
+          },
+          {
+            "id": "4.8",
+            "title": "Build Bulk Operations Interface",
+            "status": "done",
+            "dependencies": [
+              "4.4",
+              "4.7"
+            ]
+          },
+          {
+            "id": "4.9",
+            "title": "Implement Import/Export Functionality",
+            "status": "done",
+            "dependencies": [
+              "4.5",
+              "4.8"
+            ]
+          },
+          {
+            "id": "4.10",
+            "title": "Develop User Management Workflow",
+            "status": "done",
+            "dependencies": [
+              "4.6",
+              "4.7"
+            ]
+          },
+          {
+            "id": "4.11",
+            "title": "Implement Content Management Workflow",
+            "status": "done",
+            "dependencies": [
+              "4.6",
+              "4.7"
+            ]
+          },
+          {
+            "id": "4.12",
+            "title": "Create System Configuration and Settings Interface",
+            "status": "done",
+            "dependencies": [
+              "4.5",
+              "4.7"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Develop Teacher Portal with Student Management",
+        "description": "Build teacher dashboard with class management, student tracking, availability scheduling, and compensation display",
+        "status": "in-progress",
+        "priority": "medium",
+        "complexity": 7,
+        "dependencies": [
+          2,
+          3
+        ],
+        "created_at": "2024-06-17T12:00:00Z",
+        "updated_at": "2024-06-17T12:00:00Z",
+        "tags": [
+          "teacher",
+          "portal",
+          "scheduling",
+          "management"
+        ],
+        "subtasks": [
+          {
+            "id": "5.1",
+            "title": "Create Teacher Dashboard Layout",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "5.2",
+            "title": "Implement Class Hour Tracking System with Filtering",
+            "status": "pending",
+            "dependencies": [
+              "5.1"
+            ]
+          },
+          {
+            "id": "5.3",
+            "title": "Build Teaching Availability Scheduler (Weekly Time Slots)",
+            "status": "pending",
+            "dependencies": [
+              "5.1"
+            ]
+          },
+          {
+            "id": "5.4",
+            "title": "Create Weekly Timetable with Drag-and-Drop Editing",
+            "status": "pending",
+            "dependencies": [
+              "5.2",
+              "5.3"
+            ]
+          },
+          {
+            "id": "5.5",
+            "title": "Implement Compensation Display (Weekly/Monthly Income, Salary Status)",
+            "status": "pending",
+            "dependencies": [
+              "5.2"
+            ]
+          },
+          {
+            "id": "5.6",
+            "title": "Add Teacher Analytics Dashboard (Hours, Feedback, Attendance)",
+            "status": "pending",
+            "dependencies": [
+              "5.4",
+              "5.5"
+            ]
+          },
+          {
+            "id": "5.7",
+            "title": "Build Export Functionality for Timetables (Excel/PDF + Printing)",
+            "status": "pending",
+            "dependencies": [
+              "5.4"
+            ]
+          },
+          {
+            "id": "5.8",
+            "title": "Create Bonus and Compensation Rules Display",
+            "status": "pending",
+            "dependencies": [
+              "5.5"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Create Student Portal with Booking and Progress Tracking",
+        "description": "Build student dashboard with course progress, class booking, leave management, and learning materials access",
+        "status": "pending",
+        "priority": "medium",
+        "complexity": 8,
+        "dependencies": [
+          2,
+          3
+        ],
+        "created_at": "2024-06-17T12:30:00Z",
+        "updated_at": "2024-06-17T12:30:00Z",
+        "tags": [
+          "student",
+          "portal",
+          "booking",
+          "progress"
+        ],
+        "subtasks": [
+          {
+            "id": "6.1",
+            "title": "Design Student Dashboard Interface",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "6.2",
+            "title": "Implement Course Progress Tracking with Visual Indicators",
+            "status": "pending",
+            "dependencies": [
+              "6.1"
+            ]
+          },
+          {
+            "id": "6.3",
+            "title": "Build Monthly Calendar with Progress Display (Unit/Lesson Format)",
+            "status": "pending",
+            "dependencies": [
+              "6.2"
+            ]
+          },
+          {
+            "id": "6.4",
+            "title": "Create Leave Application System with Hour Deduction Rules",
+            "status": "pending",
+            "dependencies": [
+              "6.1"
+            ]
+          },
+          {
+            "id": "6.5",
+            "title": "Implement Hour Balance Display and Real-time Tracking",
+            "status": "pending",
+            "dependencies": [
+              "6.2"
+            ]
+          },
+          {
+            "id": "6.6",
+            "title": "Build 1v1 Class Booking Interface with Duration Selection",
+            "status": "pending",
+            "dependencies": [
+              "6.1"
+            ]
+          },
+          {
+            "id": "6.7",
+            "title": "Add Weekly Schedule and Reservation System",
+            "status": "pending",
+            "dependencies": [
+              "6.3",
+              "6.6"
+            ]
+          },
+          {
+            "id": "6.8",
+            "title": "Implement Class Reminders and Notifications (5-10 min before)",
+            "status": "pending",
+            "dependencies": [
+              "6.7"
+            ]
+          },
+          {
+            "id": "6.9",
+            "title": "Create Learning Materials Access Portal (PDF/Books)",
+            "status": "pending",
+            "dependencies": [
+              "6.2"
+            ]
+          },
+          {
+            "id": "6.10",
+            "title": "Add Class Meeting Link Display for Online Classes",
+            "status": "pending",
+            "dependencies": [
+              "6.7"
+            ]
+          },
+          {
+            "id": "6.11",
+            "title": "Build Learning Goals Submission for 1v1 Classes",
+            "status": "pending",
+            "dependencies": [
+              "6.6"
+            ]
+          },
+          {
+            "id": "6.12",
+            "title": "Implement Success/Cancel Notifications for 1v1 Bookings",
+            "status": "pending",
+            "dependencies": [
+              "6.6"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "Implement Algorithmic Scheduling System",
+        "description": "Build AI-powered automatic class scheduling with conflict resolution, optimization algorithms, and manual override capabilities",
+        "status": "pending",
+        "priority": "high",
+        "complexity": 10,
+        "dependencies": [
+          3,
+          4,
+          5
+        ],
+        "created_at": "2024-06-17T13:00:00Z",
+        "updated_at": "2024-06-17T13:00:00Z",
+        "tags": [
+          "scheduling",
+          "ai",
+          "algorithm",
+          "optimization"
+        ],
+        "subtasks": [
+          {
+            "id": "7.1",
+            "title": "Design Scheduling Algorithm Architecture",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "7.2",
+            "title": "Implement Auto-Scheduling Rules Engine Based on Unlearned Content",
+            "status": "pending",
+            "dependencies": [
+              "7.1"
+            ]
+          },
+          {
+            "id": "7.3",
+            "title": "Build Class Size Management (Max 9 Students per Class)",
+            "status": "pending",
+            "dependencies": [
+              "7.2"
+            ]
+          },
+          {
+            "id": "7.4",
+            "title": "Create Conflict Detection and Duplicate Prevention System",
+            "status": "pending",
+            "dependencies": [
+              "7.2"
+            ]
+          },
+          {
+            "id": "7.5",
+            "title": "Implement Content Synchronization Logic for Class Groups",
+            "status": "pending",
+            "dependencies": [
+              "7.3"
+            ]
+          },
+          {
+            "id": "7.6",
+            "title": "Add Alternative Class Recommendation When Full",
+            "status": "pending",
+            "dependencies": [
+              "7.4",
+              "7.5"
+            ]
+          },
+          {
+            "id": "7.7",
+            "title": "Build Manual Override and AI Recommendation Interface",
+            "status": "pending",
+            "dependencies": [
+              "7.6"
+            ]
+          },
+          {
+            "id": "7.8",
+            "title": "Implement Daily Data Table Updates for Tracking",
+            "status": "pending",
+            "dependencies": [
+              "7.7"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "Integrate Mailgun Email Service",
+        "description": "Setup automated email notifications for class reminders, booking confirmations, and system alerts using Mailgun API",
+        "status": "pending",
+        "priority": "medium",
+        "complexity": 5,
+        "dependencies": [
+          1,
+          3
+        ],
+        "created_at": "2024-06-17T13:30:00Z",
+        "updated_at": "2024-06-17T13:30:00Z",
+        "tags": [
+          "email",
+          "mailgun",
+          "notifications",
+          "automation"
+        ],
+        "subtasks": [
+          {
+            "id": "8.1",
+            "title": "Setup Mailgun Account and API Configuration",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "8.2",
+            "title": "Create Email Template System",
+            "status": "pending",
+            "dependencies": [
+              "8.1"
+            ]
+          },
+          {
+            "id": "8.3",
+            "title": "Implement Class Reminder Emails",
+            "status": "pending",
+            "dependencies": [
+              "8.2"
+            ]
+          },
+          {
+            "id": "8.4",
+            "title": "Build Booking Confirmation Notifications",
+            "status": "pending",
+            "dependencies": [
+              "8.2"
+            ]
+          },
+          {
+            "id": "8.5",
+            "title": "Add Weekly Schedule Email Generation for Teachers",
+            "status": "pending",
+            "dependencies": [
+              "8.3"
+            ]
+          },
+          {
+            "id": "8.6",
+            "title": "Implement Teacher Credential Email System",
+            "status": "pending",
+            "dependencies": [
+              "8.4"
+            ]
+          },
+          {
+            "id": "8.7",
+            "title": "Create Hour Balance Warning Notifications",
+            "status": "pending",
+            "dependencies": [
+              "8.3"
+            ]
+          },
+          {
+            "id": "8.8",
+            "title": "Build Class Change Notifications for Teachers and Students",
+            "status": "pending",
+            "dependencies": [
+              "8.4"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 9,
+        "title": "Build Hour Management and Leave Request System",
+        "description": "Implement comprehensive hour tracking with leave management, auto-postponement logic, and hour deduction rules",
+        "status": "pending",
+        "priority": "medium",
+        "complexity": 6,
+        "dependencies": [
+          3,
+          6,
+          8
+        ],
+        "created_at": "2024-06-17T14:00:00Z",
+        "updated_at": "2024-06-17T14:00:00Z",
+        "tags": [
+          "hours",
+          "leave",
+          "tracking",
+          "management"
+        ],
+        "subtasks": [
+          {
+            "id": "9.1",
+            "title": "Design Hour Tracking Data Model",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "9.2",
+            "title": "Implement Hour Deduction Rules Engine (Attended/Leave/No-show)",
+            "status": "pending",
+            "dependencies": [
+              "9.1"
+            ]
+          },
+          {
+            "id": "9.3",
+            "title": "Build Leave Request Submission System",
+            "status": "pending",
+            "dependencies": [
+              "9.1"
+            ]
+          },
+          {
+            "id": "9.4",
+            "title": "Create Admin-Defined Leave Rules Configuration",
+            "status": "pending",
+            "dependencies": [
+              "9.3"
+            ]
+          },
+          {
+            "id": "9.5",
+            "title": "Implement Auto-Postponement Logic (48hr Rule)",
+            "status": "pending",
+            "dependencies": [
+              "9.2",
+              "9.4"
+            ]
+          },
+          {
+            "id": "9.6",
+            "title": "Add Auto-Suggest Make-up Classes System",
+            "status": "pending",
+            "dependencies": [
+              "9.5"
+            ]
+          },
+          {
+            "id": "9.7",
+            "title": "Build Hour Balance Warnings and Low Balance Alerts",
+            "status": "pending",
+            "dependencies": [
+              "9.2"
+            ]
+          },
+          {
+            "id": "9.8",
+            "title": "Create Leave Approval Workflow",
+            "status": "pending",
+            "dependencies": [
+              "9.4"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 10,
+        "title": "Develop Analytics Dashboard and Reporting",
+        "description": "Create comprehensive analytics with attendance reports, performance metrics, and data visualization for admin insights",
+        "status": "pending",
+        "priority": "medium",
+        "complexity": 6,
+        "dependencies": [
+          3,
+          4,
+          5,
+          6
+        ],
+        "created_at": "2024-06-17T14:30:00Z",
+        "updated_at": "2024-06-17T14:30:00Z",
+        "tags": [
+          "analytics",
+          "reporting",
+          "dashboard",
+          "visualization"
+        ],
+        "subtasks": [
+          {
+            "id": "10.1",
+            "title": "Design Analytics Dashboard Layout",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "10.2",
+            "title": "Implement Attendance Reporting by Class/Teacher/Period",
+            "status": "pending",
+            "dependencies": [
+              "10.1"
+            ]
+          },
+          {
+            "id": "10.3",
+            "title": "Build Hour Usage and Balance Analytics",
+            "status": "pending",
+            "dependencies": [
+              "10.1"
+            ]
+          },
+          {
+            "id": "10.4",
+            "title": "Create Teacher Performance Metrics (Hours, Feedback, etc.)",
+            "status": "pending",
+            "dependencies": [
+              "10.2"
+            ]
+          },
+          {
+            "id": "10.5",
+            "title": "Add Data Visualization Components",
+            "status": "pending",
+            "dependencies": [
+              "10.3",
+              "10.4"
+            ]
+          },
+          {
+            "id": "10.6",
+            "title": "Implement Export Functionality (Excel/PDF)",
+            "status": "pending",
+            "dependencies": [
+              "10.5"
+            ]
+          },
+          {
+            "id": "10.7",
+            "title": "Build Average Class Hour Consumption Analytics",
+            "status": "pending",
+            "dependencies": [
+              "10.3"
+            ]
+          },
+          {
+            "id": "10.8",
+            "title": "Create Attendance Rate by Class Analytics",
+            "status": "pending",
+            "dependencies": [
+              "10.2"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 11,
+        "title": "Implement Feedback and Evaluation System",
+        "description": "Build course evaluation system with student ratings, teacher notes, and admin feedback analysis for curriculum improvement",
+        "status": "pending",
+        "priority": "low",
+        "complexity": 4,
+        "dependencies": [
+          3,
+          5,
+          6
+        ],
+        "created_at": "2024-06-17T15:00:00Z",
+        "updated_at": "2024-06-17T15:00:00Z",
+        "tags": [
+          "feedback",
+          "evaluation",
+          "rating",
+          "curriculum"
+        ],
+        "subtasks": [
+          {
+            "id": "11.1",
+            "title": "Design Feedback Data Schema",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "11.2",
+            "title": "Build Student Rating and Comment Interface (Post-Class)",
+            "status": "pending",
+            "dependencies": [
+              "11.1"
+            ]
+          },
+          {
+            "id": "11.3",
+            "title": "Create Teacher Note-Taking System for Student Performance",
+            "status": "pending",
+            "dependencies": [
+              "11.1"
+            ]
+          },
+          {
+            "id": "11.4",
+            "title": "Implement Admin Feedback Dashboard for Curriculum Analysis",
+            "status": "pending",
+            "dependencies": [
+              "11.2",
+              "11.3"
+            ]
+          },
+          {
+            "id": "11.5",
+            "title": "Add Feedback Analytics and Insights",
+            "status": "pending",
+            "dependencies": [
+              "11.4"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Performance Optimization and Production Deployment",
+        "description": "Optimize application performance, implement monitoring, and deploy to production with CI/CD pipeline",
+        "status": "pending",
+        "priority": "high",
+        "complexity": 7,
+        "dependencies": [
+          1,
+          7,
+          8,
+          9,
+          10
+        ],
+        "created_at": "2024-06-17T15:30:00Z",
+        "updated_at": "2024-06-17T15:30:00Z",
+        "tags": [
+          "optimization",
+          "deployment",
+          "performance",
+          "monitoring"
+        ],
+        "subtasks": [
+          {
+            "id": "12.1",
+            "title": "Implement Code Splitting and Lazy Loading",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "12.2",
+            "title": "Optimize Database Queries and Indexes",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "12.3",
+            "title": "Setup Application Performance Monitoring",
+            "status": "pending",
+            "dependencies": [
+              "12.1"
+            ]
+          },
+          {
+            "id": "12.4",
+            "title": "Implement Caching Strategies",
+            "status": "pending",
+            "dependencies": [
+              "12.2"
+            ]
+          },
+          {
+            "id": "12.5",
+            "title": "Create Production CI/CD Pipeline",
+            "status": "pending",
+            "dependencies": [
+              "12.3"
+            ]
+          },
+          {
+            "id": "12.6",
+            "title": "Setup Error Tracking and Logging",
+            "status": "pending",
+            "dependencies": [
+              "12.4"
+            ]
+          },
+          {
+            "id": "12.7",
+            "title": "Deploy to Production Environment",
+            "status": "pending",
+            "dependencies": [
+              "12.5",
+              "12.6"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Fix SQL Migration Dependency Issue in Initial Schema",
+        "description": "Resolve the SQL migration dependency problem where the migration file is missing core table definitions entirely. The file currently starts with junction tables (user_roles, student_courses, class_schedules) that reference non-existent core tables (users, students, courses, etc.), causing dependency failures.",
+        "status": "done",
+        "priority": "high",
+        "complexity": 8,
+        "dependencies": [
+          1
+        ],
+        "created_at": "2024-06-17T16:00:00Z",
+        "updated_at": "2024-06-17T16:00:00Z",
+        "tags": [
+          "migration",
+          "sql",
+          "database",
+          "dependencies"
+        ],
+        "subtasks": [
+          {
+            "id": "13.1",
+            "title": "Analyze Current Migration File Structure",
+            "status": "done",
+            "dependencies": []
+          },
+          {
+            "id": "13.2",
+            "title": "Extract and Uncomment Core Table Definitions",
+            "status": "done",
+            "dependencies": [
+              "13.1"
+            ]
+          },
+          {
+            "id": "13.3",
+            "title": "Define Dependent Core Tables",
+            "status": "done",
+            "dependencies": [
+              "13.2"
+            ]
+          },
+          {
+            "id": "13.4",
+            "title": "Prepare Junction Table Definitions",
+            "status": "done",
+            "dependencies": [
+              "13.3"
+            ]
+          },
+          {
+            "id": "13.5",
+            "title": "Create Proper Table Dependency Order",
+            "status": "done",
+            "dependencies": [
+              "13.4"
+            ]
+          },
+          {
+            "id": "13.6",
+            "title": "Rewrite Migration File with Correct Order",
+            "status": "done",
+            "dependencies": [
+              "13.5"
+            ]
+          },
+          {
+            "id": "13.7",
+            "title": "Add Error Handling and Rollback Procedures",
+            "status": "done",
+            "dependencies": [
+              "13.6"
+            ]
+          },
+          {
+            "id": "13.8",
+            "title": "Validate All Foreign Key Constraints",
+            "status": "done",
+            "dependencies": [
+              "13.7"
+            ]
+          },
+          {
+            "id": "13.9",
+            "title": "Test Migration on Clean Database",
+            "status": "done",
+            "dependencies": [
+              "13.8"
+            ]
+          },
+          {
+            "id": "13.10",
+            "title": "Document Final Table Dependency Chain",
+            "status": "done",
+            "dependencies": [
+              "13.9"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Build Student Information Management System",
+        "description": "Implement comprehensive student information entry and management system with auto-generated IDs, internal codes, course types, and material tracking",
+        "status": "pending",
+        "priority": "high",
+        "complexity": 6,
+        "dependencies": [
+          2,
+          3
+        ],
+        "created_at": "2024-06-17T16:30:00Z",
+        "updated_at": "2024-06-17T16:30:00Z",
+        "tags": [
+          "student",
+          "information",
+          "management",
+          "tracking"
+        ],
+        "subtasks": [
+          {
+            "id": "14.1",
+            "title": "Design Student Information Data Model",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "14.2",
+            "title": "Implement Auto-Generated Student ID System",
+            "status": "pending",
+            "dependencies": [
+              "14.1"
+            ]
+          },
+          {
+            "id": "14.3",
+            "title": "Create Internal Code Generation (Coach Code + Student Number)",
+            "status": "pending",
+            "dependencies": [
+              "14.2"
+            ]
+          },
+          {
+            "id": "14.4",
+            "title": "Build Course Types Management (Basic, Everyday A/B, Speak Up, Business, 1-on-1)",
+            "status": "pending",
+            "dependencies": [
+              "14.1"
+            ]
+          },
+          {
+            "id": "14.5",
+            "title": "Implement Material Issuance Tracking System",
+            "status": "pending",
+            "dependencies": [
+              "14.4"
+            ]
+          },
+          {
+            "id": "14.6",
+            "title": "Create Student Profile Management with Photo Upload",
+            "status": "pending",
+            "dependencies": [
+              "14.3"
+            ]
+          },
+          {
+            "id": "14.7",
+            "title": "Add English Proficiency Tracking (Manual + AI-based)",
+            "status": "pending",
+            "dependencies": [
+              "14.6"
+            ]
+          },
+          {
+            "id": "14.8",
+            "title": "Build Payment and Course Sales Representative Tracking",
+            "status": "pending",
+            "dependencies": [
+              "14.5"
+            ]
+          },
+          {
+            "id": "14.9",
+            "title": "Implement Lead Source and Referrer Management",
+            "status": "pending",
+            "dependencies": [
+              "14.6"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Implement 1v1 Booking System with Auto-Matching",
+        "description": "Build comprehensive 1v1 booking system with teacher selection, duration options, auto-matching, and conflict resolution",
+        "status": "pending",
+        "priority": "high",
+        "complexity": 8,
+        "dependencies": [
+          3,
+          5,
+          6
+        ],
+        "created_at": "2024-06-17T17:00:00Z",
+        "updated_at": "2024-06-17T17:00:00Z",
+        "tags": [
+          "booking",
+          "1v1",
+          "matching",
+          "scheduling"
+        ],
+        "subtasks": [
+          {
+            "id": "15.1",
+            "title": "Design 1v1 Booking Data Model",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "15.2",
+            "title": "Build Teacher Selection Interface for Students",
+            "status": "pending",
+            "dependencies": [
+              "15.1"
+            ]
+          },
+          {
+            "id": "15.3",
+            "title": "Implement Duration Selection (30/60 minutes)",
+            "status": "pending",
+            "dependencies": [
+              "15.2"
+            ]
+          },
+          {
+            "id": "15.4",
+            "title": "Create Auto-Matching Engine (Time-based Teacher Suggestions)",
+            "status": "pending",
+            "dependencies": [
+              "15.3"
+            ]
+          },
+          {
+            "id": "15.5",
+            "title": "Build Teacher-First Selection with Available Times Display",
+            "status": "pending",
+            "dependencies": [
+              "15.4"
+            ]
+          },
+          {
+            "id": "15.6",
+            "title": "Implement Conflict Detection and Alternative Recommendations",
+            "status": "pending",
+            "dependencies": [
+              "15.5"
+            ]
+          },
+          {
+            "id": "15.7",
+            "title": "Add Learning Goals Submission Interface",
+            "status": "pending",
+            "dependencies": [
+              "15.3"
+            ]
+          },
+          {
+            "id": "15.8",
+            "title": "Create Booking Availability Constraints (Teacher Times Only)",
+            "status": "pending",
+            "dependencies": [
+              "15.6"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "Build Visitor Popup and Lead Generation System",
+        "description": "Implement website popup system for unregistered users to contact sales and generate leads",
+        "status": "pending",
+        "priority": "low",
+        "complexity": 3,
+        "dependencies": [
+          1,
+          8
+        ],
+        "created_at": "2024-06-17T17:30:00Z",
+        "updated_at": "2024-06-17T17:30:00Z",
+        "tags": [
+          "popup",
+          "leads",
+          "sales",
+          "marketing"
+        ],
+        "subtasks": [
+          {
+            "id": "16.1",
+            "title": "Design Visitor Popup Interface",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "16.2",
+            "title": "Implement Popup Trigger Logic for Unregistered Users",
+            "status": "pending",
+            "dependencies": [
+              "16.1"
+            ]
+          },
+          {
+            "id": "16.3",
+            "title": "Create Contact Form with Lead Capture",
+            "status": "pending",
+            "dependencies": [
+              "16.2"
+            ]
+          },
+          {
+            "id": "16.4",
+            "title": "Build Sales Team Notification System",
+            "status": "pending",
+            "dependencies": [
+              "16.3"
+            ]
+          },
+          {
+            "id": "16.5",
+            "title": "Add Lead Management Dashboard for Sales",
+            "status": "pending",
+            "dependencies": [
+              "16.4"
+            ]
+          }
+        ]
+      },
+      {
+        "id": 17,
+        "title": "Build MySakinah Studio - AI Marketing Asset Generator",
+        "description": "Create a prototype for MySakinah Studio that programmatically generates marketing assets by merging AI-generated images with Canva templates and uploads to Google Drive with real-time previews",
+        "status": "pending",
+        "priority": "high",
+        "complexity": 9,
+        "dependencies": [
+          1,
+          3
+        ],
+        "created_at": "2024-06-29T07:30:00Z",
+        "updated_at": "2024-06-29T07:30:00Z",
+        "tags": [
+          "studio",
+          "ai",
+          "marketing",
+          "automation",
+          "prototype"
+        ],
+        "project_type": "studio",
+        "api_integrations": [
+          "openai",
+          "canva",
+          "google-drive"
+        ],
+        "success_metrics": {
+          "generation_latency": "< 10s",
+          "uptime": "99.5%",
+          "asset_accuracy": ">= 95%",
+          "link_validity": "100%"
+        },
+        "subtasks": [
+          {
+            "id": "17.1",
+            "title": "Setup Studio Project Structure and Database Schema",
+            "status": "pending",
+            "dependencies": []
+          },
+          {
+            "id": "17.2",
+            "title": "Integrate OpenAI GPT-4 Vision API for Image Generation",
+            "status": "pending",
+            "dependencies": [
+              "17.1"
+            ]
+          },
+          {
+            "id": "17.3",
+            "title": "Setup Canva Connect API Integration",
+            "status": "pending",
+            "dependencies": [
+              "17.1"
+            ]
+          },
+          {
+            "id": "17.4",
+            "title": "Implement Google Drive API for File Upload and Sharing",
+            "status": "pending",
+            "dependencies": [
+              "17.1"
+            ]
+          },
+          {
+            "id": "17.5",
+            "title": "Create Generation Job Management System",
+            "status": "pending",
+            "dependencies": [
+              "17.2",
+              "17.3",
+              "17.4"
+            ]
+          },
+          {
+            "id": "17.6",
+            "title": "Build Template Selection and Management Interface",
+            "status": "pending",
+            "dependencies": [
+              "17.3"
+            ]
+          },
+          {
+            "id": "17.7",
+            "title": "Implement AI Image to Template Composition Engine",
+            "status": "pending",
+            "dependencies": [
+              "17.2",
+              "17.3",
+              "17.6"
+            ]
+          },
+          {
+            "id": "17.8",
+            "title": "Create Real-time Preview System with Thumbnails",
+            "status": "pending",
+            "dependencies": [
+              "17.7"
+            ]
+          },
+          {
+            "id": "17.9",
+            "title": "Build Asset Export and Google Drive Upload Pipeline",
+            "status": "pending",
+            "dependencies": [
+              "17.4",
+              "17.7"
+            ]
+          },
+          {
+            "id": "17.10",
+            "title": "Implement User Interface for Studio Dashboard",
+            "status": "pending",
+            "dependencies": [
+              "17.5",
+              "17.8",
+              "17.9"
+            ]
+          },
+          {
+            "id": "17.11",
+            "title": "Add Error Handling and Retry Logic for API Calls",
+            "status": "pending",
+            "dependencies": [
+              "17.10"
+            ]
+          },
+          {
+            "id": "17.12",
+            "title": "Implement Performance Monitoring and Analytics",
+            "status": "pending",
+            "dependencies": [
+              "17.11"
+            ]
+          },
+          {
+            "id": "17.13",
+            "title": "Create API Documentation and Usage Examples",
+            "status": "pending",
+            "dependencies": [
+              "17.10"
+            ]
+          },
+          {
+            "id": "17.14",
+            "title": "Build Automated Testing Suite for Generation Pipeline",
+            "status": "pending",
+            "dependencies": [
+              "17.12"
+            ]
+          },
+          {
+            "id": "17.15",
+            "title": "Deploy Studio to Production with Monitoring",
+            "status": "pending",
+            "dependencies": [
+              "17.13",
+              "17.14"
+            ]
+          }
+        ]
+      }
+    ],
+    "metadata": {
+      "version": "2.1.0",
+      "last_updated": "2024-06-29T07:30:00Z",
+      "total_tasks": 17,
+      "completed_tasks": 5,
+      "total_subtasks": 142,
+      "completed_subtasks": 41,
+      "project_name": "HeyPeter Academy LMS + MySakinah Studio",
+      "progress_percentage": 29,
+      "subtask_progress_percentage": 29,
+      "priority_breakdown": {
+        "high": 10,
+        "medium": 5,
+        "low": 2
+      },
+      "project_types": [
+        "lms",
+        "studio"
+      ],
+      "created": "2025-06-28T23:12:54.179Z",
+      "description": "Tasks for master context",
+      "updated": "2025-06-29T02:01:55.350Z"
+    }
+  }
+}
