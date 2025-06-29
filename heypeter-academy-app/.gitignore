@@ -29,6 +29,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+dev-debug.log
 
 # env files (can opt-in for committing if needed)
 .env*
@@ -39,16 +40,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-.env
 
-# Added by Task Master AI
-# Logs
-logs
-*.log
-dev-debug.log
-# Dependency directories
-node_modules/
-# Environment variables
 # Editor directories and files
 .idea
 .vscode
@@ -57,4 +49,19 @@ node_modules/
 *.njsproj
 *.sln
 *.sw?
+
 # OS specific
+.DS_Store
+
+.cursor
+.roo
+.taskmaster
+.roomodes
+.windsurfrules
+.kilocode/mcp.json
+reqs.pdf
+heypeter-academy/supabase/migrations/supabase/.temp/*
+heypeter-academy/supabase/.temp/*
+
+# Ignore the old heypeter-academy directory
+heypeter-academy/
