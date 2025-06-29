@@ -28,7 +28,17 @@
       "Bash(npx tsc:*)",
       "Bash(grep:*)",
       "Bash(npm run test:coverage:*)",
-      "Bash(timeout 15 npm run dev 2 >& 1)"
+      "Bash(timeout 15 npm run dev 2 >& 1)",
+      "Bash(git checkout:*)",
+      "Bash(jq:*)",
+      "Bash(npx supabase db dump:*)",
+      "Bash(npx supabase db reset:*)",
+      "Bash(npx supabase:*)",
+      "Bash(mv:*)",
+      "Bash(git cherry-pick:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)"
     ],
     "deny": []
   }
