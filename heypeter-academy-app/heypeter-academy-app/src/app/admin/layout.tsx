@@ -1,4 +1,4 @@
-import * as React from "react";
+import React from "react";
 import Link from "next/link";
 import { 
   LayoutDashboard, 
@@ -24,11 +24,11 @@ const navItems = [
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
-export default function AdminLayout({
-  children,
-}: Readonly<{
+interface AdminLayoutProps {
   children: React.ReactNode;
-}>) {
+}
+
+export default function AdminLayout({ children }: AdminLayoutProps) {
   return (
     <div className="flex h-screen bg-background">
       <aside className="w-64 bg-card border-r">
