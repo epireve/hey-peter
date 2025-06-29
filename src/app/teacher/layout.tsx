@@ -61,6 +61,25 @@ export default async function TeacherLayout({
                   Dashboard
                 </a>
                 <a
+                  href="/teacher/hours"
+                  className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+                >
+                  <svg
+                    className="text-gray-400 mr-3 h-5 w-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Class Hours
+                </a>
+                <a
                   href="/teacher/schedule"
                   className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
                 >
