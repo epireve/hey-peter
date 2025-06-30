@@ -39,7 +39,9 @@
       "Bash(git fetch:*)",
       "Bash(git pull:*)",
       "Bash(git stash:*)",
-      "Bash(timeout 15 npm run dev 2>&1)"
+      "Bash(timeout 15 npm run dev 2>&1)",
+      "Bash(git branch:*)",
+      "Bash(git gc:*)"
     ],
     "deny": []
   }
