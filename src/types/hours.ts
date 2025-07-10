@@ -888,3 +888,458 @@ export const LEAVE_REQUEST_REFUND_PERCENTAGES = {
   MEDICAL_EMERGENCY: 75,
   NONE: 0
 } as const;
+
+// =====================================================================================
+// EXTENDED ANALYTICS TYPES
+// =====================================================================================
+
+/**
+ * Comprehensive usage analytics for a student
+ */
+export interface HourUsageAnalytics {
+  studentId: string;
+  analysisDate: string;
+  
+  // Balance analytics
+  currentBalance: number;
+  balanceHistory: Array<{
+    date: string;
+    balance: number;
+    change: number;
+    changeReason: string;
+  }>;
+  
+  // Usage patterns
+  dailyUsagePattern: Array<{
+    dayOfWeek: string;
+    averageHours: number;
+    peakHours: number;
+    sessionCount: number;
+  }>;
+  
+  hourlyUsagePattern: Array<{
+    hour: number;
+    averageHours: number;
+    sessionCount: number;
+  }>;
+  
+  // Consumption analysis
+  consumptionRate: {
+    daily: number;
+    weekly: number;
+    monthly: number;
+    trend: 'increasing' | 'decreasing' | 'stable';
+  };
+  
+  // Class type preferences
+  classTypeUsage: Array<{
+    classType: string;
+    totalHours: number;
+    percentage: number;
+    averageSessionLength: number;
+    frequency: number;
+  }>;
+  
+  // Efficiency metrics
+  efficiencyMetrics: {
+    hoursPerClass: number;
+    utilizationRate: number;
+    wastageRate: number;
+    renewalPattern: string;
+  };
+  
+  // Predictions
+  predictions: {
+    runOutDate: string | null;
+    recommendedTopUpDate: string | null;
+    recommendedPackageSize: number;
+    confidenceScore: number;
+  };
+}
+
+/**
+ * Balance trend analysis
+ */
+export interface BalanceTrend {
+  studentId: string;
+  periodStart: string;
+  periodEnd: string;
+  
+  // Trend analysis
+  trend: 'increasing' | 'decreasing' | 'stable' | 'volatile';
+  trendStrength: number; // 0-1 scale
+  
+  // Balance points
+  startingBalance: number;
+  endingBalance: number;
+  peakBalance: number;
+  lowBalance: number;
+  
+  // Usage statistics
+  totalHoursUsed: number;
+  totalHoursPurchased: number;
+  netChange: number;
+  
+  // Patterns
+  averageDailyUsage: number;
+  usageVariability: number;
+  purchaseFrequency: number;
+  
+  // Alerts
+  lowBalanceEvents: number;
+  nearExpiryEvents: number;
+  
+  // Recommendations
+  recommendations: Array<{
+    type: 'purchase' | 'usage_optimization' | 'schedule_adjustment';
+    message: string;
+    priority: 'low' | 'medium' | 'high';
+    actionRequired: boolean;
+  }>;
+}
+
+/**
+ * Hour consumption pattern analysis
+ */
+export interface ConsumptionPattern {
+  patternId: string;
+  studentId: string;
+  classType: string;
+  
+  // Pattern characteristics
+  frequency: 'daily' | 'weekly' | 'bi-weekly' | 'monthly' | 'irregular';
+  consistency: number; // 0-1 scale
+  predictability: number; // 0-1 scale
+  
+  // Time patterns
+  preferredDays: string[];
+  preferredHours: number[];
+  averageSessionLength: number;
+  
+  // Usage metrics
+  totalSessions: number;
+  totalHours: number;
+  averageHoursPerSession: number;
+  
+  // Efficiency
+  completionRate: number;
+  cancellationRate: number;
+  reschedulingRate: number;
+  
+  // Trends
+  usageTrend: 'increasing' | 'decreasing' | 'stable';
+  seasonalPattern: boolean;
+  
+  // Comparison
+  benchmarkComparison: {
+    vsAverage: number; // percentage above/below average
+    percentile: number;
+    efficiency: 'high' | 'medium' | 'low';
+  };
+}
+
+/**
+ * Enhanced low balance alert with predictions
+ */
+export interface LowBalanceAlert {
+  id: string;
+  studentId: string;
+  alertType: HourAlertType;
+  
+  // Alert details
+  currentBalance: number;
+  threshold: number;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  
+  // Predictions
+  estimatedRunOutDate: string | null;
+  daysRemaining: number;
+  
+  // Context
+  recentUsageRate: number;
+  upcomingClasses: number;
+  
+  // Recommendations
+  recommendedAction: string;
+  recommendedPackageSize: number;
+  urgencyLevel: number; // 1-10 scale
+  
+  // Automation
+  autoNotificationSent: boolean;
+  lastNotificationDate: string | null;
+  nextNotificationDate: string | null;
+  
+  // Metadata
+  createdAt: string;
+  updatedAt: string;
+  acknowledgedAt: string | null;
+}
+
+/**
+ * Comprehensive usage report
+ */
+export interface HourUsageReport {
+  reportId: string;
+  generatedAt: string;
+  reportType: 'student' | 'class' | 'overall' | 'predictive';
+  
+  // Period
+  periodStart: string;
+  periodEnd: string;
+  
+  // Summary statistics
+  summary: {
+    totalStudents: number;
+    totalHoursUsed: number;
+    totalHoursPurchased: number;
+    averageUsagePerStudent: number;
+    utilizationRate: number;
+  };
+  
+  // Class type breakdown
+  classTypeBreakdown: Array<{
+    classType: string;
+    totalHours: number;
+    studentCount: number;
+    averageHoursPerStudent: number;
+    popularityRank: number;
+  }>;
+  
+  // Usage patterns
+  peakUsageTimes: Array<{
+    timeSlot: string;
+    hoursUsed: number;
+    sessionCount: number;
+  }>;
+  
+  // Student segments
+  studentSegments: Array<{
+    segment: string;
+    count: number;
+    totalHours: number;
+    averageHours: number;
+    characteristics: string[];
+  }>;
+  
+  // Insights
+  insights: Array<{
+    category: string;
+    insight: string;
+    impact: 'high' | 'medium' | 'low';
+    actionable: boolean;
+  }>;
+  
+  // Recommendations
+  recommendations: Array<{
+    target: 'operations' | 'marketing' | 'curriculum' | 'pricing';
+    recommendation: string;
+    expectedImpact: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+}
+
+/**
+ * Predictive insights for hour usage
+ */
+export interface HourPredictiveInsights {
+  studentId: string;
+  forecastPeriod: string;
+  generatedAt: string;
+  
+  // Run-out prediction
+  runOutPrediction: {
+    date: string | null;
+    confidence: number;
+    factors: Array<{
+      factor: string;
+      impact: 'high' | 'medium' | 'low';
+      description: string;
+    }>;
+  };
+  
+  // Recommended actions
+  recommendedTopUp: {
+    date: string;
+    packageSize: number;
+    reasoning: string;
+  };
+  
+  // Usage optimization
+  usageOptimization: Array<{
+    suggestion: string;
+    impact: string;
+    implementationDifficulty: 'easy' | 'medium' | 'hard';
+  }>;
+  
+  // Risk factors
+  riskFactors: Array<{
+    risk: string;
+    probability: number;
+    severity: 'low' | 'medium' | 'high';
+    mitigation: string;
+  }>;
+}
+
+/**
+ * Analytics dashboard data
+ */
+export interface HourAnalyticsDashboard {
+  generatedAt: string;
+  
+  // Overview metrics
+  overview: {
+    totalActiveStudents: number;
+    totalHoursInCirculation: number;
+    averageBalancePerStudent: number;
+    utilizationRate: number;
+    monthlyGrowthRate: number;
+  };
+  
+  // Alert summary
+  alertSummary: {
+    criticalAlerts: number;
+    highPriorityAlerts: number;
+    mediumPriorityAlerts: number;
+    lowPriorityAlerts: number;
+  };
+  
+  // Usage trends
+  usageTrends: {
+    dailyUsage: Array<{
+      date: string;
+      hoursUsed: number;
+      sessionsCompleted: number;
+    }>;
+    weeklyUsage: Array<{
+      week: string;
+      hoursUsed: number;
+      activeStudents: number;
+    }>;
+    monthlyUsage: Array<{
+      month: string;
+      hoursUsed: number;
+      hoursPurchased: number;
+      netChange: number;
+    }>;
+  };
+  
+  // Performance metrics
+  performanceMetrics: {
+    topPerformingClassTypes: Array<{
+      classType: string;
+      totalHours: number;
+      averageRating: number;
+      completionRate: number;
+    }>;
+    studentSegmentPerformance: Array<{
+      segment: string;
+      utilizationRate: number;
+      satisfactionScore: number;
+      renewalRate: number;
+    }>;
+  };
+  
+  // Predictions
+  predictions: {
+    nextMonthUsage: number;
+    expectedLowBalanceAlerts: number;
+    recommendedPackageAdjustments: Array<{
+      packageId: string;
+      recommendation: string;
+      impact: string;
+    }>;
+  };
+  
+  // Insights
+  keyInsights: Array<{
+    category: 'usage' | 'efficiency' | 'revenue' | 'satisfaction';
+    insight: string;
+    trend: 'positive' | 'negative' | 'neutral';
+    actionRequired: boolean;
+  }>;
+}
+
+/**
+ * Student analytics comparison
+ */
+export interface StudentAnalyticsComparison {
+  studentId: string;
+  comparisonType: 'peer_group' | 'class_type' | 'time_period';
+  
+  // Comparison metrics
+  metrics: {
+    hoursUsed: {
+      student: number;
+      comparison: number;
+      percentile: number;
+      trend: 'above' | 'below' | 'average';
+    };
+    
+    efficiency: {
+      student: number;
+      comparison: number;
+      percentile: number;
+      trend: 'above' | 'below' | 'average';
+    };
+    
+    consistency: {
+      student: number;
+      comparison: number;
+      percentile: number;
+      trend: 'above' | 'below' | 'average';
+    };
+  };
+  
+  // Strengths and areas for improvement
+  strengths: string[];
+  improvements: string[];
+  
+  // Recommendations
+  recommendations: Array<{
+    category: 'usage' | 'scheduling' | 'efficiency';
+    recommendation: string;
+    expectedBenefit: string;
+  }>;
+}
+
+/**
+ * Hour usage forecasting
+ */
+export interface HourUsageForecast {
+  studentId: string;
+  forecastPeriod: {
+    start: string;
+    end: string;
+    days: number;
+  };
+  
+  // Forecasted usage
+  forecastedUsage: Array<{
+    date: string;
+    expectedHours: number;
+    confidence: number;
+    factors: string[];
+  }>;
+  
+  // Seasonal adjustments
+  seasonalAdjustments: Array<{
+    period: string;
+    adjustment: number;
+    reason: string;
+  }>;
+  
+  // Accuracy metrics
+  accuracy: {
+    historicalAccuracy: number;
+    confidenceInterval: number;
+    modelVersion: string;
+  };
+  
+  // Recommendations
+  recommendations: Array<{
+    type: 'purchase' | 'scheduling' | 'usage_optimization';
+    recommendation: string;
+    timing: string;
+    priority: 'high' | 'medium' | 'low';
+  }>;
+}

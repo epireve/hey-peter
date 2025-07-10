@@ -9,6 +9,75 @@ export interface ExportOptions {
   fileName?: string;
   includeHeaders?: boolean;
   dateFormat?: string;
+  includeMetadata?: boolean;
+  customTemplate?: string;
+  emailDelivery?: {
+    enabled: boolean;
+    recipients: string[];
+    subject?: string;
+    message?: string;
+  };
+}
+
+export interface ExportTemplate {
+  id: string;
+  name: string;
+  description: string;
+  format: ExportFormat;
+  columns: string[];
+  styling?: {
+    headerStyle?: any;
+    cellStyle?: any;
+    brandingColors?: string[];
+  };
+  filters?: any;
+  sorting?: any;
+}
+
+export interface BatchExportRequest {
+  exports: {
+    type: string;
+    data: any;
+    options: ExportOptions;
+  }[];
+  batchOptions?: {
+    combinedFile?: boolean;
+    includeTimestamp?: boolean;
+    compression?: boolean;
+  };
+}
+
+export interface ScheduledExportConfig {
+  id: string;
+  name: string;
+  description: string;
+  schedule: {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    time: string;
+    dayOfWeek?: number;
+    dayOfMonth?: number;
+  };
+  export: {
+    type: string;
+    options: ExportOptions;
+    filters?: any;
+  };
+  delivery: {
+    email: {
+      enabled: boolean;
+      recipients: string[];
+      subject: string;
+      template?: string;
+    };
+    storage?: {
+      enabled: boolean;
+      path: string;
+      retention: number; // days
+    };
+  };
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ChartExportData {
@@ -20,6 +89,55 @@ export interface ChartExportData {
 }
 
 class AnalyticsExportService {
+  private templates: Map<string, ExportTemplate> = new Map();
+  private scheduledExports: Map<string, ScheduledExportConfig> = new Map();
+
+  constructor() {
+    this.initializeDefaultTemplates();
+  }
+
+  private initializeDefaultTemplates() {
+    const defaultTemplates: ExportTemplate[] = [
+      {
+        id: 'student-performance',
+        name: 'Student Performance Report',
+        description: 'Comprehensive student performance analytics',
+        format: 'excel',
+        columns: ['name', 'progress', 'attendance', 'testScore', 'course', 'enrollment_date'],
+        styling: {
+          headerStyle: { font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '4A90E2' } } },
+          brandingColors: ['#4A90E2', '#50C878', '#FFD700', '#FF6B6B']
+        }
+      },
+      {
+        id: 'teacher-analytics',
+        name: 'Teacher Analytics Report',
+        description: 'Teacher performance and engagement metrics',
+        format: 'excel',
+        columns: ['name', 'classes_taught', 'student_satisfaction', 'attendance_rate', 'performance_score'],
+        styling: {
+          headerStyle: { font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '10B981' } } },
+          brandingColors: ['#10B981', '#3B82F6', '#F59E0B', '#EF4444']
+        }
+      },
+      {
+        id: 'financial-summary',
+        name: 'Financial Summary Report',
+        description: 'Revenue, expenses, and financial analytics',
+        format: 'excel',
+        columns: ['period', 'revenue', 'expenses', 'profit', 'student_count', 'avg_revenue_per_student'],
+        styling: {
+          headerStyle: { font: { bold: true, color: { rgb: 'FFFFFF' } }, fill: { fgColor: { rgb: '059669' } } },
+          brandingColors: ['#059669', '#DC2626', '#D97706', '#7C3AED']
+        }
+      }
+    ];
+
+    defaultTemplates.forEach(template => {
+      this.templates.set(template.id, template);
+    });
+  }
+
   async exportData(
     data: any[],
     options: ExportOptions,
@@ -488,6 +606,398 @@ class AnalyticsExportService {
   generateFileName(prefix: string, extension: string): string {
     const timestamp = format(new Date(), 'yyyy-MM-dd-HHmmss');
     return `${prefix}-${timestamp}.${extension}`;
+  }
+
+  // Template Management
+  getTemplate(id: string): ExportTemplate | undefined {
+    return this.templates.get(id);
+  }
+
+  getAllTemplates(): ExportTemplate[] {
+    return Array.from(this.templates.values());
+  }
+
+  createTemplate(template: ExportTemplate): void {
+    this.templates.set(template.id, template);
+  }
+
+  updateTemplate(template: ExportTemplate): void {
+    this.templates.set(template.id, template);
+  }
+
+  deleteTemplate(id: string): boolean {
+    return this.templates.delete(id);
+  }
+
+  // Batch Export Functionality
+  async exportBatch(request: BatchExportRequest): Promise<void> {
+    try {
+      const exports = request.exports;
+      const batchOptions = request.batchOptions || {};
+
+      if (batchOptions.combinedFile) {
+        await this.exportCombinedBatch(exports, batchOptions);
+      } else {
+        // Export each item separately
+        for (const exportItem of exports) {
+          await this.exportData(exportItem.data, exportItem.options);
+        }
+      }
+    } catch (error) {
+      console.error('Batch export failed:', error);
+      throw error;
+    }
+  }
+
+  private async exportCombinedBatch(
+    exports: { type: string; data: any; options: ExportOptions }[],
+    batchOptions: any
+  ): Promise<void> {
+    const workbook = XLSX.utils.book_new();
+    const timestamp = batchOptions.includeTimestamp ? format(new Date(), 'yyyy-MM-dd-HHmmss') : '';
+
+    // Create summary sheet
+    const summaryData = exports.map((exp, index) => ({
+      'Sheet Name': exp.type,
+      'Record Count': Array.isArray(exp.data) ? exp.data.length : 1,
+      'Export Format': exp.options.format,
+      'Generated At': format(new Date(), 'yyyy-MM-dd HH:mm:ss')
+    }));
+
+    const summarySheet = XLSX.utils.json_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(workbook, summarySheet, 'Export Summary');
+
+    // Add each export as a separate sheet
+    exports.forEach((exp, index) => {
+      const sheetName = exp.type.slice(0, 30); // Excel sheet name limit
+      const data = Array.isArray(exp.data) ? exp.data : [exp.data];
+      const sheet = XLSX.utils.json_to_sheet(data);
+      XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+    });
+
+    // Write file
+    const fileName = `batch-export${timestamp ? `-${timestamp}` : ''}.xlsx`;
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, fileName);
+  }
+
+  // Scheduled Export Management
+  createScheduledExport(config: ScheduledExportConfig): void {
+    this.scheduledExports.set(config.id, config);
+  }
+
+  getScheduledExport(id: string): ScheduledExportConfig | undefined {
+    return this.scheduledExports.get(id);
+  }
+
+  getAllScheduledExports(): ScheduledExportConfig[] {
+    return Array.from(this.scheduledExports.values());
+  }
+
+  updateScheduledExport(config: ScheduledExportConfig): void {
+    this.scheduledExports.set(config.id, { ...config, updatedAt: new Date() });
+  }
+
+  deleteScheduledExport(id: string): boolean {
+    return this.scheduledExports.delete(id);
+  }
+
+  // Email Delivery Integration
+  async sendExportByEmail(
+    data: any[],
+    options: ExportOptions,
+    recipients: string[],
+    subject?: string,
+    message?: string
+  ): Promise<void> {
+    try {
+      // Generate the export file
+      const fileName = this.generateFileName('export', options.format);
+      
+      // Create file buffer based on format
+      let fileBuffer: ArrayBuffer;
+      let mimeType: string;
+      
+      switch (options.format) {
+        case 'excel':
+          const workbook = XLSX.utils.book_new();
+          const sheet = XLSX.utils.json_to_sheet(data);
+          XLSX.utils.book_append_sheet(workbook, sheet, 'Data');
+          fileBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+          mimeType = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+          break;
+        case 'csv':
+          const csvContent = this.generateCSVContent(data, options);
+          fileBuffer = new TextEncoder().encode(csvContent);
+          mimeType = 'text/csv';
+          break;
+        case 'json':
+          const jsonContent = JSON.stringify(data, null, 2);
+          fileBuffer = new TextEncoder().encode(jsonContent);
+          mimeType = 'application/json';
+          break;
+        default:
+          throw new Error(`Email delivery not supported for format: ${options.format}`);
+      }
+
+      // This would integrate with your email service
+      await this.sendEmailWithAttachment({
+        to: recipients,
+        subject: subject || 'Analytics Export',
+        body: message || 'Please find the attached analytics export.',
+        attachment: {
+          filename: fileName,
+          content: fileBuffer,
+          mimeType
+        }
+      });
+
+    } catch (error) {
+      console.error('Email delivery failed:', error);
+      throw error;
+    }
+  }
+
+  private async sendEmailWithAttachment(params: {
+    to: string[];
+    subject: string;
+    body: string;
+    attachment: {
+      filename: string;
+      content: ArrayBuffer;
+      mimeType: string;
+    };
+  }): Promise<void> {
+    // This would integrate with your email service (e.g., SendGrid, AWS SES, etc.)
+    // For now, we'll just log the attempt
+    console.log('Email would be sent to:', params.to);
+    console.log('Subject:', params.subject);
+    console.log('Attachment:', params.attachment.filename);
+    
+    // In a real implementation, you'd call your email service here
+    // Example with a hypothetical email service:
+    // await emailService.send({
+    //   to: params.to,
+    //   subject: params.subject,
+    //   html: params.body,
+    //   attachments: [{
+    //     filename: params.attachment.filename,
+    //     content: params.attachment.content,
+    //     contentType: params.attachment.mimeType
+    //   }]
+    // });
+  }
+
+  private generateCSVContent(data: any[], options: ExportOptions): string {
+    if (!data || data.length === 0) {
+      return '';
+    }
+
+    const headers = Object.keys(data[0]);
+    const csvLines = [];
+
+    if (options.includeHeaders !== false) {
+      csvLines.push(headers.join(','));
+    }
+
+    data.forEach(row => {
+      const values = headers.map(header => {
+        const value = row[header];
+        if (value instanceof Date) {
+          return format(value, options.dateFormat || 'yyyy-MM-dd HH:mm:ss');
+        }
+        if (typeof value === 'string' && value.includes(',')) {
+          return `"${value.replace(/"/g, '""')}"`;
+        }
+        return value ?? '';
+      });
+      csvLines.push(values.join(','));
+    });
+
+    return csvLines.join('\n');
+  }
+
+  // Template-based Export
+  async exportWithTemplate(
+    data: any[],
+    templateId: string,
+    options?: Partial<ExportOptions>
+  ): Promise<void> {
+    const template = this.getTemplate(templateId);
+    if (!template) {
+      throw new Error(`Template not found: ${templateId}`);
+    }
+
+    // Filter data based on template columns
+    const filteredData = data.map(row => {
+      const filteredRow: any = {};
+      template.columns.forEach(col => {
+        if (row.hasOwnProperty(col)) {
+          filteredRow[col] = row[col];
+        }
+      });
+      return filteredRow;
+    });
+
+    // Merge template options with provided options
+    const exportOptions: ExportOptions = {
+      format: template.format,
+      includeHeaders: true,
+      ...options,
+      fileName: options?.fileName || `${template.name.toLowerCase().replace(/\s+/g, '-')}-${format(new Date(), 'yyyy-MM-dd')}`
+    };
+
+    // Apply template styling for Excel exports
+    if (template.format === 'excel' && template.styling) {
+      await this.exportToExcelWithStyling(filteredData, exportOptions.fileName!, template.styling);
+    } else {
+      await this.exportData(filteredData, exportOptions);
+    }
+  }
+
+  private async exportToExcelWithStyling(
+    data: any[],
+    fileName: string,
+    styling: any
+  ): Promise<void> {
+    const workbook = XLSX.utils.book_new();
+    const sheet = XLSX.utils.json_to_sheet(data);
+    
+    // Apply styling if provided
+    if (styling.headerStyle) {
+      const range = XLSX.utils.decode_range(sheet['!ref'] || 'A1');
+      for (let col = range.s.c; col <= range.e.c; col++) {
+        const headerCell = XLSX.utils.encode_cell({ r: 0, c: col });
+        if (sheet[headerCell]) {
+          sheet[headerCell].s = styling.headerStyle;
+        }
+      }
+    }
+
+    XLSX.utils.book_append_sheet(workbook, sheet, 'Report');
+    
+    const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    saveAs(blob, `${fileName}.xlsx`);
+  }
+
+  // Advanced Export Options
+  async exportWithAdvancedOptions(
+    data: any[],
+    options: ExportOptions & {
+      filters?: any;
+      sorting?: { column: string; direction: 'asc' | 'desc' }[];
+      grouping?: string[];
+      aggregations?: { [key: string]: 'sum' | 'avg' | 'count' | 'min' | 'max' };
+    }
+  ): Promise<void> {
+    let processedData = [...data];
+
+    // Apply filters
+    if (options.filters) {
+      processedData = this.applyFilters(processedData, options.filters);
+    }
+
+    // Apply sorting
+    if (options.sorting) {
+      processedData = this.applySorting(processedData, options.sorting);
+    }
+
+    // Apply grouping
+    if (options.grouping) {
+      processedData = this.applyGrouping(processedData, options.grouping);
+    }
+
+    // Apply aggregations
+    if (options.aggregations) {
+      processedData = this.applyAggregations(processedData, options.aggregations);
+    }
+
+    await this.exportData(processedData, options);
+  }
+
+  private applyFilters(data: any[], filters: any): any[] {
+    return data.filter(row => {
+      return Object.entries(filters).every(([key, value]) => {
+        return row[key] === value;
+      });
+    });
+  }
+
+  private applySorting(data: any[], sorting: { column: string; direction: 'asc' | 'desc' }[]): any[] {
+    return data.sort((a, b) => {
+      for (const sort of sorting) {
+        const aVal = a[sort.column];
+        const bVal = b[sort.column];
+        
+        if (aVal < bVal) return sort.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sort.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  }
+
+  private applyGrouping(data: any[], grouping: string[]): any[] {
+    const groups = new Map();
+    
+    data.forEach(row => {
+      const key = grouping.map(col => row[col]).join('|');
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key).push(row);
+    });
+
+    const result: any[] = [];
+    groups.forEach((groupData, key) => {
+      const groupKeys = key.split('|');
+      const groupRow: any = {};
+      
+      grouping.forEach((col, index) => {
+        groupRow[col] = groupKeys[index];
+      });
+      
+      groupRow['_isGroupHeader'] = true;
+      groupRow['_groupCount'] = groupData.length;
+      result.push(groupRow);
+      result.push(...groupData);
+    });
+
+    return result;
+  }
+
+  private applyAggregations(data: any[], aggregations: { [key: string]: 'sum' | 'avg' | 'count' | 'min' | 'max' }): any[] {
+    const result = [...data];
+    
+    if (data.length === 0) return result;
+
+    const aggregationRow: any = { '_isAggregation': true };
+    
+    Object.entries(aggregations).forEach(([column, operation]) => {
+      const values = data.map(row => row[column]).filter(val => val != null);
+      
+      switch (operation) {
+        case 'sum':
+          aggregationRow[column] = values.reduce((sum, val) => sum + (Number(val) || 0), 0);
+          break;
+        case 'avg':
+          aggregationRow[column] = values.reduce((sum, val) => sum + (Number(val) || 0), 0) / values.length;
+          break;
+        case 'count':
+          aggregationRow[column] = values.length;
+          break;
+        case 'min':
+          aggregationRow[column] = Math.min(...values.map(val => Number(val) || 0));
+          break;
+        case 'max':
+          aggregationRow[column] = Math.max(...values.map(val => Number(val) || 0));
+          break;
+      }
+    });
+
+    result.push(aggregationRow);
+    return result;
   }
 }
 

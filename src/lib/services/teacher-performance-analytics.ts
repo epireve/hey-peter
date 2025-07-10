@@ -12,7 +12,22 @@
  */
 
 import { supabase } from '@/lib/supabase';
-import { SchedulingEvent } from '@/types/scheduling';
+import { teacherPerformanceDbService } from './teacher-performance-db-service';
+import {
+  TeacherPerformanceMetrics,
+  TeacherPeerComparison,
+  TeacherCohortAnalysis,
+  TeacherPerformanceFilters,
+  TeacherPerformanceSort,
+  TeacherPerformanceSearchResult,
+  TeacherPerformanceDashboard,
+  TeacherIndividualDashboard,
+  TeacherPerformanceReport,
+  PerformanceTrend,
+  TeacherRecommendation,
+  RecommendationAction,
+  RecommendationResource
+} from '@/types/teacher-performance';
 
 export interface TeacherPerformanceMetrics {
   teacherId: string;

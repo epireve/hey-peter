@@ -26,12 +26,12 @@ import {
   Award
 } from "lucide-react";
 import { 
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, 
-  AreaChart, Area, RadarChart, Radar, PolarGrid, PolarAngleAxis,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
-} from 'recharts';
+  LineChart, BarChart, PieChart, AreaChart, RadarChart,
+  ChartPresets, createChart, CommonConfigs
+} from '@/components/ui/charts';
 import { analyticsAggregationService } from '@/lib/services/analytics-aggregation-service';
 import { analyticsExportService } from '@/lib/services/analytics-export-service';
+import { ExportButton } from '@/components/admin/export';
 import { format } from 'date-fns';
 
 interface EnhancedStudentAnalyticsProps {
@@ -203,15 +203,37 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
             value={dateRange}
             onChange={setDateRange}
           />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleExport('excel')}
-            disabled={exportLoading}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
+          <ExportButton
+            data={metrics ? [
+              {
+                'Total Students': metrics.totalStudents,
+                'Active Students': metrics.activeStudents,
+                'New Enrollments': metrics.newEnrollments,
+                'Average Progress': `${metrics.averageProgress.toFixed(1)}%`,
+                'Attendance Rate': `${metrics.attendanceRate.toFixed(1)}%`,
+                'Completion Rate': `${metrics.completionRate.toFixed(1)}%`,
+                'Students at Risk': metrics.studentsAtRisk
+              },
+              ...metrics.topPerformers,
+              ...metrics.enrollmentTrend,
+              ...metrics.testScoreAnalytics
+            ] : []}
+            title="Student Analytics"
+            fileName={`student-analytics-${format(new Date(), 'yyyy-MM-dd')}`}
+            availableColumns={[
+              'Total Students', 'Active Students', 'New Enrollments', 'Average Progress',
+              'Attendance Rate', 'Completion Rate', 'Students at Risk', 'name', 'progress',
+              'attendance', 'testScore', 'month', 'enrollments', 'dropouts', 'active',
+              'range', 'count', 'percentage'
+            ]}
+            onExportComplete={(success, message) => {
+              if (success) {
+                console.log('Export completed successfully:', message);
+              } else {
+                console.error('Export failed:', message);
+              }
+            }}
+          />
         </div>
       </div>
 
@@ -312,18 +334,21 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <LineChart data={metrics.enrollmentTrend}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Line type="monotone" dataKey="enrollments" stroke="#10b981" name="New Enrollments" />
-                    <Line type="monotone" dataKey="active" stroke="#3b82f6" name="Active Students" />
-                    <Line type="monotone" dataKey="dropouts" stroke="#ef4444" name="Dropouts" />
-                  </LineChart>
-                </ResponsiveContainer>
+                <LineChart
+                  data={metrics.enrollmentTrend}
+                  config={CommonConfigs.dashboard}
+                  series={[
+                    { key: 'enrollments', name: 'New Enrollments', color: '#10b981' },
+                    { key: 'active', name: 'Active Students', color: '#3b82f6' },
+                    { key: 'dropouts', name: 'Dropouts', color: '#ef4444' }
+                  ]}
+                  xAxis={{ dataKey: 'month' }}
+                  showTrendLine={true}
+                  showDots={false}
+                  showActiveDots={true}
+                  strokeWidth={2}
+                  type="monotone"
+                />
               </CardContent>
             </Card>
 
@@ -335,31 +360,22 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: 'Basic English', value: 45 },
-                        { name: 'Everyday A/B', value: 38 },
-                        { name: 'Speak Up', value: 32 },
-                        { name: 'Business English', value: 28 },
-                        { name: '1-on-1', value: 13 }
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {COLORS.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+                <PieChart
+                  data={[
+                    { name: 'Basic English', value: 45 },
+                    { name: 'Everyday A/B', value: 38 },
+                    { name: 'Speak Up', value: 32 },
+                    { name: 'Business English', value: 28 },
+                    { name: '1-on-1', value: 13 }
+                  ]}
+                  dataKey="value"
+                  nameKey="name"
+                  config={CommonConfigs.dashboard}
+                  showPercentages={true}
+                  showLegend={true}
+                  showDataLabels={true}
+                  variant="pie"
+                />
               </CardContent>
             </Card>
           </div>
@@ -375,25 +391,27 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={[
+                <AreaChart
+                  data={[
                     { week: 'Week 1', beginners: 40, intermediate: 30, advanced: 10 },
                     { week: 'Week 2', beginners: 35, intermediate: 35, advanced: 15 },
                     { week: 'Week 3', beginners: 30, intermediate: 40, advanced: 20 },
                     { week: 'Week 4', beginners: 25, intermediate: 45, advanced: 25 },
                     { week: 'Week 5', beginners: 20, intermediate: 50, advanced: 30 },
                     { week: 'Week 6', beginners: 15, intermediate: 45, advanced: 40 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="week" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Area type="monotone" dataKey="beginners" stackId="1" stroke="#ffc658" fill="#ffc658" />
-                    <Area type="monotone" dataKey="intermediate" stackId="1" stroke="#8884d8" fill="#8884d8" />
-                    <Area type="monotone" dataKey="advanced" stackId="1" stroke="#82ca9d" fill="#82ca9d" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                  ]}
+                  config={CommonConfigs.dashboard}
+                  series={[
+                    { key: 'beginners', name: 'Beginners', color: '#ffc658' },
+                    { key: 'intermediate', name: 'Intermediate', color: '#8884d8' },
+                    { key: 'advanced', name: 'Advanced', color: '#82ca9d' }
+                  ]}
+                  xAxis={{ dataKey: 'week' }}
+                  stackMode="normal"
+                  showGradient={true}
+                  fillOpacity={0.6}
+                  type="monotone"
+                />
               </CardContent>
             </Card>
 
@@ -447,8 +465,8 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={[
+                <BarChart
+                  data={[
                     { day: 'Mon', attendance: 92, noShow: 5, cancelled: 3 },
                     { day: 'Tue', attendance: 88, noShow: 8, cancelled: 4 },
                     { day: 'Wed', attendance: 90, noShow: 6, cancelled: 4 },
@@ -456,17 +474,18 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                     { day: 'Fri', attendance: 85, noShow: 10, cancelled: 5 },
                     { day: 'Sat', attendance: 82, noShow: 12, cancelled: 6 },
                     { day: 'Sun', attendance: 80, noShow: 15, cancelled: 5 }
-                  ]}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="day" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="attendance" fill="#10b981" name="Present" />
-                    <Bar dataKey="noShow" fill="#f59e0b" name="No Show" />
-                    <Bar dataKey="cancelled" fill="#ef4444" name="Cancelled" />
-                  </BarChart>
-                </ResponsiveContainer>
+                  ]}
+                  config={CommonConfigs.dashboard}
+                  series={[
+                    { key: 'attendance', name: 'Present', color: '#10b981' },
+                    { key: 'noShow', name: 'No Show', color: '#f59e0b' },
+                    { key: 'cancelled', name: 'Cancelled', color: '#ef4444' }
+                  ]}
+                  xAxis={{ dataKey: 'day' }}
+                  layout="vertical"
+                  showValues={false}
+                  showDataLabels={false}
+                />
               </CardContent>
             </Card>
 
@@ -512,19 +531,17 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={metrics.testScoreAnalytics}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="range" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#3b82f6" name="Students">
-                      {metrics.testScoreAnalytics.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarChart
+                  data={metrics.testScoreAnalytics}
+                  config={CommonConfigs.dashboard}
+                  series={[
+                    { key: 'count', name: 'Students', color: '#3b82f6' }
+                  ]}
+                  xAxis={{ dataKey: 'range' }}
+                  showValues={true}
+                  showDataLabels={true}
+                  layout="vertical"
+                />
               </CardContent>
             </Card>
 
@@ -536,21 +553,25 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <RadarChart data={[
+                <RadarChart
+                  data={[
                     { skill: 'Speaking', score: 78 },
                     { skill: 'Listening', score: 85 },
                     { skill: 'Reading', score: 82 },
                     { skill: 'Writing', score: 75 },
                     { skill: 'Grammar', score: 88 },
                     { skill: 'Vocabulary', score: 80 }
-                  ]}>
-                    <PolarGrid />
-                    <PolarAngleAxis dataKey="skill" />
-                    <Radar name="Average Score" dataKey="score" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
-                    <Tooltip />
-                  </RadarChart>
-                </ResponsiveContainer>
+                  ]}
+                  config={CommonConfigs.dashboard}
+                  series={[
+                    { key: 'score', name: 'Average Score', color: '#8884d8' }
+                  ]}
+                  polarAngleAxis={{ dataKey: 'skill' }}
+                  showDots={true}
+                  showValues={false}
+                  gradientFill={true}
+                  fillOpacity={0.6}
+                />
               </CardContent>
             </Card>
           </div>
@@ -563,27 +584,28 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={[
+              <LineChart
+                data={[
                   { month: 'Jan', basic: 72, everyday: 75, speakUp: 78, business: 82, oneOnOne: 88 },
                   { month: 'Feb', basic: 74, everyday: 77, speakUp: 79, business: 83, oneOnOne: 89 },
                   { month: 'Mar', basic: 75, everyday: 78, speakUp: 81, business: 84, oneOnOne: 90 },
                   { month: 'Apr', basic: 77, everyday: 80, speakUp: 82, business: 85, oneOnOne: 91 },
                   { month: 'May', basic: 78, everyday: 81, speakUp: 83, business: 86, oneOnOne: 92 },
                   { month: 'Jun', basic: 80, everyday: 82, speakUp: 84, business: 87, oneOnOne: 93 }
-                ]}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line type="monotone" dataKey="basic" stroke="#ff6b6b" name="Basic" />
-                  <Line type="monotone" dataKey="everyday" stroke="#4ecdc4" name="Everyday" />
-                  <Line type="monotone" dataKey="speakUp" stroke="#45b7d1" name="Speak Up" />
-                  <Line type="monotone" dataKey="business" stroke="#96ceb4" name="Business" />
-                  <Line type="monotone" dataKey="oneOnOne" stroke="#feca57" name="1-on-1" />
-                </LineChart>
-              </ResponsiveContainer>
+                ]}
+                config={CommonConfigs.dashboard}
+                series={[
+                  { key: 'basic', name: 'Basic', color: '#ff6b6b' },
+                  { key: 'everyday', name: 'Everyday', color: '#4ecdc4' },
+                  { key: 'speakUp', name: 'Speak Up', color: '#45b7d1' },
+                  { key: 'business', name: 'Business', color: '#96ceb4' },
+                  { key: 'oneOnOne', name: '1-on-1', color: '#feca57' }
+                ]}
+                xAxis={{ dataKey: 'month' }}
+                showTrendLine={true}
+                showDots={true}
+                type="monotone"
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -598,15 +620,18 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <AreaChart data={metrics.retentionAnalytics.monthly}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="month" />
-                    <YAxis />
-                    <Tooltip />
-                    <Area type="monotone" dataKey="rate" stroke="#10b981" fill="#10b981" fillOpacity={0.6} name="Retention %" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <AreaChart
+                  data={metrics.retentionAnalytics.monthly}
+                  config={CommonConfigs.dashboard}
+                  series={[
+                    { key: 'rate', name: 'Retention %', color: '#10b981' }
+                  ]}
+                  xAxis={{ dataKey: 'month' }}
+                  stackMode="normal"
+                  showGradient={true}
+                  fillOpacity={0.6}
+                  type="monotone"
+                />
               </CardContent>
             </Card>
 
@@ -618,19 +643,17 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={metrics.retentionAnalytics.byProgram} layout="horizontal">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="program" type="category" />
-                    <Tooltip />
-                    <Bar dataKey="retention" fill="#3b82f6" name="Retention %">
-                      {metrics.retentionAnalytics.byProgram.map((entry: any, index: number) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
+                <BarChart
+                  data={metrics.retentionAnalytics.byProgram}
+                  config={CommonConfigs.dashboard}
+                  series={[
+                    { key: 'retention', name: 'Retention %', color: '#3b82f6' }
+                  ]}
+                  xAxis={{ dataKey: 'program' }}
+                  layout="horizontal"
+                  showValues={true}
+                  showDataLabels={true}
+                />
               </CardContent>
             </Card>
           </div>

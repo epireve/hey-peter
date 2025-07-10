@@ -3,22 +3,14 @@
 import React from "react";
 import {
   LineChart,
-  Line,
-  AreaChart,
-  Area,
   BarChart,
-  Bar,
   PieChart,
-  Pie,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+  AreaChart,
+  ChartPresets,
+  createChart,
+  CommonConfigs
+} from "@/components/ui/charts";
+import { ChartDataPoint, ChartSeries } from "@/types/charts";
 
 type ChartType = "line" | "area" | "bar" | "pie";
 
@@ -35,6 +27,11 @@ interface AnalyticsChartProps {
   xAxisKey?: string;
   height?: number;
   colors?: string[];
+  exportable?: boolean;
+  showInteractions?: boolean;
+  showTrendLine?: boolean;
+  showAnimations?: boolean;
+  preset?: keyof typeof ChartPresets;
 }
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
@@ -48,129 +45,130 @@ export const AnalyticsChart = React.memo(({
   xAxisKey = "name",
   height = 300,
   colors = COLORS,
+  exportable = true,
+  showInteractions = true,
+  showTrendLine = false,
+  showAnimations = true,
+  preset,
 }: AnalyticsChartProps) => {
-  const renderChart = React.useCallback(() => {
-    switch (type) {
-      case "line":
-        return (
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xAxisKey} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {Array.isArray(dataKey) ? (
-              dataKey.map((key, index) => (
-                <Line
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={colors[index % colors.length]}
-                  strokeWidth={2}
-                />
-              ))
-            ) : (
-              <Line
-                type="monotone"
-                dataKey={dataKey}
-                stroke={colors[0]}
-                strokeWidth={2}
-              />
-            )}
-          </LineChart>
-        );
+  // Convert data keys to series format
+  const series = React.useMemo(() => {
+    const keys = Array.isArray(dataKey) ? dataKey : [dataKey];
+    return keys.map((key, index) => ({
+      key,
+      name: key,
+      color: colors[index % colors.length]
+    }));
+  }, [dataKey, colors]);
 
-      case "area":
-        return (
-          <AreaChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xAxisKey} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {Array.isArray(dataKey) ? (
-              dataKey.map((key, index) => (
-                <Area
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stackId="1"
-                  stroke={colors[index % colors.length]}
-                  fill={colors[index % colors.length]}
-                />
-              ))
-            ) : (
-              <Area
-                type="monotone"
-                dataKey={dataKey}
-                stroke={colors[0]}
-                fill={colors[0]}
-              />
-            )}
-          </AreaChart>
-        );
+  // Chart configuration
+  const chartConfig = React.useMemo(() => ({
+    ...CommonConfigs.dashboard,
+    height,
+    colors,
+    animations: showAnimations
+  }), [height, colors, showAnimations]);
 
-      case "bar":
-        return (
-          <BarChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey={xAxisKey} />
-            <YAxis />
-            <Tooltip />
-            <Legend />
-            {Array.isArray(dataKey) ? (
-              dataKey.map((key, index) => (
-                <Bar
-                  key={key}
-                  dataKey={key}
-                  fill={colors[index % colors.length]}
-                />
-              ))
-            ) : (
-              <Bar dataKey={dataKey} fill={colors[0]} />
-            )}
-          </BarChart>
-        );
-
-      case "pie":
-        return (
-          <PieChart>
-            <Pie
-              data={data}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-              outerRadius={80}
-              fill="#8884d8"
-              dataKey={typeof dataKey === "string" ? dataKey : dataKey[0]}
-            >
-              {data.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-          </PieChart>
-        );
-
-      default:
-        return null;
+  // Common chart props
+  const commonProps = {
+    data: data as ChartDataPoint[],
+    config: chartConfig,
+    series,
+    title,
+    subtitle: description,
+    exportable,
+    xAxis: {
+      dataKey: xAxisKey,
+      tickFormatter: undefined
+    },
+    yAxis: {
+      tickFormatter: undefined
+    },
+    tooltip: {
+      shared: true,
+      trigger: 'hover' as const
+    },
+    legend: {
+      position: 'bottom' as const
+    },
+    grid: {
+      show: true,
+      strokeDasharray: '3 3'
     }
-  }, [type, data, dataKey, xAxisKey, colors]);
+  };
 
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={height}>
-          {renderChart()}
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  );
+  // Use preset if provided
+  if (preset) {
+    const presetConfig = createChart(preset, commonProps);
+    return React.createElement(getChartComponent(type), {
+      ...presetConfig,
+      ...commonProps
+    });
+  }
+
+  // Render chart based on type
+  switch (type) {
+    case "line":
+      return (
+        <LineChart
+          {...commonProps}
+          showTrendLine={showTrendLine}
+          showDots={false}
+          showActiveDots={showInteractions}
+          strokeWidth={2}
+          type="monotone"
+        />
+      );
+
+    case "area":
+      return (
+        <AreaChart
+          {...commonProps}
+          stackMode="normal"
+          showGradient={true}
+          fillOpacity={0.6}
+          type="monotone"
+        />
+      );
+
+    case "bar":
+      return (
+        <BarChart
+          {...commonProps}
+          layout="vertical"
+          showValues={false}
+          showDataLabels={false}
+          barSize={undefined}
+        />
+      );
+
+    case "pie":
+      return (
+        <PieChart
+          {...commonProps}
+          dataKey={typeof dataKey === "string" ? dataKey : dataKey[0]}
+          nameKey={xAxisKey}
+          showPercentages={true}
+          showLegend={true}
+          showDataLabels={true}
+          variant="pie"
+        />
+      );
+
+    default:
+      return null;
+  }
 });
+
+// Helper function to get chart component
+function getChartComponent(type: ChartType) {
+  switch (type) {
+    case "line": return LineChart;
+    case "area": return AreaChart;
+    case "bar": return BarChart;
+    case "pie": return PieChart;
+    default: return LineChart;
+  }
+}
 
 AnalyticsChart.displayName = "AnalyticsChart";
