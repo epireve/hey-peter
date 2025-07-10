@@ -5,4 +5,5 @@ export { StudentCourseEnrollment } from './StudentCourseEnrollment';
 export { StudentDashboardLayout } from './StudentDashboardLayout';
 export { StudentLearningMaterials } from './StudentLearningMaterials';
 export { StudentMessaging } from './StudentMessaging';
+export { StudentProfileManagement } from './StudentProfileManagement';
 export { StudentProgressTracking } from './StudentProgressTracking';
