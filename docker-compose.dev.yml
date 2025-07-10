@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  # Development override for Next.js Application
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: heypeter-academy-dev
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: development
+      NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      DATABASE_URL: ${DATABASE_URL}
+      WATCHPACK_POLLING: true # Enable hot reload in Docker
+    volumes:
+      - ./src:/app/src
+      - ./public:/app/public
+      - ./next.config.js:/app/next.config.js
+      - ./tailwind.config.ts:/app/tailwind.config.ts
+      - ./tsconfig.json:/app/tsconfig.json
+      - ./postcss.config.js:/app/postcss.config.js
+      - ./components.json:/app/components.json
+      - /app/node_modules # Prevent node_modules from being overwritten
+      - /app/.next # Prevent .next from being overwritten
+    networks:
+      - heypeter-network
+    restart: unless-stopped
+    command: npm run dev
+
+  # Local Supabase instance (optional - for fully isolated development)
+  supabase-db:
+    image: supabase/postgres:15.1.0.117
+    container_name: heypeter-supabase-db
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_PASSWORD: ${SUPABASE_DB_PASSWORD:-postgres}
+      POSTGRES_DB: postgres
+    volumes:
+      - heypeter-db-data:/var/lib/postgresql/data
+    networks:
+      - heypeter-network
+    restart: unless-stopped
+
+  # Supabase Studio (optional - for database management)
+  supabase-studio:
+    image: supabase/studio:latest
+    container_name: heypeter-supabase-studio
+    ports:
+      - "54323:3000"
+    environment:
+      SUPABASE_URL: http://supabase-kong:8000
+      SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+    networks:
+      - heypeter-network
+    depends_on:
+      - supabase-db
+    restart: unless-stopped
+
+volumes:
+  heypeter-db-data:
+
+networks:
+  heypeter-network:
+    driver: bridge
+    name: heypeter-network

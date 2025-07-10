@@ -1,3 +1,7 @@
+// Export the enhanced version
+export { ClassHourTracker } from './ClassHourTrackerEnhanced';
+
+// Keep the old implementation as ClassHourTrackerLegacy for backward compatibility
 'use client';
 
 import React, { useState, useMemo } from 'react';
@@ -18,7 +22,7 @@ interface ClassHourTrackerProps {
   availability: any[];
 }
 
-export function ClassHourTracker({ teacher, classHours, availability }: ClassHourTrackerProps) {
+export function ClassHourTrackerLegacy({ teacher, classHours, availability }: ClassHourTrackerProps) {
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [filterCourse, setFilterCourse] = useState<string>('all');
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({

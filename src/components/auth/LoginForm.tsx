@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { Loader2 } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -13,14 +17,21 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const formSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(6),
+  email: z.string().email("Invalid email address"),
+  password: z.string().min(1, "Password is required"),
 });
 
+type LoginFormData = z.infer<typeof formSchema>;
+
 export default function LoginForm() {
-  const form = useForm<z.infer<typeof formSchema>>({
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+
+  const form = useForm<LoginFormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
@@ -28,9 +39,26 @@ export default function LoginForm() {
     },
   });
 
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    // TODO: Implement login logic
-    console.log(values);
+  async function onSubmit(values: LoginFormData) {
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (error) {
+        toast.error(error.message || "Login failed");
+      } else {
+        toast.success("Login successful");
+        router.push("/admin/dashboard");
+        router.refresh();
+      }
+    } catch (error) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -43,7 +71,7 @@ export default function LoginForm() {
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
-                <Input placeholder="email@example.com" {...field} />
+                <Input placeholder="email@example.com" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -56,21 +84,22 @@ export default function LoginForm() {
             <FormItem>
               <FormLabel>Password</FormLabel>
               <FormControl>
-                <Input type="password" {...field} />
+                <Input type="password" {...field} disabled={isLoading} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
-          Login
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isLoading ? "Signing in..." : "Login"}
         </Button>
         <div className="text-center text-sm">
           <p>
-            {"Don't have an account?"} <a href="/signup">Sign up</a>
+            {"Don't have an account?"} <a href="/auth/signup" className="underline">Sign up</a>
           </p>
           <p>
-            <a href="/password-reset">Forgot your password?</a>
+            <a href="/auth/forgot-password" className="underline">Forgot your password?</a>
           </p>
         </div>
       </form>
