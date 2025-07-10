@@ -222,7 +222,12 @@ export function UserManagementClient({ initialUsers }: UserManagementClientProps
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <DataTable columns={columns} data={users} />
+              <DataTable 
+                columns={columns} 
+                data={users} 
+                filterColumn="email"
+                filterPlaceholder="Filter by email..." 
+              />
             </CardContent>
           </Card>
         </TabsContent>

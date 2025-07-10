@@ -118,7 +118,12 @@ export function StudentsPageClient({ initialStudents, columns }: StudentsPageCli
         </div>
       </div>
 
-      <DataTable columns={columns} data={students} />
+      <DataTable 
+        columns={columns} 
+        data={students} 
+        filterColumn="email"
+        filterPlaceholder="Filter by email..." 
+      />
 
       <ImportExportDialog
         open={importExportOpen}

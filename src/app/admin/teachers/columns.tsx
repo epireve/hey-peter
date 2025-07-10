@@ -18,14 +18,15 @@ import { useRouter } from "next/navigation";
 
 export type Teacher = {
   id: string;
-  coach_code: string;
+  user_id?: string;
+  email: string;
+  full_name: string;
+  bio?: string;
   availability?: any;
-  compensation?: {
-    hourly_rate: number;
-    payment_method: string;
-  };
+  hourly_rate?: number;
   created_at: string;
-  user: {
+  updated_at?: string;
+  user?: {
     id: string;
     email: string;
     full_name: string;
@@ -59,7 +60,7 @@ function ActionsCell({ teacher }: { teacher: Teacher }) {
       <DropdownMenuContent align="end">
         <DropdownMenuLabel>Actions</DropdownMenuLabel>
         <DropdownMenuItem
-          onClick={() => navigator.clipboard.writeText(teacher.user.email)}
+          onClick={() => navigator.clipboard.writeText(teacher.email)}
         >
           Copy email
         </DropdownMenuItem>
@@ -84,21 +85,7 @@ function ActionsCell({ teacher }: { teacher: Teacher }) {
 
 export const columns: ColumnDef<Teacher>[] = [
   {
-    accessorKey: "coach_code",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Coach Code
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      );
-    },
-  },
-  {
-    accessorKey: "user.full_name",
+    accessorKey: "full_name",
     header: ({ column }) => {
       return (
         <Button
@@ -112,36 +99,27 @@ export const columns: ColumnDef<Teacher>[] = [
     },
   },
   {
-    accessorKey: "user.email",
+    accessorKey: "email",
     header: "Email",
   },
   {
-    accessorKey: "compensation.hourly_rate",
+    accessorKey: "hourly_rate",
     header: "Hourly Rate",
     cell: ({ row }) => {
-      const rate = row.original.compensation?.hourly_rate;
-      return rate ? `$${rate.toFixed(2)}` : "N/A";
+      const rate = row.original.hourly_rate;
+      return rate ? `$${parseFloat(rate.toString()).toFixed(2)}` : "N/A";
     },
   },
   {
-    accessorKey: "compensation.payment_method",
-    header: "Payment Method",
+    accessorKey: "bio",
+    header: "Bio",
     cell: ({ row }) => {
-      const method = row.original.compensation?.payment_method;
-      if (!method) return "N/A";
-      
-      const methodLabels: Record<string, string> = {
-        bank_transfer: "Bank Transfer",
-        paypal: "PayPal",
-        cash: "Cash",
-        other: "Other",
-      };
-      
-      return (
-        <Badge variant="outline">
-          {methodLabels[method] || method}
-        </Badge>
-      );
+      const bio = row.original.bio;
+      return bio ? (
+        <span className="truncate max-w-xs" title={bio}>
+          {bio.length > 50 ? bio.substring(0, 50) + "..." : bio}
+        </span>
+      ) : "N/A";
     },
   },
   {
