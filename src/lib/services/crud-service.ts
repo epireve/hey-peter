@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { SupabaseClient } from "@supabase/supabase-js";
 
 export interface CRUDOptions {
   table: string;
@@ -9,6 +10,7 @@ export interface CRUDOptions {
     enabled: boolean;
     ttl?: number; // Time to live in milliseconds
   };
+  supabaseClient?: SupabaseClient; // Optional custom client
 }
 
 export interface PaginationOptions {
@@ -33,12 +35,14 @@ export class CRUDService<T = any> {
   private defaultSelect: string;
   private cacheEnabled: boolean;
   private cacheTTL: number;
+  private supabaseClient: SupabaseClient;
 
   constructor(options: CRUDOptions) {
     this.table = options.table;
     this.defaultSelect = options.select || "*";
     this.cacheEnabled = options.cache?.enabled || false;
     this.cacheTTL = options.cache?.ttl || 5 * 60 * 1000; // 5 minutes default
+    this.supabaseClient = options.supabaseClient || supabase;
   }
 
   private getCacheKey(method: string, params?: any): string {
@@ -86,7 +90,7 @@ export class CRUDService<T = any> {
     if (cached) return { data: cached, error: null };
 
     try {
-      let query = supabase.from(this.table).select(this.defaultSelect, { count: "exact" });
+      let query = this.supabaseClient.from(this.table).select(this.defaultSelect, { count: "exact" });
 
       // Apply filters
       if (options?.filters) {
@@ -127,7 +131,7 @@ export class CRUDService<T = any> {
     if (cached) return { data: cached, error: null };
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await this.supabaseClient
         .from(this.table)
         .select(this.defaultSelect)
         .eq("id", id)
@@ -144,7 +148,7 @@ export class CRUDService<T = any> {
 
   async create(payload: Partial<T>): Promise<{ data: T | null; error: any }> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await this.supabaseClient
         .from(this.table)
         .insert(payload)
         .select(this.defaultSelect)
@@ -161,7 +165,7 @@ export class CRUDService<T = any> {
 
   async update(id: string | number, payload: Partial<T>): Promise<{ data: T | null; error: any }> {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await this.supabaseClient
         .from(this.table)
         .update(payload)
         .eq("id", id)
@@ -179,7 +183,7 @@ export class CRUDService<T = any> {
 
   async delete(id: string | number): Promise<{ error: any }> {
     try {
-      const { error } = await supabase
+      const { error } = await this.supabaseClient
         .from(this.table)
         .delete()
         .eq("id", id);
@@ -195,7 +199,7 @@ export class CRUDService<T = any> {
 
   async deleteMany(ids: (string | number)[]): Promise<{ error: any }> {
     try {
-      const { error } = await supabase
+      const { error } = await this.supabaseClient
         .from(this.table)
         .delete()
         .in("id", ids);
@@ -214,7 +218,7 @@ export class CRUDService<T = any> {
     callback: (payload: any) => void,
     events: ("INSERT" | "UPDATE" | "DELETE")[] = ["INSERT", "UPDATE", "DELETE"]
   ) {
-    const subscription = supabase
+    const subscription = this.supabaseClient
       .channel(`${this.table}_changes`)
       .on(
         "postgres_changes",

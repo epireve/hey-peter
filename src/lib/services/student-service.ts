@@ -53,7 +53,7 @@ interface StudentWithUser extends Student {
 }
 
 export class StudentService extends CRUDService<Student> {
-  constructor() {
+  constructor(options?: { supabaseClient?: any }) {
     super({
       table: "students",
       select: `
@@ -64,8 +64,12 @@ export class StudentService extends CRUDService<Student> {
         enabled: true,
         ttl: 5 * 60 * 1000, // 5 minutes
       },
+      supabaseClient: options?.supabaseClient,
     });
+    this.supabaseClient = options?.supabaseClient || supabase;
   }
+  
+  private supabaseClient: any;
 
   async createStudent(data: CreateStudentData) {
     return withRetry(async () => {
@@ -74,7 +78,7 @@ export class StudentService extends CRUDService<Student> {
       
       // Start a transaction-like operation
       // First create the user
-      const { data: newUser, error: userError } = await supabase
+      const { data: newUser, error: userError } = await this.supabaseClient
         .from("users")
         .insert({
           email: validatedData.email,
@@ -90,7 +94,7 @@ export class StudentService extends CRUDService<Student> {
       }
 
       // Then create the student record
-      const { data: newStudent, error: studentError } = await supabase
+      const { data: newStudent, error: studentError } = await this.supabaseClient
         .from("students")
         .insert({
           user_id: newUser.id,
@@ -153,7 +157,7 @@ export class StudentService extends CRUDService<Student> {
 
       // Update student record
       if (Object.keys(updates).length > 0) {
-        const { error } = await supabase
+        const { error } = await this.supabaseClient
           .from("students")
           .update(updates)
           .eq("id", id);
@@ -166,7 +170,7 @@ export class StudentService extends CRUDService<Student> {
         // Get the user_id first
         const { data: student } = await this.getById(id);
         if (student && student.user_id) {
-          const { error } = await supabase
+          const { error } = await this.supabaseClient
             .from("users")
             .update(userUpdates)
             .eq("id", student.user_id);

@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { deleteTeacher } from "@/lib/actions/teacher";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { formatDate } from "@/lib/utils/date";
 
 export type Teacher = {
   id: string;
@@ -126,7 +127,7 @@ export const columns: ColumnDef<Teacher>[] = [
     accessorKey: "created_at",
     header: "Created",
     cell: ({ row }) => {
-      return new Date(row.getValue("created_at")).toLocaleDateString();
+      return formatDate(row.getValue("created_at"));
     },
   },
   {

@@ -43,6 +43,16 @@ export function DataTable<TData, TValue>({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log("DataTable Debug:", {
+      filterColumn,
+      availableColumns: columns.map(c => (c as any).accessorKey || (c as any).id),
+      dataLength: data.length
+    });
+  }, [columns, data, filterColumn]);
+  
   const table = useReactTable({
     data,
     columns,

@@ -23,6 +23,12 @@ export function UserManagementClient({ initialUsers }: UserManagementClientProps
   const [showImportExport, setShowImportExport] = useState(false);
   const router = useRouter();
   // supabase instance is already imported
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log("UserManagementClient - initialUsers:", initialUsers);
+    console.log("UserManagementClient - users count:", users.length);
+  }, [initialUsers, users]);
 
   const handleRefresh = () => {
     router.refresh();

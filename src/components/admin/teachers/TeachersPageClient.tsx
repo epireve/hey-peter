@@ -21,6 +21,16 @@ export function TeachersPageClient({ initialTeachers, columns }: TeachersPageCli
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClient();
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log("TeachersPageClient Debug:", {
+      columnsCount: columns.length,
+      columnKeys: columns.map((c: any) => c.accessorKey || c.id),
+      teachersCount: teachers.length,
+      firstTeacher: teachers[0]
+    });
+  }, [columns, teachers]);
 
   const importColumns = [
     { key: 'email', header: 'Email', required: true },

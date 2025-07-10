@@ -121,7 +121,7 @@ export function StudentsPageClient({ initialStudents, columns }: StudentsPageCli
       <DataTable 
         columns={columns} 
         data={students} 
-        filterColumn="email"
+        filterColumn="user.email"
         filterPlaceholder="Filter by email..." 
       />
 

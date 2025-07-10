@@ -17,6 +17,7 @@ import { studentService } from "@/lib/services/student-service";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { useConfirmationDialog } from "@/components/ui/confirmation-dialog";
+import { formatDate } from "@/lib/utils/date";
 
 export type Student = {
   id: string;
@@ -192,7 +193,7 @@ export const columns: ColumnDef<Student>[] = [
     accessorKey: "created_at",
     header: "Enrolled",
     cell: ({ row }) => {
-      return new Date(row.getValue("created_at")).toLocaleDateString();
+      return formatDate(row.getValue("created_at"));
     },
   },
   {

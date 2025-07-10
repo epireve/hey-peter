@@ -1,8 +1,9 @@
-import { studentService } from "@/lib/services/student-service";
+import { createServerStudentService } from "@/lib/services/student-service-server";
 import { columns } from "./columns";
 import { StudentsPageClient } from "@/components/admin/students/StudentsPageClient";
 
 export default async function StudentsPage() {
+  const studentService = createServerStudentService();
   const { data: students, error } = await studentService.getAll({
     orderBy: { column: "created_at", ascending: false },
   });

@@ -1,11 +1,14 @@
 "use server";
 
-import { supabase } from "@/lib/supabase";
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 import { teacherFormSchema, type TeacherFormData } from "@/lib/schemas/teacher";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 
 export async function createTeacher(data: TeacherFormData) {
+  const supabase = createServerComponentClient({ cookies });
+  
   try {
     // Validate the data
     const validatedData = teacherFormSchema.parse(data);
@@ -95,6 +98,7 @@ export async function createTeacher(data: TeacherFormData) {
 }
 
 export async function getTeachers() {
+  const supabase = createServerComponentClient({ cookies });
   
   const { data, error } = await supabase
     .from("teachers")
@@ -109,6 +113,7 @@ export async function getTeachers() {
 }
 
 export async function getTeacher(id: string) {
+  const supabase = createServerComponentClient({ cookies });
   
   const { data, error } = await supabase
     .from("teachers")
@@ -127,6 +132,7 @@ export async function getTeacher(id: string) {
 }
 
 export async function updateTeacher(id: string, data: Partial<TeacherFormData>) {
+  const supabase = createServerComponentClient({ cookies });
   
   try {
     // Update teacher record
@@ -178,6 +184,7 @@ export async function updateTeacher(id: string, data: Partial<TeacherFormData>) 
 }
 
 export async function deleteTeacher(id: string) {
+  const supabase = createServerComponentClient({ cookies });
   
   // Get the user_id first
   const { data: teacher } = await supabase

@@ -1,6 +1,7 @@
 "use client";
 
 import { ColumnDef } from "@tanstack/react-table";
+import { formatDate } from "@/lib/utils/date";
 
 // This type is used to define the shape of our data.
 // You can use a Zod schema here if you want.
@@ -28,5 +29,8 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "created_at",
     header: "Created At",
+    cell: ({ row }) => {
+      return formatDate(row.getValue("created_at"));
+    },
   },
 ];
