@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable standalone output for Docker
-  output: 'standalone',
+  // Output configuration - standalone for Docker, default for Vercel
+  output: process.env.BUILD_STANDALONE === 'true' ? 'standalone' : undefined,
   
   // Temporarily skip TypeScript errors during build
   typescript: {
