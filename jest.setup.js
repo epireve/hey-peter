@@ -1,6 +1,16 @@
 // Jest setup for testing environment
 import '@testing-library/jest-dom';
 
+// Mock sonner for toast notifications
+jest.mock('sonner', () => ({
+  toast: {
+    success: jest.fn(),
+    error: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn(),
+  },
+}));
+
 // Optional: Configure global test settings
 global.console = {
   ...console,
