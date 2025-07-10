@@ -49,3 +49,45 @@ export {
 export { 
   conflictDetectionService
 } from './conflict-detection-service';
+
+// Analytics Services
+export { 
+  analyticsIntegrationService,
+  type ComprehensiveAnalytics,
+  type AnalyticsTimeframe
+} from './analytics-integration-service';
+
+export { 
+  classEfficiencyAnalytics,
+  type ClassEfficiencyMetrics,
+  type UtilizationMetrics,
+  type EfficiencyMetrics
+} from './class-efficiency-analytics';
+
+export { 
+  teacherPerformanceAnalytics,
+  type TeacherPerformanceMetrics,
+  type TeacherComparisonAnalysis
+} from './teacher-performance-analytics';
+
+export { 
+  studentProgressAnalytics,
+  type StudentProgressAnalysis,
+  type StudentCohortAnalysis
+} from './student-progress-analytics';
+
+// Hour Management Services
+export { 
+  hourTrackingService,
+  default as hourTrackingServiceDefault 
+} from './hour-tracking-service';
+
+export { 
+  leaveRequestService,
+  default as leaveRequestServiceDefault 
+} from './leave-request-service';
+
+export { 
+  teacherHourTrackingService,
+  default as teacherHourTrackingServiceDefault 
+} from './teacher-hour-tracking-service';

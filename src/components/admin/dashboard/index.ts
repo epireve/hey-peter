@@ -4,3 +4,5 @@ export { RecentUsersTable } from "./RecentUsersTable";
 export { QuickActions } from "./QuickActions";
 export { ActivityTimeline } from "./ActivityTimeline";
 export { DashboardShell } from "./DashboardShell";
+export { AnalyticsDashboard } from "./AnalyticsDashboard";
+export { DashboardContent } from "./DashboardContent";
