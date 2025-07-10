@@ -1,0 +1,85 @@
+# Task ID: 6
+# Title: Create Student Portal with Booking and Progress Tracking
+# Status: done
+# Dependencies: 2, 3
+# Priority: medium
+# Description: Build student dashboard with course progress, class booking, leave management, and learning materials access
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 6.1. Design Student Dashboard Interface [done]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 6.2. Implement Course Progress Tracking with Visual Indicators [done]
+### Dependencies: 6.1
+### Description: 
+### Details:
+
+
+## 6.3. Build Monthly Calendar with Progress Display (Unit/Lesson Format) [done]
+### Dependencies: 6.2
+### Description: 
+### Details:
+
+
+## 6.4. Create Leave Application System with Hour Deduction Rules [done]
+### Dependencies: 6.1
+### Description: 
+### Details:
+
+
+## 6.5. Implement Hour Balance Display and Real-time Tracking [done]
+### Dependencies: 6.2
+### Description: 
+### Details:
+
+
+## 6.6. Build 1v1 Class Booking Interface with Duration Selection [done]
+### Dependencies: 6.1
+### Description: 
+### Details:
+
+
+## 6.7. Add Weekly Schedule and Reservation System [done]
+### Dependencies: 6.3, 6.6
+### Description: 
+### Details:
+
+
+## 6.8. Implement Class Reminders and Notifications (5-10 min before) [done]
+### Dependencies: 6.7
+### Description: 
+### Details:
+
+
+## 6.9. Create Learning Materials Access Portal (PDF/Books) [done]
+### Dependencies: 6.2
+### Description: 
+### Details:
+
+
+## 6.10. Add Class Meeting Link Display for Online Classes [done]
+### Dependencies: 6.7
+### Description: 
+### Details:
+
+
+## 6.11. Build Learning Goals Submission for 1v1 Classes [done]
+### Dependencies: 6.6
+### Description: 
+### Details:
+
+
+## 6.12. Implement Success/Cancel Notifications for 1v1 Bookings [done]
+### Dependencies: 6.6
+### Description: 
+### Details:
+
+

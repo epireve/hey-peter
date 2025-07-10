@@ -1,0 +1,61 @@
+# Task ID: 15
+# Title: Implement 1v1 Booking System with Auto-Matching
+# Status: pending
+# Dependencies: 3, 5, 6
+# Priority: high
+# Description: Build comprehensive 1v1 booking system with teacher selection, duration options, auto-matching, and conflict resolution
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 15.1. Design 1v1 Booking Data Model [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 15.2. Build Teacher Selection Interface for Students [pending]
+### Dependencies: 15.1
+### Description: 
+### Details:
+
+
+## 15.3. Implement Duration Selection (30/60 minutes) [pending]
+### Dependencies: 15.2
+### Description: 
+### Details:
+
+
+## 15.4. Create Auto-Matching Engine (Time-based Teacher Suggestions) [pending]
+### Dependencies: 15.3
+### Description: 
+### Details:
+
+
+## 15.5. Build Teacher-First Selection with Available Times Display [pending]
+### Dependencies: 15.4
+### Description: 
+### Details:
+
+
+## 15.6. Implement Conflict Detection and Alternative Recommendations [pending]
+### Dependencies: 15.5
+### Description: 
+### Details:
+
+
+## 15.7. Add Learning Goals Submission Interface [pending]
+### Dependencies: 15.3
+### Description: 
+### Details:
+
+
+## 15.8. Create Booking Availability Constraints (Teacher Times Only) [pending]
+### Dependencies: 15.6
+### Description: 
+### Details:
+
+

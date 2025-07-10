@@ -1,0 +1,43 @@
+# Task ID: 16
+# Title: Build Visitor Popup and Lead Generation System
+# Status: pending
+# Dependencies: 1, 8
+# Priority: low
+# Description: Implement website popup system for unregistered users to contact sales and generate leads
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 16.1. Design Visitor Popup Interface [pending]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 16.2. Implement Popup Trigger Logic for Unregistered Users [pending]
+### Dependencies: 16.1
+### Description: 
+### Details:
+
+
+## 16.3. Create Contact Form with Lead Capture [pending]
+### Dependencies: 16.2
+### Description: 
+### Details:
+
+
+## 16.4. Build Sales Team Notification System [pending]
+### Dependencies: 16.3
+### Description: 
+### Details:
+
+
+## 16.5. Add Lead Management Dashboard for Sales [pending]
+### Dependencies: 16.4
+### Description: 
+### Details:
+
+

@@ -1,0 +1,73 @@
+# Task ID: 13
+# Title: Fix SQL Migration Dependency Issue in Initial Schema
+# Status: done
+# Dependencies: 1
+# Priority: high
+# Description: Resolve the SQL migration dependency problem where the migration file is missing core table definitions entirely. The file currently starts with junction tables (user_roles, student_courses, class_schedules) that reference non-existent core tables (users, students, courses, etc.), causing dependency failures.
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 13.1. Analyze Current Migration File Structure [done]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 13.2. Extract and Uncomment Core Table Definitions [done]
+### Dependencies: 13.1
+### Description: 
+### Details:
+
+
+## 13.3. Define Dependent Core Tables [done]
+### Dependencies: 13.2
+### Description: 
+### Details:
+
+
+## 13.4. Prepare Junction Table Definitions [done]
+### Dependencies: 13.3
+### Description: 
+### Details:
+
+
+## 13.5. Create Proper Table Dependency Order [done]
+### Dependencies: 13.4
+### Description: 
+### Details:
+
+
+## 13.6. Rewrite Migration File with Correct Order [done]
+### Dependencies: 13.5
+### Description: 
+### Details:
+
+
+## 13.7. Add Error Handling and Rollback Procedures [done]
+### Dependencies: 13.6
+### Description: 
+### Details:
+
+
+## 13.8. Validate All Foreign Key Constraints [done]
+### Dependencies: 13.7
+### Description: 
+### Details:
+
+
+## 13.9. Test Migration on Clean Database [done]
+### Dependencies: 13.8
+### Description: 
+### Details:
+
+
+## 13.10. Document Final Table Dependency Chain [done]
+### Dependencies: 13.9
+### Description: 
+### Details:
+
+

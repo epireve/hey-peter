@@ -1,0 +1,67 @@
+# Task ID: 14
+# Title: Build Student Information Management System
+# Status: done
+# Dependencies: 2, 3
+# Priority: high
+# Description: Implement comprehensive student information entry and management system with auto-generated IDs, internal codes, course types, and material tracking
+# Details:
+
+
+# Test Strategy:
+
+
+# Subtasks:
+## 14.1. Design Student Information Data Model [done]
+### Dependencies: None
+### Description: 
+### Details:
+
+
+## 14.2. Implement Auto-Generated Student ID System [done]
+### Dependencies: 14.1
+### Description: 
+### Details:
+
+
+## 14.3. Create Internal Code Generation (Coach Code + Student Number) [done]
+### Dependencies: 14.2
+### Description: 
+### Details:
+
+
+## 14.4. Build Course Types Management (Basic, Everyday A/B, Speak Up, Business, 1-on-1) [done]
+### Dependencies: 14.1
+### Description: 
+### Details:
+
+
+## 14.5. Implement Material Issuance Tracking System [done]
+### Dependencies: 14.4
+### Description: 
+### Details:
+
+
+## 14.6. Create Student Profile Management with Photo Upload [done]
+### Dependencies: 14.3
+### Description: 
+### Details:
+
+
+## 14.7. Add English Proficiency Tracking (Manual + AI-based) [done]
+### Dependencies: 14.6
+### Description: 
+### Details:
+
+
+## 14.8. Build Payment and Course Sales Representative Tracking [done]
+### Dependencies: 14.5
+### Description: 
+### Details:
+
+
+## 14.9. Implement Lead Source and Referrer Management [done]
+### Dependencies: 14.6
+### Description: 
+### Details:
+
+
