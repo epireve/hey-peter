@@ -4,6 +4,7 @@ export { ClassHourTracker } from './ClassHourTrackerEnhanced';
 export { TeacherDashboardLayout } from './TeacherDashboardLayout';
 export { WeeklyTimetable } from './WeeklyTimetableEnhanced';
 export { TeacherClassManagement } from './TeacherClassManagement';
+export { default as ClassCapacityManagement } from './ClassCapacityManagement';
 
 // Export legacy versions for backward compatibility
 export { AvailabilityScheduler as AvailabilitySchedulerLegacy } from './AvailabilityScheduler';

@@ -42,7 +42,8 @@
       "Bash(timeout 15 npm run dev 2>&1)",
       "Bash(git branch:*)",
       "Bash(git gc:*)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "Bash(npm run lint:*)"
     ],
     "deny": []
   }

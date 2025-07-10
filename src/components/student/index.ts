@@ -1,6 +1,7 @@
 export { StudentAssignmentManagement } from './StudentAssignmentManagement';
 export { StudentAttendanceTracking } from './StudentAttendanceTracking';
 export { StudentClassBooking } from './StudentClassBooking';
+export { EnhancedStudentClassBooking } from './EnhancedStudentClassBooking';
 export { StudentCourseEnrollment } from './StudentCourseEnrollment';
 export { StudentDashboardLayout } from './StudentDashboardLayout';
 export { StudentLearningMaterials } from './StudentLearningMaterials';

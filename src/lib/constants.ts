@@ -324,6 +324,59 @@ export const ROUTES = {
   CALENDAR: '/calendar',
 } as const
 
+// Class size and capacity management
+export const CLASS_CAPACITY = {
+  INDIVIDUAL: 1,
+  GROUP_MAX: 9,
+  GROUP_MIN: 2,
+  GROUP_OPTIMAL: 6,
+  WAITING_LIST_MAX: 15,
+} as const
+
+export const COURSE_TYPE_CAPACITY = {
+  'Basic': { min: 3, max: 9, optimal: 6 },
+  'Everyday A': { min: 3, max: 9, optimal: 6 },
+  'Everyday B': { min: 3, max: 9, optimal: 6 },
+  'Speak Up': { min: 4, max: 9, optimal: 7 },
+  'Business English': { min: 2, max: 6, optimal: 4 },
+  '1-on-1': { min: 1, max: 1, optimal: 1 },
+} as const
+
+export const ENROLLMENT_STATUS = {
+  ENROLLED: 'enrolled',
+  WAITLISTED: 'waitlisted',
+  DROPPED: 'dropped',
+  COMPLETED: 'completed',
+} as const
+
+export const ENROLLMENT_STATUS_LABELS = {
+  [ENROLLMENT_STATUS.ENROLLED]: 'Enrolled',
+  [ENROLLMENT_STATUS.WAITLISTED]: 'Waitlisted',
+  [ENROLLMENT_STATUS.DROPPED]: 'Dropped',
+  [ENROLLMENT_STATUS.COMPLETED]: 'Completed',
+} as const
+
+export const ENROLLMENT_STATUS_COLORS = {
+  [ENROLLMENT_STATUS.ENROLLED]: 'bg-green-100 text-green-800',
+  [ENROLLMENT_STATUS.WAITLISTED]: 'bg-yellow-100 text-yellow-800',
+  [ENROLLMENT_STATUS.DROPPED]: 'bg-red-100 text-red-800',
+  [ENROLLMENT_STATUS.COMPLETED]: 'bg-blue-100 text-blue-800',
+} as const
+
+export const CLASS_SPLIT_REASONS = {
+  OVERCAPACITY: 'overcapacity',
+  TEACHER_AVAILABILITY: 'teacher_availability',
+  STUDENT_PREFERENCE: 'student_preference',
+  LEVEL_MISMATCH: 'level_mismatch',
+} as const
+
+export const CLASS_SPLIT_REASON_LABELS = {
+  [CLASS_SPLIT_REASONS.OVERCAPACITY]: 'Over Capacity',
+  [CLASS_SPLIT_REASONS.TEACHER_AVAILABILITY]: 'Teacher Availability',
+  [CLASS_SPLIT_REASONS.STUDENT_PREFERENCE]: 'Student Preference',
+  [CLASS_SPLIT_REASONS.LEVEL_MISMATCH]: 'Level Mismatch',
+} as const
+
 // Local storage keys
 export const STORAGE_KEYS = {
   THEME: 'heypeter-theme',
