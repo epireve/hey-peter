@@ -179,6 +179,13 @@ hey-peter/
 7. **Docker Development**: Use `npm run docker:dev` for isolated development environment
 8. **Database Migrations**: Keep migrations in `supabase/migrations/` with timestamp prefix
 
+### Git Commit Guidelines
+
+1. **Commit Message Format**: Use conventional commit format with descriptive messages
+2. **Feature Commits**: Group related changes by feature for easier review
+3. **Claude Code Footer**: Include `🤖 Generated with [Claude Code](https://claude.ai/code)` in commit messages
+4. **No Co-Author**: Do not include Co-Authored-By with Claude email addresses
+
 ### Environment Setup
 
 1. **Create `.env.local`** with required variables:
