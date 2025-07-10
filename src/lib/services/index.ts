@@ -36,3 +36,16 @@ export {
 
 // Scheduling and Rules Engine
 export { schedulingRulesEngine } from './scheduling-rules-engine';
+
+// 1v1 Booking Services
+export { 
+  oneOnOneBookingService,
+  type OneOnOneBookingRequest,
+  type OneOnOneBookingResult,
+  type TeacherProfileForBooking,
+  type OneOnOneAutoMatchingCriteria
+} from './one-on-one-booking-service';
+
+export { 
+  conflictDetectionService
+} from './conflict-detection-service';

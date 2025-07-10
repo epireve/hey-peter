@@ -847,6 +847,390 @@ export interface SchedulingEvent {
 }
 
 // =============================================================================
+// 1v1 BOOKING SYSTEM TYPES
+// =============================================================================
+
+/**
+ * 1v1 booking specific types for individual lessons
+ */
+export type OneOnOneBookingDuration = 30 | 60; // minutes
+
+/**
+ * 1v1 booking status types
+ */
+export type OneOnOneBookingStatus = 
+  | 'pending'
+  | 'confirmed'
+  | 'in_progress'
+  | 'completed'
+  | 'cancelled'
+  | 'rescheduled';
+
+/**
+ * Teacher selection preferences for 1v1 booking
+ */
+export interface TeacherSelectionPreferences {
+  /** Preferred teacher IDs in order of preference */
+  preferredTeacherIds: string[];
+  /** Teacher gender preference */
+  genderPreference?: 'male' | 'female' | 'no_preference';
+  /** Teaching experience level preference */
+  experienceLevel?: 'beginner' | 'intermediate' | 'advanced' | 'expert';
+  /** Language specialization preferences */
+  languageSpecializations?: string[];
+  /** Personality traits preferences */
+  personalityTraits?: string[];
+  /** Teaching style preferences */
+  teachingStyles?: string[];
+}
+
+/**
+ * Learning goals for 1v1 sessions
+ */
+export interface OneOnOneLearningGoals {
+  /** Primary learning objectives */
+  primaryObjectives: string[];
+  /** Specific skills to focus on */
+  skillFocus: LearningSkill[];
+  /** Areas of improvement */
+  improvementAreas: string[];
+  /** Target proficiency level */
+  targetProficiencyLevel?: number; // 1-10
+  /** Session-specific goals */
+  sessionGoals?: string[];
+  /** Long-term goals */
+  longTermGoals?: string[];
+}
+
+/**
+ * Teacher availability for 1v1 booking
+ */
+export interface TeacherAvailability {
+  /** Teacher ID */
+  teacherId: string;
+  /** Available time slots */
+  availableSlots: TimeSlot[];
+  /** Recurring availability patterns */
+  recurringPatterns?: RecurringAvailabilityPattern[];
+  /** Blocked time slots */
+  blockedSlots?: TimeSlot[];
+  /** Advance booking preferences */
+  advanceBookingPreferences: {
+    /** Minimum advance booking time in hours */
+    minimumAdvanceHours: number;
+    /** Maximum advance booking time in days */
+    maximumAdvanceDays: number;
+    /** Preferred advance booking time */
+    preferredAdvanceHours?: number;
+  };
+}
+
+/**
+ * Recurring availability pattern for teachers
+ */
+export interface RecurringAvailabilityPattern {
+  /** Pattern ID */
+  id: string;
+  /** Days of the week (0-6, Sunday=0) */
+  daysOfWeek: number[];
+  /** Start time */
+  startTime: string; // HH:MM format
+  /** End time */
+  endTime: string; // HH:MM format
+  /** Pattern type */
+  patternType: 'weekly' | 'biweekly' | 'monthly';
+  /** Pattern duration */
+  duration: number; // minutes
+  /** Pattern status */
+  isActive: boolean;
+  /** Effective date range */
+  effectiveFrom: string; // ISO date
+  /** Effective until date */
+  effectiveUntil?: string; // ISO date
+}
+
+/**
+ * Auto-matching criteria for 1v1 booking
+ */
+export interface OneOnOneAutoMatchingCriteria {
+  /** Student ID */
+  studentId: string;
+  /** Preferred time slots */
+  preferredTimeSlots: TimeSlot[];
+  /** Duration preference */
+  durationPreference: OneOnOneBookingDuration;
+  /** Teacher preferences */
+  teacherPreferences: TeacherSelectionPreferences;
+  /** Learning goals */
+  learningGoals: OneOnOneLearningGoals;
+  /** Urgency level */
+  urgency: 'low' | 'medium' | 'high';
+  /** Flexibility in scheduling */
+  flexibility: {
+    /** Allow alternative time slots */
+    allowAlternativeSlots: boolean;
+    /** Allow alternative duration */
+    allowAlternativeDuration: boolean;
+    /** Allow alternative teachers */
+    allowAlternativeTeachers: boolean;
+  };
+  /** Maximum search radius for alternative options */
+  maxSearchRadius: {
+    /** Time variation in minutes */
+    timeVariationMinutes: number;
+    /** Date variation in days */
+    dateVariationDays: number;
+  };
+}
+
+/**
+ * Teacher matching score for auto-matching
+ */
+export interface TeacherMatchingScore {
+  /** Teacher ID */
+  teacherId: string;
+  /** Overall matching score (0-1) */
+  overallScore: number;
+  /** Detailed scoring breakdown */
+  scoreBreakdown: {
+    /** Availability compatibility */
+    availabilityScore: number;
+    /** Experience matching */
+    experienceScore: number;
+    /** Specialization matching */
+    specializationScore: number;
+    /** Student preference matching */
+    preferenceScore: number;
+    /** Historical performance */
+    performanceScore: number;
+    /** Language compatibility */
+    languageScore: number;
+  };
+  /** Available time slots for this teacher */
+  availableSlots: TimeSlot[];
+  /** Confidence level */
+  confidenceLevel: number;
+  /** Matching rationale */
+  matchingRationale: string;
+}
+
+/**
+ * 1v1 booking request
+ */
+export interface OneOnOneBookingRequest {
+  /** Request ID */
+  id: string;
+  /** Student ID */
+  studentId: string;
+  /** Course ID */
+  courseId: string;
+  /** Preferred duration */
+  duration: OneOnOneBookingDuration;
+  /** Auto-matching criteria */
+  matchingCriteria: OneOnOneAutoMatchingCriteria;
+  /** Request type */
+  requestType: 'immediate' | 'scheduled' | 'recurring';
+  /** Recurring schedule if applicable */
+  recurringSchedule?: {
+    /** Frequency */
+    frequency: 'weekly' | 'biweekly' | 'monthly';
+    /** Number of sessions */
+    numberOfSessions: number;
+    /** Start date */
+    startDate: string; // ISO date
+  };
+  /** Request priority */
+  priority: SchedulingPriority;
+  /** Special requirements */
+  specialRequirements?: string[];
+  /** Request timestamp */
+  requestedAt: string;
+  /** Request status */
+  status: 'pending' | 'processing' | 'matched' | 'confirmed' | 'failed';
+}
+
+/**
+ * 1v1 booking recommendation
+ */
+export interface OneOnOneBookingRecommendation {
+  /** Recommendation ID */
+  id: string;
+  /** Teacher matching score */
+  teacherMatch: TeacherMatchingScore;
+  /** Recommended time slot */
+  recommendedSlot: TimeSlot;
+  /** Alternative slots */
+  alternativeSlots: TimeSlot[];
+  /** Recommendation confidence */
+  confidence: number;
+  /** Estimated booking success probability */
+  bookingSuccessProbability: number;
+  /** Benefits of this recommendation */
+  benefits: string[];
+  /** Potential drawbacks */
+  drawbacks: string[];
+  /** Recommendation reason */
+  reason: string;
+  /** Booking constraints */
+  constraints: {
+    /** Latest booking time */
+    latestBookingTime: string;
+    /** Cancellation policy */
+    cancellationPolicy: string;
+    /** Rescheduling policy */
+    reschedulingPolicy: string;
+  };
+}
+
+/**
+ * 1v1 booking result
+ */
+export interface OneOnOneBookingResult {
+  /** Request ID */
+  requestId: string;
+  /** Success status */
+  success: boolean;
+  /** Booking details if successful */
+  booking?: {
+    /** Booking ID */
+    id: string;
+    /** Student ID */
+    studentId: string;
+    /** Teacher ID */
+    teacherId: string;
+    /** Course ID */
+    courseId: string;
+    /** Scheduled time slot */
+    timeSlot: TimeSlot;
+    /** Duration */
+    duration: OneOnOneBookingDuration;
+    /** Learning goals */
+    learningGoals: OneOnOneLearningGoals;
+    /** Status */
+    status: OneOnOneBookingStatus;
+    /** Booking reference */
+    bookingReference: string;
+    /** Meeting link */
+    meetingLink?: string;
+    /** Location */
+    location?: string;
+  };
+  /** Recommendations if not successful */
+  recommendations?: OneOnOneBookingRecommendation[];
+  /** Conflict details if any */
+  conflicts?: SchedulingConflict[];
+  /** Processing metrics */
+  metrics: {
+    /** Processing time */
+    processingTime: number;
+    /** Teachers evaluated */
+    teachersEvaluated: number;
+    /** Time slots considered */
+    timeSlotsConsidered: number;
+    /** Matching algorithm version */
+    algorithmVersion: string;
+  };
+  /** Error details if failed */
+  error?: SchedulingError;
+}
+
+/**
+ * Teacher profile for 1v1 booking display
+ */
+export interface TeacherProfileForBooking {
+  /** Teacher ID */
+  id: string;
+  /** Full name */
+  fullName: string;
+  /** Profile photo URL */
+  profilePhotoUrl?: string;
+  /** Bio */
+  bio: string;
+  /** Teaching experience years */
+  experienceYears: number;
+  /** Specializations */
+  specializations: string[];
+  /** Teaching certifications */
+  certifications: string[];
+  /** Languages spoken */
+  languagesSpoken: string[];
+  /** Student ratings */
+  ratings: {
+    /** Average rating */
+    averageRating: number;
+    /** Total reviews */
+    totalReviews: number;
+    /** Recent reviews */
+    recentReviews: {
+      /** Review text */
+      text: string;
+      /** Rating */
+      rating: number;
+      /** Student name */
+      studentName: string;
+      /** Review date */
+      date: string;
+    }[];
+  };
+  /** Availability summary */
+  availabilitySummary: {
+    /** Next available slot */
+    nextAvailableSlot?: TimeSlot;
+    /** Available slots this week */
+    availableThisWeek: number;
+    /** Available slots next week */
+    availableNextWeek: number;
+  };
+  /** Pricing */
+  pricing: {
+    /** Rate per 30 minutes */
+    rate30Min: number;
+    /** Rate per 60 minutes */
+    rate60Min: number;
+    /** Currency */
+    currency: string;
+  };
+  /** Teaching style */
+  teachingStyle: string[];
+  /** Personality traits */
+  personalityTraits: string[];
+}
+
+/**
+ * Alternative booking options when primary booking fails
+ */
+export interface AlternativeBookingOptions {
+  /** Alternative teachers */
+  alternativeTeachers: TeacherMatchingScore[];
+  /** Alternative time slots */
+  alternativeTimeSlots: TimeSlot[];
+  /** Alternative durations */
+  alternativeDurations: OneOnOneBookingDuration[];
+  /** Waitlist options */
+  waitlistOptions: {
+    /** Teacher ID */
+    teacherId: string;
+    /** Estimated wait time */
+    estimatedWaitTime: number; // minutes
+    /** Position in queue */
+    queuePosition: number;
+    /** Notification preferences */
+    notificationPreferences: string[];
+  }[];
+  /** Flexible scheduling options */
+  flexibleOptions: {
+    /** Description */
+    description: string;
+    /** Flexibility type */
+    type: 'time' | 'teacher' | 'duration' | 'date';
+    /** Potential savings */
+    potentialSavings?: number;
+    /** Confidence level */
+    confidenceLevel: number;
+  }[];
+}
+
+// =============================================================================
 // EXPORT TYPES FOR EXTERNAL USE
 // =============================================================================
 
@@ -893,4 +1277,18 @@ export type {
   SchedulingServiceMetrics,
   SchedulingCacheEntry,
   SchedulingEvent,
+  // 1v1 Booking types
+  OneOnOneBookingDuration,
+  OneOnOneBookingStatus,
+  TeacherSelectionPreferences,
+  OneOnOneLearningGoals,
+  TeacherAvailability,
+  RecurringAvailabilityPattern,
+  OneOnOneAutoMatchingCriteria,
+  TeacherMatchingScore,
+  OneOnOneBookingRequest,
+  OneOnOneBookingRecommendation,
+  OneOnOneBookingResult,
+  TeacherProfileForBooking,
+  AlternativeBookingOptions,
 };
