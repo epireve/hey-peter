@@ -6,14 +6,35 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Development
 ```bash
-# Start development server
+# Start development server (local)
 npm run dev
+
+# Start development server (Docker)
+npm run docker:dev
 
 # Build for production
 npm run build
 
 # Start production server
 npm run start
+
+# Start production server (Docker)
+npm run docker:prod
+```
+
+### Database Management
+```bash
+# Start local Supabase
+supabase start
+
+# Reset local database
+supabase db reset
+
+# Push migrations to remote
+supabase db push --linked --password your-password
+
+# Check database status
+supabase status
 ```
 
 ### Testing
@@ -43,21 +64,49 @@ npm run lint
 npx tsc --noEmit
 ```
 
+### Docker Operations
+```bash
+# Start development environment
+npm run docker:dev
+
+# Start production environment
+npm run docker:prod
+
+# Stop all containers
+npm run docker:stop
+
+# View logs
+npm run docker:logs
+
+# Rebuild containers
+npm run docker:build
+```
+
 ## Architecture Overview
 
 ### Project Structure
 The codebase is a Learning Management System (LMS) for "HeyPeter Academy" with the following architecture:
 
-- **heypeter-academy-app/**: Main Next.js 14 application with App Router
-  - **src/app/**: Next.js app directory for routing
-  - **src/components/**: React components organized by feature (auth, ui, etc.)
-  - **src/lib/**: Core utilities (Supabase client, auth helpers, stores)
-  - **src/hooks/**: Custom React hooks
-  - **src/types/**: TypeScript type definitions
-  - **supabase/**: Database migrations and functions
-
-- **scripts/sql/**: SQL migration scripts for database schema setup
-- **types/**: Shared database type definitions generated from Supabase
+```
+hey-peter/
+├── src/                   # Application source code
+│   ├── app/              # Next.js app directory for routing
+│   ├── components/       # React components organized by feature
+│   ├── lib/              # Core utilities (Supabase client, auth helpers, stores)
+│   ├── hooks/            # Custom React hooks
+│   └── types/            # TypeScript type definitions
+├── supabase/             # Supabase configuration
+│   ├── migrations/       # Database migration files
+│   └── config.toml       # Supabase local config
+├── scripts/              # Utility scripts
+│   ├── docker-*.sh       # Docker management scripts
+│   └── *.sql            # SQL utilities
+├── docker/               # Docker configuration
+│   ├── Dockerfile        # Production image
+│   ├── Dockerfile.dev    # Development image
+│   └── docker-compose.*  # Docker orchestration
+└── public/               # Static assets
+```
 
 ### Technology Stack
 - **Frontend**: Next.js 14, React 18, TypeScript, Tailwind CSS
@@ -127,6 +176,28 @@ The codebase is a Learning Management System (LMS) for "HeyPeter Academy" with t
 4. **Form Validation**: Always use Zod schemas with React Hook Form
 5. **Testing**: Write tests for all new components and utilities. Always test code before marking tasks as complete
 6. **Type Safety**: Leverage generated types from Supabase for database operations
+7. **Docker Development**: Use `npm run docker:dev` for isolated development environment
+8. **Database Migrations**: Keep migrations in `supabase/migrations/` with timestamp prefix
+
+### Environment Setup
+
+1. **Create `.env.local`** with required variables:
+   ```env
+   NEXT_PUBLIC_SUPABASE_URL=https://rgqcbsjucvpffyajrjrc.supabase.co
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+   DATABASE_URL=postgresql://postgres:password@host:5432/postgres
+   SUPABASE_DB_PASSWORD=your-password
+   ```
+
+2. **Database Setup**:
+   - Local: `supabase start` (auto-applies migrations)
+   - Remote: `supabase db push --linked --password your-password`
+
+3. **Docker Setup**:
+   - Development: `npm run docker:dev`
+   - Production: `npm run docker:prod`
+   - Logs: `npm run docker:logs`
+   - Stop: `npm run docker:stop`
 
 ## Task Management
 
