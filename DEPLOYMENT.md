@@ -122,7 +122,11 @@ node .next/standalone/server.js
 ## 🔧 Configuration Files
 
 ### vercel.json
-Optimized for Vercel deployment with security headers and proper routing.
+Optimized for Vercel deployment with:
+- Custom build commands for pnpm support
+- Security headers (X-Frame-Options, X-Content-Type-Options, Referrer-Policy)
+- Automatic Next.js framework detection
+- No explicit runtime configuration (Next.js handles this automatically)
 
 ### next.config.mjs
 - Automatic output mode selection (standalone for Docker, default for Vercel)

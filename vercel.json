@@ -1,13 +1,7 @@
 {
-  "buildCommand": "pnpm build",
   "installCommand": "pnpm install --frozen-lockfile",
+  "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
-  "framework": "nextjs",
-  "functions": {
-    "app/api/**/*.ts": {
-      "runtime": "@vercel/node"
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
@@ -26,8 +20,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "NODE_ENV": "production"
-  }
+  ]
 }
