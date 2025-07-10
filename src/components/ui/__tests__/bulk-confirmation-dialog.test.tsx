@@ -82,7 +82,8 @@ describe("BulkConfirmationDialog", () => {
       />
     );
 
-    expect(screen.getAllByText(/this action cannot be undone/i)).toHaveLength(1);
+    // The text appears in both the description and the warning section
+    expect(screen.getAllByText(/this action cannot be undone/i)).toHaveLength(2);
   });
 
   it("should handle export action correctly", () => {
@@ -228,6 +229,7 @@ describe("BulkConfirmationDialog", () => {
     );
 
     // Should show destructive warning even for export when explicitly set
+    // The warning text only appears in the warning section for export (not in description)
     expect(screen.getAllByText(/this action cannot be undone/i)).toHaveLength(1);
   });
 });
