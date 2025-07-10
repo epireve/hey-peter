@@ -53,11 +53,6 @@ next-env.d.ts
 # OS specific
 .DS_Store
 
-.cursor
-.roo
-.taskmaster
-.roomodes
-.windsurfrules
 .kilocode/mcp.json
 reqs.pdf
 heypeter-academy/supabase/migrations/supabase/.temp/*
