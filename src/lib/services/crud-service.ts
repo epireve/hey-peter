@@ -25,6 +25,9 @@ export interface FilterOptions {
 // Simple in-memory cache
 const cache = new Map<string, { data: any; timestamp: number }>();
 
+// Export cache for testing purposes only
+export { cache };
+
 export class CRUDService<T = any> {
   private table: string;
   private defaultSelect: string;
