@@ -1,413 +1,303 @@
 /**
  * Leave Request Service
- * Comprehensive service for managing leave requests and approval workflow
+ * 
+ * This service handles all leave request operations including submission,
+ * validation, approval, and refund processing with 48-hour rule enforcement.
  */
 
-import { supabase } from '@/lib/supabase';
-import { 
-  EnhancedLeaveRequest, 
-  LeaveRequestWithDetails,
-  LeaveRequestAnalytics,
-  LeaveRequestForm,
-  LeaveRequestFilters,
-  PaginatedHourResponse,
-  HourManagementResponse
-} from '@/types/hour-management';
+import { createClient } from '@/lib/supabase/client';
+import { leaveRulesService } from './leave-rules-service';
+import type {
+  LeaveRequest,
+  LeaveRequestSubmission,
+  LeaveRequestValidation,
+  LeaveRequestStatus,
+  LeaveRequestType,
+  HourApiResponse,
+  HourPaginatedResponse,
+  LEAVE_REQUEST_REFUND_PERCENTAGES
+} from '@/types/hours';
 
-class LeaveRequestService {
+export class LeaveRequestService {
+  private supabase = createClient();
+
   /**
-   * Submit a new leave request
+   * Validate a leave request before submission
    */
-  async submitLeaveRequest(requestData: LeaveRequestForm): Promise<HourManagementResponse<EnhancedLeaveRequest>> {
+  async validateLeaveRequest(
+    studentId: string,
+    classDate: string,
+    leaveType: LeaveRequestType = 'sick',
+    affectedClasses?: any[]
+  ): Promise<HourApiResponse<LeaveRequestValidation>> {
     try {
-      // Calculate advance notice hours
-      const startDate = new Date(requestData.start_date);
-      const currentDate = new Date();
-      const advanceNoticeHours = Math.floor((startDate.getTime() - currentDate.getTime()) / (1000 * 60 * 60));
+      const now = new Date();
+      const classDateTime = new Date(classDate);
+      
+      // Calculate hours before class
+      const hoursBeforeClass = (classDateTime.getTime() - now.getTime()) / (1000 * 60 * 60);
+      
+      // Check if class is in the past
+      if (hoursBeforeClass <= 0) {
+        return {
+          success: true,
+          data: {
+            isValid: false,
+            hoursBeforeClass,
+            meets48HourRule: false,
+            expectedRefundPercentage: 0,
+            expectedHoursRefund: 0,
+            autoApproval: false,
+            warnings: [],
+            errors: ['Cannot submit leave request for past classes']
+          }
+        };
+      }
 
-      // Calculate hours affected if not provided
-      let hoursAffected = requestData.hours_affected;
-      if (!hoursAffected && requestData.class_id) {
-        // Get class duration from the class/course
-        const { data: classData, error: classError } = await supabase
-          .from('classes')
-          .select(`
-            courses(duration_minutes, course_type)
-          `)
-          .eq('id', requestData.class_id)
-          .single();
+      // Use the new rules-based validation
+      const rulesValidation = await leaveRulesService.validateLeaveRequest(
+        studentId,
+        classDate,
+        classDate, // Same date for single class
+        leaveType,
+        affectedClasses || []
+      );
 
-        if (classError) {
-          console.warn('Could not fetch class data for hour calculation:', classError);
-        } else if (classData?.courses) {
-          const durationHours = classData.courses.duration_minutes / 60;
-          
-          // Get deduction rate for course type
-          const { data: deductionRate } = await supabase
-            .rpc('get_hour_deduction_rate', { course_type_param: classData.courses.course_type });
-          
-          hoursAffected = durationHours * (deductionRate || 1.0);
+      if (!rulesValidation.success) {
+        throw new Error(rulesValidation.error?.message || 'Rules validation failed');
+      }
+
+      // Determine refund percentage and approval status based on 48-hour rule
+      let expectedRefundPercentage = 0;
+      let autoApproval = false;
+      const warnings: string[] = [];
+      const errors: string[] = [];
+
+      // Add rule validation errors and warnings
+      if (rulesValidation.data?.errors) {
+        errors.push(...rulesValidation.data.errors.map(e => e.message));
+      }
+      if (rulesValidation.data?.warnings) {
+        warnings.push(...rulesValidation.data.warnings.map(w => w.message));
+      }
+
+      // Traditional 48-hour rule validation
+      if (hoursBeforeClass >= 48) {
+        expectedRefundPercentage = LEAVE_REQUEST_REFUND_PERCENTAGES.FULL;
+        autoApproval = true;
+      } else if (hoursBeforeClass >= 24) {
+        expectedRefundPercentage = LEAVE_REQUEST_REFUND_PERCENTAGES.PARTIAL;
+      } else if (hoursBeforeClass >= 2) {
+        expectedRefundPercentage = LEAVE_REQUEST_REFUND_PERCENTAGES.LIMITED;
+        warnings.push('Limited refund available for requests within 24 hours');
+      } else {
+        expectedRefundPercentage = LEAVE_REQUEST_REFUND_PERCENTAGES.NONE;
+        warnings.push('No refund available for requests within 2 hours of class');
+      }
+
+      // Special handling for medical emergencies
+      if (leaveType === 'emergency' || leaveType === 'sick') {
+        if (hoursBeforeClass < 48 && hoursBeforeClass >= 2) {
+          expectedRefundPercentage = LEAVE_REQUEST_REFUND_PERCENTAGES.MEDICAL_EMERGENCY;
+          warnings.push('Medical certificate may be required for enhanced refund');
         }
       }
 
-      // Create leave request
-      const { data: leaveRequest, error } = await supabase
-        .from('leave_requests')
-        .insert({
-          student_id: requestData.student_id,
-          teacher_id: requestData.teacher_id,
-          class_id: requestData.class_id,
-          start_date: requestData.start_date,
-          end_date: requestData.end_date,
-          leave_type: requestData.leave_type,
-          reason: requestData.reason,
-          hours_affected: hoursAffected,
-          advance_notice_hours: advanceNoticeHours,
-          status: 'pending',
-          hours_recovered: 0,
-          makeup_scheduled: false,
-          attachments: []
-        })
-        .select()
-        .single();
+      // Check if meets 48-hour rule
+      const meets48HourRule = hoursBeforeClass >= 48;
+      
+      if (!meets48HourRule) {
+        warnings.push('Request does not meet 48-hour advance notice requirement');
+      }
 
-      if (error) throw error;
+      // Override auto-approval if rules validation requires approval
+      if (rulesValidation.data?.summary.requiresApproval) {
+        autoApproval = false;
+      }
+
+      const validation: LeaveRequestValidation = {
+        isValid: rulesValidation.data?.isValid && errors.length === 0,
+        hoursBeforeClass,
+        meets48HourRule,
+        expectedRefundPercentage,
+        expectedHoursRefund: 1, // Assuming 1 hour per class
+        autoApproval,
+        warnings,
+        errors
+      };
 
       return {
         success: true,
-        data: leaveRequest
+        data: validation
       };
     } catch (error) {
-      console.error('Error submitting leave request:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to submit leave request'
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Failed to validate leave request',
+          details: error
+        }
       };
     }
   }
 
   /**
-   * Get leave requests with filters and pagination
+   * Submit a leave request
    */
-  async getLeaveRequests(
-    filters: LeaveRequestFilters = {},
-    page: number = 1,
-    limit: number = 50
-  ): Promise<HourManagementResponse<PaginatedHourResponse<LeaveRequestWithDetails>>> {
+  async submitLeaveRequest(request: LeaveRequestSubmission): Promise<HourApiResponse<LeaveRequest>> {
     try {
-      let query = supabase
+      const { data: user } = await this.supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      // Validate the request first
+      const validation = await this.validateLeaveRequest(
+        request.studentId,
+        request.classDate,
+        request.leaveType,
+        [{
+          classId: request.classId,
+          className: request.classType,
+          classDate: request.classDate,
+          hoursToRefund: 1
+        }]
+      );
+      if (!validation.success || !validation.data?.isValid) {
+        throw new Error(validation.data?.errors[0] || 'Invalid leave request');
+      }
+
+      // Call the database function to submit the request
+      const { data, error } = await this.supabase.rpc('submit_leave_request', {
+        p_student_id: request.studentId,
+        p_class_id: request.classId,
+        p_booking_id: request.bookingId,
+        p_class_date: request.classDate,
+        p_class_time: request.classTime,
+        p_class_type: request.classType,
+        p_teacher_id: request.teacherId,
+        p_teacher_name: request.teacherName,
+        p_reason: request.reason,
+        p_leave_type: request.leaveType,
+        p_medical_certificate_url: request.medicalCertificateUrl,
+        p_additional_notes: request.additionalNotes
+      });
+
+      if (error) throw error;
+
+      // Get the created leave request
+      const { data: leaveRequest, error: fetchError } = await this.supabase
         .from('leave_requests')
-        .select(`
-          *,
-          student:students!inner(id, student_id, users!inner(full_name, email)),
-          teacher:teachers(users!inner(full_name, email)),
-          class:classes(id, class_name, courses!inner(course_type)),
-          approved_by_user:users!leave_requests_approved_by_fkey(full_name, email),
-          rejected_by_user:users!leave_requests_rejected_by_fkey(full_name, email)
-        `, { count: 'exact' });
+        .select('*')
+        .eq('id', data)
+        .single();
 
-      // Apply filters
-      if (filters.student_id) {
-        query = query.eq('student_id', filters.student_id);
-      }
-      if (filters.teacher_id) {
-        query = query.eq('teacher_id', filters.teacher_id);
-      }
-      if (filters.status) {
-        query = query.eq('status', filters.status);
-      }
-      if (filters.leave_type) {
-        query = query.eq('leave_type', filters.leave_type);
-      }
-      if (filters.date_from) {
-        query = query.gte('start_date', filters.date_from);
-      }
-      if (filters.date_to) {
-        query = query.lte('end_date', filters.date_to);
+      if (fetchError) throw fetchError;
+
+      return {
+        success: true,
+        data: this.transformLeaveRequest(leaveRequest)
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'SUBMISSION_ERROR',
+          message: 'Failed to submit leave request',
+          details: error
+        }
+      };
+    }
+  }
+
+  /**
+   * Get leave requests for a student
+   */
+  async getStudentLeaveRequests(
+    studentId: string,
+    options?: {
+      status?: LeaveRequestStatus;
+      limit?: number;
+      offset?: number;
+    }
+  ): Promise<HourApiResponse<HourPaginatedResponse<LeaveRequest>>> {
+    try {
+      let query = this.supabase
+        .from('leave_requests')
+        .select('*', { count: 'exact' })
+        .eq('student_id', studentId)
+        .order('created_at', { ascending: false });
+
+      if (options?.status) {
+        query = query.eq('status', options.status);
       }
 
-      // Apply pagination
-      const offset = (page - 1) * limit;
-      query = query.range(offset, offset + limit - 1);
-      query = query.order('created_at', { ascending: false });
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+
+      if (options?.offset) {
+        query = query.range(options.offset, (options.offset + (options.limit || 10)) - 1);
+      }
 
       const { data, error, count } = await query;
 
       if (error) throw error;
 
+      const limit = options?.limit || 10;
+      const offset = options?.offset || 0;
       const totalPages = Math.ceil((count || 0) / limit);
 
       return {
         success: true,
         data: {
-          data: data || [],
-          total: count || 0,
-          page,
-          limit,
-          totalPages
+          items: data?.map(lr => this.transformLeaveRequest(lr)) || [],
+          pagination: {
+            page: Math.floor(offset / limit) + 1,
+            limit,
+            total: count || 0,
+            totalPages,
+            hasNext: offset + limit < (count || 0),
+            hasPrevious: offset > 0
+          }
         }
       };
     } catch (error) {
-      console.error('Error getting leave requests:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get leave requests'
+        error: {
+          code: 'FETCH_ERROR',
+          message: 'Failed to fetch leave requests',
+          details: error
+        }
       };
     }
   }
 
   /**
-   * Get pending leave requests for approval
+   * Get a specific leave request
    */
-  async getPendingLeaveRequests(): Promise<HourManagementResponse<LeaveRequestWithDetails[]>> {
+  async getLeaveRequest(requestId: string): Promise<HourApiResponse<LeaveRequest>> {
     try {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .select(`
-          *,
-          student:students!inner(id, student_id, users!inner(full_name, email)),
-          teacher:teachers(users!inner(full_name, email)),
-          class:classes(id, class_name, courses!inner(course_type))
-        `)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-
-      return {
-        success: true,
-        data: data || []
-      };
-    } catch (error) {
-      console.error('Error getting pending leave requests:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to get pending requests'
-      };
-    }
-  }
-
-  /**
-   * Approve a leave request
-   */
-  async approveLeaveRequest(
-    requestId: string, 
-    approverId: string, 
-    adminNotes?: string
-  ): Promise<HourManagementResponse<EnhancedLeaveRequest>> {
-    try {
-      // Use the database function to process approval
-      const { data: result, error } = await supabase
-        .rpc('process_leave_request', {
-          leave_request_uuid: requestId,
-          approved_status: 'approved',
-          approver_uuid: approverId,
-          admin_notes_text: adminNotes
-        });
-
-      if (error) throw error;
-
-      if (!result) {
-        throw new Error('Failed to process leave request approval');
-      }
-
-      // Get the updated leave request
-      const { data: updatedRequest, error: fetchError } = await supabase
+      const { data, error } = await this.supabase
         .from('leave_requests')
         .select('*')
         .eq('id', requestId)
         .single();
 
-      if (fetchError) throw fetchError;
-
-      return {
-        success: true,
-        data: updatedRequest
-      };
-    } catch (error) {
-      console.error('Error approving leave request:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to approve leave request'
-      };
-    }
-  }
-
-  /**
-   * Reject a leave request
-   */
-  async rejectLeaveRequest(
-    requestId: string, 
-    rejectedById: string, 
-    adminNotes?: string
-  ): Promise<HourManagementResponse<EnhancedLeaveRequest>> {
-    try {
-      // Use the database function to process rejection
-      const { data: result, error } = await supabase
-        .rpc('process_leave_request', {
-          leave_request_uuid: requestId,
-          approved_status: 'rejected',
-          approver_uuid: rejectedById,
-          admin_notes_text: adminNotes
-        });
-
-      if (error) throw error;
-
-      if (!result) {
-        throw new Error('Failed to process leave request rejection');
-      }
-
-      // Get the updated leave request
-      const { data: updatedRequest, error: fetchError } = await supabase
-        .from('leave_requests')
-        .select('*')
-        .eq('id', requestId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      return {
-        success: true,
-        data: updatedRequest
-      };
-    } catch (error) {
-      console.error('Error rejecting leave request:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to reject leave request'
-      };
-    }
-  }
-
-  /**
-   * Get leave request by ID with full details
-   */
-  async getLeaveRequestById(requestId: string): Promise<HourManagementResponse<LeaveRequestWithDetails>> {
-    try {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .select(`
-          *,
-          student:students!inner(id, student_id, users!inner(full_name, email)),
-          teacher:teachers(users!inner(full_name, email)),
-          class:classes(id, class_name, courses!inner(course_type)),
-          approved_by_user:users!leave_requests_approved_by_fkey(full_name, email),
-          rejected_by_user:users!leave_requests_rejected_by_fkey(full_name, email)
-        `)
-        .eq('id', requestId)
-        .single();
-
       if (error) throw error;
 
       return {
         success: true,
-        data
+        data: this.transformLeaveRequest(data)
       };
     } catch (error) {
-      console.error('Error getting leave request:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to get leave request'
-      };
-    }
-  }
-
-  /**
-   * Get leave requests for a specific student
-   */
-  async getStudentLeaveRequests(studentId: string): Promise<HourManagementResponse<LeaveRequestWithDetails[]>> {
-    try {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .select(`
-          *,
-          student:students!inner(id, student_id, users!inner(full_name, email)),
-          teacher:teachers(users!inner(full_name, email)),
-          class:classes(id, class_name, courses!inner(course_type)),
-          approved_by_user:users!leave_requests_approved_by_fkey(full_name, email),
-          rejected_by_user:users!leave_requests_rejected_by_fkey(full_name, email)
-        `)
-        .eq('student_id', studentId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      return {
-        success: true,
-        data: data || []
-      };
-    } catch (error) {
-      console.error('Error getting student leave requests:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to get student leave requests'
-      };
-    }
-  }
-
-  /**
-   * Get leave requests for a specific teacher (for approval)
-   */
-  async getTeacherLeaveRequests(teacherId: string): Promise<HourManagementResponse<LeaveRequestWithDetails[]>> {
-    try {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .select(`
-          *,
-          student:students!inner(id, student_id, users!inner(full_name, email)),
-          teacher:teachers(users!inner(full_name, email)),
-          class:classes(id, class_name, courses!inner(course_type)),
-          approved_by_user:users!leave_requests_approved_by_fkey(full_name, email),
-          rejected_by_user:users!leave_requests_rejected_by_fkey(full_name, email)
-        `)
-        .eq('teacher_id', teacherId)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      return {
-        success: true,
-        data: data || []
-      };
-    } catch (error) {
-      console.error('Error getting teacher leave requests:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to get teacher leave requests'
-      };
-    }
-  }
-
-  /**
-   * Update makeup scheduling for leave request
-   */
-  async updateMakeupScheduling(
-    requestId: string,
-    makeupScheduled: boolean,
-    makeupDeadline?: string
-  ): Promise<HourManagementResponse<EnhancedLeaveRequest>> {
-    try {
-      const { data, error } = await supabase
-        .from('leave_requests')
-        .update({
-          makeup_scheduled: makeupScheduled,
-          makeup_deadline: makeupDeadline
-        })
-        .eq('id', requestId)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return {
-        success: true,
-        data
-      };
-    } catch (error) {
-      console.error('Error updating makeup scheduling:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to update makeup scheduling'
+        error: {
+          code: 'FETCH_ERROR',
+          message: 'Failed to fetch leave request',
+          details: error
+        }
       };
     }
   }
@@ -415,188 +305,290 @@ class LeaveRequestService {
   /**
    * Cancel a leave request (only if pending)
    */
-  async cancelLeaveRequest(requestId: string): Promise<HourManagementResponse<boolean>> {
+  async cancelLeaveRequest(requestId: string): Promise<HourApiResponse<LeaveRequest>> {
     try {
-      // Check if request is still pending
-      const { data: request, error: fetchError } = await supabase
+      const { data: user } = await this.supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      const { data, error } = await this.supabase
         .from('leave_requests')
-        .select('status')
+        .update({
+          status: 'cancelled',
+          updated_at: new Date().toISOString()
+        })
         .eq('id', requestId)
+        .eq('status', 'pending') // Only allow cancellation of pending requests
+        .select()
         .single();
-
-      if (fetchError) throw fetchError;
-
-      if (request.status !== 'pending') {
-        throw new Error('Cannot cancel a leave request that has already been processed');
-      }
-
-      // Delete the request
-      const { error: deleteError } = await supabase
-        .from('leave_requests')
-        .delete()
-        .eq('id', requestId);
-
-      if (deleteError) throw deleteError;
-
-      return {
-        success: true,
-        data: true
-      };
-    } catch (error) {
-      console.error('Error canceling leave request:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to cancel leave request'
-      };
-    }
-  }
-
-  /**
-   * Get leave request analytics
-   */
-  async getLeaveRequestAnalytics(): Promise<HourManagementResponse<LeaveRequestAnalytics>> {
-    try {
-      // Get basic statistics
-      const [
-        { data: allRequests },
-        { data: approvedRequests },
-        { data: rejectedRequests },
-        { data: pendingRequests }
-      ] = await Promise.all([
-        supabase.from('leave_requests').select('id, hours_affected'),
-        supabase.from('leave_requests').select('id, hours_affected, hours_recovered').eq('status', 'approved'),
-        supabase.from('leave_requests').select('id').eq('status', 'rejected'),
-        supabase.from('leave_requests').select('id').eq('status', 'pending')
-      ]);
-
-      // Get processing time for approved/rejected requests
-      const { data: processedRequests } = await supabase
-        .from('leave_requests')
-        .select('created_at, approved_at, rejected_at')
-        .or('status.eq.approved,status.eq.rejected');
-
-      // Calculate average processing time
-      let totalProcessingDays = 0;
-      let processedCount = 0;
-
-      if (processedRequests) {
-        processedRequests.forEach(request => {
-          const processedAt = request.approved_at || request.rejected_at;
-          if (processedAt) {
-            const createdDate = new Date(request.created_at);
-            const processedDate = new Date(processedAt);
-            const daysDiff = (processedDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-            totalProcessingDays += daysDiff;
-            processedCount++;
-          }
-        });
-      }
-
-      // Get statistics by leave type
-      const { data: byLeaveType } = await supabase
-        .from('leave_requests')
-        .select('leave_type, status, hours_affected');
-
-      const leaveTypeStats: Record<string, { count: number; approval_rate: number; average_hours_affected: number }> = {};
-
-      if (byLeaveType) {
-        const typeGroups: Record<string, { total: number; approved: number; hours: number[] }> = {};
-
-        byLeaveType.forEach(request => {
-          const type = request.leave_type;
-          if (!typeGroups[type]) {
-            typeGroups[type] = { total: 0, approved: 0, hours: [] };
-          }
-          typeGroups[type].total++;
-          if (request.status === 'approved') {
-            typeGroups[type].approved++;
-          }
-          if (request.hours_affected) {
-            typeGroups[type].hours.push(request.hours_affected);
-          }
-        });
-
-        Object.entries(typeGroups).forEach(([type, stats]) => {
-          leaveTypeStats[type] = {
-            count: stats.total,
-            approval_rate: stats.total > 0 ? (stats.approved / stats.total) * 100 : 0,
-            average_hours_affected: stats.hours.length > 0 
-              ? stats.hours.reduce((sum, h) => sum + h, 0) / stats.hours.length 
-              : 0
-          };
-        });
-      }
-
-      const analytics: LeaveRequestAnalytics = {
-        total_requests: allRequests?.length || 0,
-        approved_requests: approvedRequests?.length || 0,
-        rejected_requests: rejectedRequests?.length || 0,
-        pending_requests: pendingRequests?.length || 0,
-        total_hours_affected: allRequests?.reduce((sum, r) => sum + (r.hours_affected || 0), 0) || 0,
-        total_hours_recovered: approvedRequests?.reduce((sum, r) => sum + (r.hours_recovered || 0), 0) || 0,
-        average_processing_time_days: processedCount > 0 ? totalProcessingDays / processedCount : 0,
-        by_leave_type: leaveTypeStats
-      };
-
-      return {
-        success: true,
-        data: analytics
-      };
-    } catch (error) {
-      console.error('Error getting leave request analytics:', error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : 'Failed to get analytics'
-      };
-    }
-  }
-
-  /**
-   * Check if student can submit leave request for specific dates
-   */
-  async canSubmitLeaveRequest(
-    studentId: string, 
-    startDate: string, 
-    endDate: string
-  ): Promise<HourManagementResponse<{ canSubmit: boolean; reason?: string }>> {
-    try {
-      // Check for overlapping leave requests
-      const { data: overlappingRequests, error } = await supabase
-        .from('leave_requests')
-        .select('id, status')
-        .eq('student_id', studentId)
-        .or(`
-          and(start_date.lte.${startDate},end_date.gte.${startDate}),
-          and(start_date.lte.${endDate},end_date.gte.${endDate}),
-          and(start_date.gte.${startDate},end_date.lte.${endDate})
-        `)
-        .in('status', ['pending', 'approved']);
 
       if (error) throw error;
 
-      if (overlappingRequests && overlappingRequests.length > 0) {
-        return {
-          success: true,
-          data: {
-            canSubmit: false,
-            reason: 'You already have a leave request for overlapping dates'
+      return {
+        success: true,
+        data: this.transformLeaveRequest(data)
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'CANCEL_ERROR',
+          message: 'Failed to cancel leave request',
+          details: error
+        }
+      };
+    }
+  }
+
+  /**
+   * Get pending leave requests for review (admin/teacher)
+   */
+  async getPendingLeaveRequests(options?: {
+    limit?: number;
+    offset?: number;
+  }): Promise<HourApiResponse<HourPaginatedResponse<LeaveRequest>>> {
+    try {
+      let query = this.supabase
+        .from('leave_requests')
+        .select('*', { count: 'exact' })
+        .eq('status', 'pending')
+        .order('submitted_at', { ascending: true });
+
+      if (options?.limit) {
+        query = query.limit(options.limit);
+      }
+
+      if (options?.offset) {
+        query = query.range(options.offset, (options.offset + (options.limit || 10)) - 1);
+      }
+
+      const { data, error, count } = await query;
+
+      if (error) throw error;
+
+      const limit = options?.limit || 10;
+      const offset = options?.offset || 0;
+      const totalPages = Math.ceil((count || 0) / limit);
+
+      return {
+        success: true,
+        data: {
+          items: data?.map(lr => this.transformLeaveRequest(lr)) || [],
+          pagination: {
+            page: Math.floor(offset / limit) + 1,
+            limit,
+            total: count || 0,
+            totalPages,
+            hasNext: offset + limit < (count || 0),
+            hasPrevious: offset > 0
           }
-        };
+        }
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'FETCH_ERROR',
+          message: 'Failed to fetch pending leave requests',
+          details: error
+        }
+      };
+    }
+  }
+
+  /**
+   * Approve a leave request (admin/teacher)
+   */
+  async approveLeaveRequest(
+    requestId: string,
+    reviewNotes?: string
+  ): Promise<HourApiResponse<LeaveRequest>> {
+    try {
+      const { data: user } = await this.supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      const { data, error } = await this.supabase
+        .from('leave_requests')
+        .update({
+          status: 'approved',
+          reviewed_by: user.user.id,
+          reviewed_at: new Date().toISOString(),
+          review_notes: reviewNotes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requestId)
+        .eq('status', 'pending')
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Process refund if approved
+      if (data && data.hours_to_refund > 0 && !data.refund_processed) {
+        await this.supabase.rpc('process_leave_refund', {
+          p_leave_request_id: requestId
+        });
       }
 
       return {
         success: true,
-        data: { canSubmit: true }
+        data: this.transformLeaveRequest(data)
       };
     } catch (error) {
-      console.error('Error checking leave request eligibility:', error);
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to check eligibility'
+        error: {
+          code: 'APPROVE_ERROR',
+          message: 'Failed to approve leave request',
+          details: error
+        }
       };
     }
   }
+
+  /**
+   * Reject a leave request (admin/teacher)
+   */
+  async rejectLeaveRequest(
+    requestId: string,
+    reviewNotes: string
+  ): Promise<HourApiResponse<LeaveRequest>> {
+    try {
+      const { data: user } = await this.supabase.auth.getUser();
+      if (!user.user) throw new Error('User not authenticated');
+
+      const { data, error } = await this.supabase
+        .from('leave_requests')
+        .update({
+          status: 'rejected',
+          reviewed_by: user.user.id,
+          reviewed_at: new Date().toISOString(),
+          review_notes: reviewNotes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', requestId)
+        .eq('status', 'pending')
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return {
+        success: true,
+        data: this.transformLeaveRequest(data)
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'REJECT_ERROR',
+          message: 'Failed to reject leave request',
+          details: error
+        }
+      };
+    }
+  }
+
+  /**
+   * Get leave request statistics for a student
+   */
+  async getLeaveRequestStats(
+    studentId: string,
+    periodDays: number = 30
+  ): Promise<HourApiResponse<{
+    totalRequests: number;
+    approvedRequests: number;
+    rejectedRequests: number;
+    pendingRequests: number;
+    totalHoursRefunded: number;
+    averageRefundPercentage: number;
+    requestsByType: Record<LeaveRequestType, number>;
+  }>> {
+    try {
+      const periodStart = new Date();
+      periodStart.setDate(periodStart.getDate() - periodDays);
+
+      const { data, error } = await this.supabase
+        .from('leave_requests')
+        .select('*')
+        .eq('student_id', studentId)
+        .gte('created_at', periodStart.toISOString());
+
+      if (error) throw error;
+
+      const stats = {
+        totalRequests: data?.length || 0,
+        approvedRequests: data?.filter(lr => lr.status === 'approved').length || 0,
+        rejectedRequests: data?.filter(lr => lr.status === 'rejected').length || 0,
+        pendingRequests: data?.filter(lr => lr.status === 'pending').length || 0,
+        totalHoursRefunded: data?.reduce((sum, lr) => sum + (lr.refund_processed ? lr.hours_to_refund : 0), 0) || 0,
+        averageRefundPercentage: 0,
+        requestsByType: {} as Record<LeaveRequestType, number>
+      };
+
+      // Calculate average refund percentage
+      const refundedRequests = data?.filter(lr => lr.refund_processed) || [];
+      if (refundedRequests.length > 0) {
+        stats.averageRefundPercentage = refundedRequests.reduce((sum, lr) => sum + lr.refund_percentage, 0) / refundedRequests.length;
+      }
+
+      // Count requests by type
+      const leaveTypes: LeaveRequestType[] = ['sick', 'emergency', 'personal', 'work', 'family', 'travel', 'other'];
+      leaveTypes.forEach(type => {
+        stats.requestsByType[type] = data?.filter(lr => lr.leave_type === type).length || 0;
+      });
+
+      return {
+        success: true,
+        data: stats
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: {
+          code: 'STATS_ERROR',
+          message: 'Failed to calculate leave request statistics',
+          details: error
+        }
+      };
+    }
+  }
+
+  /**
+   * Transform database record to LeaveRequest interface
+   */
+  private transformLeaveRequest(lr: any): LeaveRequest {
+    return {
+      id: lr.id,
+      studentId: lr.student_id,
+      classId: lr.class_id,
+      bookingId: lr.booking_id,
+      classDate: lr.class_date,
+      classTime: lr.class_time,
+      classType: lr.class_type,
+      teacherId: lr.teacher_id,
+      teacherName: lr.teacher_name,
+      reason: lr.reason,
+      leaveType: lr.leave_type,
+      medicalCertificateUrl: lr.medical_certificate_url,
+      submittedAt: lr.submitted_at,
+      hoursBeforeClass: lr.hours_before_class,
+      meets48HourRule: lr.meets_48_hour_rule,
+      status: lr.status,
+      reviewedBy: lr.reviewed_by,
+      reviewedAt: lr.reviewed_at,
+      reviewNotes: lr.review_notes,
+      hoursToRefund: lr.hours_to_refund,
+      refundPercentage: lr.refund_percentage,
+      refundProcessed: lr.refund_processed,
+      refundTransactionId: lr.refund_transaction_id,
+      autoApproved: lr.auto_approved,
+      additionalNotes: lr.additional_notes,
+      metadata: lr.metadata,
+      createdAt: lr.created_at,
+      updatedAt: lr.updated_at
+    };
+  }
 }
 
+// Export singleton instance
 export const leaveRequestService = new LeaveRequestService();
-export default leaveRequestService;

@@ -63,5 +63,9 @@ export { EmailManagementDashboard } from './email/EmailManagementDashboard';
 export { EmailPreferencesManager } from './email/EmailPreferencesManager';
 
 // Hour Management
-export { HourManagementDashboard } from './HourManagementDashboard';
+export { HourManagementDashboard as LegacyHourManagementDashboard } from './HourManagementDashboard';
 export { LeaveRequestApproval } from './LeaveRequestApproval';
+export { HourManagementDashboard } from './hours';
+
+// Postponement Management
+export { PostponementManagement } from './postponements/PostponementManagement';

@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
+import { performanceMonitor } from "@/lib/utils/performance-monitor";
 
 export interface CRUDOptions {
   table: string;
@@ -89,8 +90,11 @@ export class CRUDService<T = any> {
     const cached = this.getFromCache(cacheKey);
     if (cached) return { data: cached, error: null };
 
-    try {
-      let query = this.supabaseClient.from(this.table).select(this.defaultSelect, { count: "exact" });
+    return performanceMonitor.trackQuery(
+      `${this.table}.getAll`,
+      async () => {
+        try {
+          let query = this.supabaseClient.from(this.table).select(this.defaultSelect, { count: "exact" });
 
       // Apply filters
       if (options?.filters) {
@@ -114,15 +118,18 @@ export class CRUDService<T = any> {
         query = query.range(start, end);
       }
 
-      const { data, error, count } = await query;
+          const { data, error, count } = await query;
 
-      if (error) throw error;
+          if (error) throw error;
 
-      this.setCache(cacheKey, data);
-      return { data, error: null, count: count || 0 };
-    } catch (error) {
-      return { data: null, error };
-    }
+          this.setCache(cacheKey, data);
+          return { data, error: null, count: count || 0 };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
+      { filters: options?.filters, pagination: options?.pagination }
+    );
   }
 
   async getById(id: string | number): Promise<{ data: T | null; error: any }> {
@@ -130,55 +137,72 @@ export class CRUDService<T = any> {
     const cached = this.getFromCache(cacheKey);
     if (cached) return { data: cached, error: null };
 
-    try {
-      const { data, error } = await this.supabaseClient
-        .from(this.table)
-        .select(this.defaultSelect)
-        .eq("id", id)
-        .single();
+    return performanceMonitor.trackQuery(
+      `${this.table}.getById`,
+      async () => {
+        try {
+          const { data, error } = await this.supabaseClient
+            .from(this.table)
+            .select(this.defaultSelect)
+            .eq("id", id)
+            .single();
 
-      if (error) throw error;
+          if (error) throw error;
 
-      this.setCache(cacheKey, data);
-      return { data, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
+          this.setCache(cacheKey, data);
+          return { data, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
+      { id }
+    );
   }
 
   async create(payload: Partial<T>): Promise<{ data: T | null; error: any }> {
-    try {
-      const { data, error } = await this.supabaseClient
-        .from(this.table)
-        .insert(payload)
-        .select(this.defaultSelect)
-        .single();
+    return performanceMonitor.trackQuery(
+      `${this.table}.create`,
+      async () => {
+        try {
+          const { data, error } = await this.supabaseClient
+            .from(this.table)
+            .insert(payload)
+            .select(this.defaultSelect)
+            .single();
 
-      if (error) throw error;
+          if (error) throw error;
 
-      this.clearCache(); // Invalidate cache on create
-      return { data, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
+          this.clearCache(); // Invalidate cache on create
+          return { data, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      }
+    );
   }
 
   async update(id: string | number, payload: Partial<T>): Promise<{ data: T | null; error: any }> {
-    try {
-      const { data, error } = await this.supabaseClient
-        .from(this.table)
-        .update(payload)
-        .eq("id", id)
-        .select(this.defaultSelect)
-        .single();
+    return performanceMonitor.trackQuery(
+      `${this.table}.update`,
+      async () => {
+        try {
+          const { data, error } = await this.supabaseClient
+            .from(this.table)
+            .update(payload)
+            .eq("id", id)
+            .select(this.defaultSelect)
+            .single();
 
-      if (error) throw error;
+          if (error) throw error;
 
-      this.clearCache(); // Invalidate cache on update
-      return { data, error: null };
-    } catch (error) {
-      return { data: null, error };
-    }
+          this.clearCache(); // Invalidate cache on update
+          return { data, error: null };
+        } catch (error) {
+          return { data: null, error };
+        }
+      },
+      { id }
+    );
   }
 
   async delete(id: string | number): Promise<{ error: any }> {

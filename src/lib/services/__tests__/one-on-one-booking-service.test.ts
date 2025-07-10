@@ -32,12 +32,10 @@ jest.mock('../crud-service', () => ({
   }))
 }));
 
-// Mock conflict detection service
-jest.mock('../conflict-detection-service', () => ({
-  conflictDetectionService: {
-    detectBookingConflicts: jest.fn().mockResolvedValue([])
-  }
-}));
+// Mock conflict detection service (service removed - using placeholder)
+const mockConflictDetectionService = {
+  detectBookingConflicts: jest.fn().mockResolvedValue([])
+};
 
 describe('OneOnOneBookingService', () => {
   let service: OneOnOneBookingService;

@@ -226,4 +226,188 @@ export function OneOnOneBooking({
       { id: 'confirmation', label: 'Confirm', icon: CheckCircle },
     ];
 
-    const currentStepIndex = steps.findIndex(step => step.id === currentStep);\n\n    return (\n      <div className=\"flex justify-between mb-8\">\n        {steps.map((step, index) => {\n          const Icon = step.icon;\n          const isActive = step.id === currentStep;\n          const isCompleted = index < currentStepIndex;\n          \n          return (\n            <div key={step.id} className=\"flex flex-col items-center relative\">\n              {index > 0 && (\n                <div \n                  className={`absolute left-0 top-6 w-full h-0.5 -translate-x-1/2 ${\n                    isCompleted ? 'bg-primary' : 'bg-muted'\n                  }`}\n                  style={{ width: 'calc(100% - 3rem)' }}\n                />\n              )}\n              <div \n                className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${\n                  isActive \n                    ? 'border-primary bg-primary text-primary-foreground'\n                    : isCompleted\n                    ? 'border-primary bg-primary text-primary-foreground'\n                    : 'border-muted bg-background'\n                }`}\n              >\n                <Icon className=\"w-5 h-5\" />\n              </div>\n              <span \n                className={`mt-2 text-sm font-medium ${\n                  isActive ? 'text-primary' : 'text-muted-foreground'\n                }`}\n              >\n                {step.label}\n              </span>\n            </div>\n          );\n        })}\n      </div>\n    );\n  };\n\n  /**\n   * Render current step content\n   */\n  const renderStepContent = () => {\n    switch (currentStep) {\n      case 'goals':\n        return (\n          <LearningGoalsForm\n            onSubmit={handleLearningGoalsSubmit}\n            initialGoals={learningGoals}\n          />\n        );\n\n      case 'duration':\n        return (\n          <DurationSelector\n            selectedDuration={selectedDuration}\n            onSelect={handleDurationSelect}\n            onBack={() => handleStepNavigation('goals')}\n          />\n        );\n\n      case 'teachers':\n        return (\n          <TeacherSelectionInterface\n            availableTeachers={availableTeachers}\n            preferences={teacherPreferences}\n            onSelection={handleTeacherSelection}\n            onBack={() => handleStepNavigation('duration')}\n            loading={loading}\n          />\n        );\n\n      case 'schedule':\n        return (\n          <div className=\"space-y-6\">\n            <h3 className=\"text-lg font-semibold\">Select Your Preferred Time</h3>\n            {/* Time slot selection component would go here */}\n            <div className=\"flex justify-between\">\n              <Button variant=\"outline\" onClick={() => handleStepNavigation('teachers')}>\n                Back\n              </Button>\n              <Button \n                onClick={() => handleTimeSlotSelection([/* mock slots */])}\n                disabled={selectedTimeSlots.length === 0}\n              >\n                Continue\n              </Button>\n            </div>\n          </div>\n        );\n\n      case 'confirmation':\n        return (\n          <div className=\"space-y-6\">\n            <h3 className=\"text-lg font-semibold\">Confirm Your Booking</h3>\n            \n            {/* Booking summary */}\n            <Card>\n              <CardHeader>\n                <CardTitle>Booking Summary</CardTitle>\n              </CardHeader>\n              <CardContent className=\"space-y-4\">\n                <div className=\"grid grid-cols-2 gap-4\">\n                  <div>\n                    <span className=\"text-sm text-muted-foreground\">Duration</span>\n                    <p className=\"font-medium\">{selectedDuration} minutes</p>\n                  </div>\n                  <div>\n                    <span className=\"text-sm text-muted-foreground\">Learning Goals</span>\n                    <p className=\"font-medium\">\n                      {learningGoals?.primaryObjectives.slice(0, 2).join(', ')}\n                    </p>\n                  </div>\n                </div>\n              </CardContent>\n            </Card>\n\n            {/* Error display */}\n            {error && (\n              <div className=\"flex items-center gap-2 p-4 bg-destructive/10 text-destructive rounded-md\">\n                <AlertCircle className=\"w-4 h-4\" />\n                <span>{error}</span>\n              </div>\n            )}\n\n            {/* Booking result */}\n            {bookingResult && (\n              <BookingRecommendations\n                result={bookingResult}\n                onBookingSelect={(recommendation) => {\n                  // Handle specific recommendation selection\n                }}\n              />\n            )}\n\n            <div className=\"flex justify-between\">\n              <Button variant=\"outline\" onClick={() => handleStepNavigation('schedule')}>\n                Back\n              </Button>\n              <div className=\"flex gap-2\">\n                {onBookingCancel && (\n                  <Button variant=\"outline\" onClick={onBookingCancel}>\n                    Cancel\n                  </Button>\n                )}\n                <Button \n                  onClick={handleBookingSubmit}\n                  disabled={loading}\n                >\n                  {loading ? 'Booking...' : 'Confirm Booking'}\n                </Button>\n              </div>\n            </div>\n          </div>\n        );\n\n      default:\n        return null;\n    }\n  };\n\n  return (\n    <div className=\"max-w-4xl mx-auto p-6\">\n      <div className=\"mb-8\">\n        <h1 className=\"text-3xl font-bold mb-2\">Book a 1-on-1 Session</h1>\n        <p className=\"text-muted-foreground\">\n          Get personalized attention from our expert teachers\n        </p>\n      </div>\n\n      {renderStepIndicator()}\n      \n      <Card>\n        <CardContent className=\"p-6\">\n          {renderStepContent()}\n        </CardContent>\n      </Card>\n    </div>\n  );\n}"
+    const currentStepIndex = steps.findIndex(step => step.id === currentStep);
+
+    return (
+      <div className="flex justify-between mb-8">
+        {steps.map((step, index) => {
+          const Icon = step.icon;
+          const isActive = step.id === currentStep;
+          const isCompleted = index < currentStepIndex;
+          
+          return (
+            <div key={step.id} className="flex flex-col items-center relative">
+              {index > 0 && (
+                <div 
+                  className={`absolute left-0 top-6 w-full h-0.5 -translate-x-1/2 ${
+                    isCompleted ? 'bg-primary' : 'bg-muted'
+                  }`}
+                  style={{ width: 'calc(100% - 3rem)' }}
+                />
+              )}
+              <div 
+                className={`w-12 h-12 rounded-full flex items-center justify-center border-2 transition-colors ${
+                  isActive 
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : isCompleted
+                    ? 'border-primary bg-primary text-primary-foreground'
+                    : 'border-muted bg-background'
+                }`}
+              >
+                <Icon className="w-5 h-5" />
+              </div>
+              <span 
+                className={`mt-2 text-sm font-medium ${
+                  isActive ? 'text-primary' : 'text-muted-foreground'
+                }`}
+              >
+                {step.label}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  /**
+   * Render current step content
+   */
+  const renderStepContent = () => {
+    switch (currentStep) {
+      case 'goals':
+        return (
+          <LearningGoalsForm
+            onSubmit={handleLearningGoalsSubmit}
+            initialGoals={learningGoals}
+          />
+        );
+
+      case 'duration':
+        return (
+          <DurationSelector
+            selectedDuration={selectedDuration}
+            onSelect={handleDurationSelect}
+            onBack={() => handleStepNavigation('goals')}
+          />
+        );
+
+      case 'teachers':
+        return (
+          <TeacherSelectionInterface
+            availableTeachers={availableTeachers}
+            preferences={teacherPreferences}
+            onSelection={handleTeacherSelection}
+            onBack={() => handleStepNavigation('duration')}
+            loading={loading}
+          />
+        );
+
+      case 'schedule':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Select Your Preferred Time</h3>
+            {/* Time slot selection component would go here */}
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => handleStepNavigation('teachers')}>
+                Back
+              </Button>
+              <Button 
+                onClick={() => handleTimeSlotSelection([/* mock slots */])}
+                disabled={selectedTimeSlots.length === 0}
+              >
+                Continue
+              </Button>
+            </div>
+          </div>
+        );
+
+      case 'confirmation':
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold">Confirm Your Booking</h3>
+            
+            {/* Booking summary */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Booking Summary</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-muted-foreground">Duration</span>
+                    <p className="font-medium">{selectedDuration} minutes</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-muted-foreground">Learning Goals</span>
+                    <p className="font-medium">
+                      {learningGoals?.primaryObjectives.slice(0, 2).join(', ')}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Error display */}
+            {error && (
+              <div className="flex items-center gap-2 p-4 bg-destructive/10 text-destructive rounded-md">
+                <AlertCircle className="w-4 h-4" />
+                <span>{error}</span>
+              </div>
+            )}
+
+            {/* Booking result */}
+            {bookingResult && (
+              <BookingRecommendations
+                result={bookingResult}
+                onBookingSelect={(recommendation) => {
+                  // Handle specific recommendation selection
+                }}
+              />
+            )}
+
+            <div className="flex justify-between">
+              <Button variant="outline" onClick={() => handleStepNavigation('schedule')}>
+                Back
+              </Button>
+              <div className="flex gap-2">
+                {onBookingCancel && (
+                  <Button variant="outline" onClick={onBookingCancel}>
+                    Cancel
+                  </Button>
+                )}
+                <Button 
+                  onClick={handleBookingSubmit}
+                  disabled={loading}
+                >
+                  {loading ? 'Booking...' : 'Confirm Booking'}
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">Book a 1-on-1 Session</h1>
+        <p className="text-muted-foreground">
+          Get personalized attention from our expert teachers
+        </p>
+      </div>
+
+      {renderStepIndicator()}
+      
+      <Card>
+        <CardContent className="p-6">
+          {renderStepContent()}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

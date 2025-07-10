@@ -12,7 +12,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { CRUDService } from './crud-service';
-import { conflictDetectionService } from './conflict-detection-service';
+// Conflict detection service has been removed - using placeholder
 import { schedulingService } from './scheduling-service';
 import type {
   OneOnOneBookingRequest,
@@ -644,6 +644,9 @@ export class OneOnOneBookingService {
     recommendation: OneOnOneBookingRecommendation,
     request: OneOnOneBookingRequest
   ): Promise<SchedulingConflict[]> {
+    // Conflict detection service has been removed - returning no conflicts
+    return [];
+    /*
     // Use existing conflict detection service
     return conflictDetectionService.detectBookingConflicts({
       studentId: request.studentId,
@@ -651,6 +654,7 @@ export class OneOnOneBookingService {
       timeSlot: recommendation.recommendedSlot,
       duration: request.duration,
     });
+    */
   }
 
   /**

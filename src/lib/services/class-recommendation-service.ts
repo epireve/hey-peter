@@ -15,7 +15,7 @@
 import { supabase } from '@/lib/supabase';
 import { CRUDService, withRetry } from './crud-service';
 import { contentAnalysisService } from './content-analysis-service';
-import { conflictDetectionService } from './conflict-detection-service';
+// Conflict detection service has been removed - using placeholder
 import type {
   TimeSlot,
   LearningContent,
@@ -589,6 +589,9 @@ export class ClassRecommendationService {
     studentId: string,
     alternativeClass: ScheduledClass
   ): Promise<number> {
+    // Conflict detection service has been removed - returning no conflicts
+    const conflicts = [];
+    /*
     const conflicts = await conflictDetectionService.checkBookingConflicts({
       studentId,
       teacherId: alternativeClass.teacherId,
@@ -596,6 +599,7 @@ export class ClassRecommendationService {
       scheduledAt: alternativeClass.timeSlot.startTime,
       durationMinutes: alternativeClass.timeSlot.duration,
     });
+    */
 
     // Score based on absence of conflicts and student availability
     const hasConflicts = conflicts.some(c => c.severity === 'error' || c.severity === 'critical');

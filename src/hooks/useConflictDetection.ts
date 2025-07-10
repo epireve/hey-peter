@@ -1,11 +1,67 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { 
-  conflictDetectionService, 
-  ConflictError, 
-  BookingConflictData, 
-  ClassConflictData,
-  ConflictDetectionOptions 
-} from '@/lib/services/conflict-detection-service';
+// Conflict detection service has been removed - using placeholder types
+export interface ConflictError {
+  type: 'teacher_time_conflict' | 'student_time_conflict' | 'class_capacity_conflict' | 'schedule_overlap';
+  message: string;
+  details: any;
+  severity: 'error' | 'warning' | 'critical';
+  canProceed: boolean;
+}
+
+export interface BookingConflictData {
+  studentId: string;
+  teacherId: string;
+  classId: string;
+  scheduledAt: string;
+  durationMinutes: number;
+  recurringPattern?: string;
+  recurringEndDate?: string;
+}
+
+export interface ClassConflictData {
+  teacherId: string;
+  title: string;
+  type: 'individual' | 'group';
+  level: 'beginner' | 'intermediate' | 'advanced';
+  scheduledAt: string;
+  durationMinutes: number;
+}
+
+export interface ConflictDetectionOptions {
+  skipTypes?: string[];
+  includeWarnings?: boolean;
+}
+
+// Placeholder service
+const conflictDetectionService = {
+  checkBookingConflicts: async (data: BookingConflictData, options?: ConflictDetectionOptions): Promise<ConflictError[]> => {
+    // Placeholder - always return no conflicts
+    return [];
+  },
+  checkClassCreationConflicts: async (data: ClassConflictData, options?: ConflictDetectionOptions): Promise<ConflictError[]> => {
+    // Placeholder - always return no conflicts
+    return [];
+  },
+  checkBatchBookingConflicts: async (bookings: BookingConflictData[], options?: ConflictDetectionOptions): Promise<Map<string, ConflictError[]>> => {
+    // Placeholder - always return no conflicts
+    const results = new Map<string, ConflictError[]>();
+    bookings.forEach((_, index) => {
+      results.set(`booking_${index}`, []);
+    });
+    return results;
+  },
+  getConflictSummary: (conflicts: ConflictError[]) => {
+    return {
+      hasErrors: conflicts.some(c => c.severity === 'error' || c.severity === 'critical'),
+      hasWarnings: conflicts.some(c => c.severity === 'warning'),
+      canProceed: conflicts.length === 0 || conflicts.every(c => c.canProceed),
+      errorCount: conflicts.filter(c => c.severity === 'error').length,
+      warningCount: conflicts.filter(c => c.severity === 'warning').length,
+      criticalCount: conflicts.filter(c => c.severity === 'critical').length,
+      messages: conflicts.map(c => c.message),
+    };
+  }
+};
 import { 
   duplicatePreventionService, 
   DuplicateError, 

@@ -58,7 +58,13 @@ export class StudentService extends CRUDService<Student> {
       table: "students",
       select: `
         *,
-        user:users(*)
+        user:users(
+          id,
+          email,
+          full_name,
+          role,
+          created_at
+        )
       `,
       cache: {
         enabled: true,
@@ -106,7 +112,13 @@ export class StudentService extends CRUDService<Student> {
         })
         .select(`
           *,
-          user:users(*)
+          user:users(
+            id,
+            email,
+            full_name,
+            role,
+            created_at
+          )
         `)
         .single();
 

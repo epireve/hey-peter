@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import { 
   Users, 
   GraduationCap, 
@@ -28,14 +29,14 @@ interface DashboardContentProps {
   activities?: any[];
 }
 
-export function DashboardContent({
+export const DashboardContent = React.memo(({
   stats,
   attendanceData,
   courseDistributionData,
   revenueData,
   recentUsers,
   activities
-}: DashboardContentProps) {
+}: DashboardContentProps) => {
   return (
     <div className="flex-1 space-y-4 p-8 pt-6">
       <div className="flex items-center justify-between space-y-2">
@@ -142,4 +143,6 @@ export function DashboardContent({
       </div>
     </div>
   );
-}
+});
+
+DashboardContent.displayName = "DashboardContent";

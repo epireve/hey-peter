@@ -38,11 +38,10 @@ jest.mock('../content-analysis-service', () => ({
   },
 }));
 
-jest.mock('../conflict-detection-service', () => ({
-  conflictDetectionService: {
-    checkBookingConflicts: jest.fn(),
-  },
-}));
+// Mock conflict detection service (service removed - using placeholder)
+const mockConflictDetectionService = {
+  checkBookingConflicts: jest.fn(),
+};
 
 describe('ClassRecommendationService', () => {
   beforeEach(() => {

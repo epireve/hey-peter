@@ -30,12 +30,10 @@ jest.mock('@/lib/supabase', () => ({
   },
 }));
 
-// Mock conflict detection service
-jest.mock('../conflict-detection-service', () => ({
-  conflictDetectionService: {
-    checkBookingConflicts: jest.fn(),
-  },
-}));
+// Mock conflict detection service (service removed - using placeholder)
+const mockConflictDetectionService = {
+  checkBookingConflicts: jest.fn(),
+};
 
 // Mock content analysis service
 jest.mock('../content-analysis-service', () => ({
@@ -168,8 +166,7 @@ describe('TimeSlotAlternativeService', () => {
       });
 
       // Mock conflict detection to return no conflicts
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const recommendations = await timeSlotAlternativeService.generateTimeAlternatives(
         mockRequest
@@ -223,8 +220,7 @@ describe('TimeSlotAlternativeService', () => {
       }));
 
       // Mock conflict detection
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const recommendations = await timeSlotAlternativeService.generateTimeAlternatives(
         mockRequest
@@ -251,8 +247,7 @@ describe('TimeSlotAlternativeService', () => {
       }));
 
       // Mock conflict detection to return conflicts for some slots
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockImplementation((data) => {
+      mockConflictDetectionService.checkBookingConflicts.mockImplementation((data) => {
         // Return conflict for specific times
         if (data.scheduledAt.includes('09:00')) {
           return Promise.resolve([
@@ -292,8 +287,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 0 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const recommendations = await timeSlotAlternativeService.generateTimeAlternatives(
         weekendsOnlyRequest
@@ -340,8 +334,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 3 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const recommendations = await timeSlotAlternativeService.generateTimeAlternatives(
         mockRequest
@@ -401,8 +394,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 0 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const mockRequest = {
         studentId: 'student-123',
@@ -445,8 +437,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 0 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const mockRequest = {
         studentId: 'new-student',
@@ -490,8 +481,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 0 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const mockRequest = {
         studentId: 'student-123',
@@ -529,8 +519,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 0 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const mockRequest = {
         studentId: 'student-123',
@@ -598,8 +587,7 @@ describe('TimeSlotAlternativeService', () => {
       }));
 
       // Mock conflict detection to throw error
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockRejectedValue(
+      mockConflictDetectionService.checkBookingConflicts.mockRejectedValue(
         new Error('Conflict detection failed')
       );
 
@@ -641,8 +629,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 0 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const recommendations = await timeSlotAlternativeService.generateTimeAlternatives(
         mockRequest
@@ -670,8 +657,7 @@ describe('TimeSlotAlternativeService', () => {
         single: jest.fn().mockResolvedValue({ count: 0 }),
       }));
 
-      const { conflictDetectionService } = require('../conflict-detection-service');
-      conflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
+      mockConflictDetectionService.checkBookingConflicts.mockResolvedValue([]);
 
       const mockRequest = {
         studentId: 'student-123',

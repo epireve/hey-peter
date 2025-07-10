@@ -1,4 +1,17 @@
-import { DashboardContent } from "@/components/admin/dashboard/DashboardContent";
+import dynamic from "next/dynamic";
+import { Loader2 } from "lucide-react";
+
+// Lazy load the DashboardContent component
+const DashboardContent = dynamic(
+  () => import("@/components/admin/dashboard/DashboardContent").then(mod => ({ default: mod.DashboardContent })),
+  {
+    loading: () => (
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    ),
+  }
+);
 import {
   getDashboardStats,
   getRecentUsers,

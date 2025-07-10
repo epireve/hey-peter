@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -15,13 +15,13 @@ interface StudentsPageClientProps {
   columns: any[];
 }
 
-export function StudentsPageClient({ initialStudents, columns }: StudentsPageClientProps) {
+export const StudentsPageClient = React.memo(({ initialStudents, columns }: StudentsPageClientProps) => {
   const [students, setStudents] = useState(initialStudents);
   const [importExportOpen, setImportExportOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
 
-  const importColumns = [
+  const importColumns = useMemo(() => [
     { key: 'email', header: 'Email', required: true },
     { key: 'full_name', header: 'Full Name', required: true },
     { key: 'phone_number', header: 'Phone Number' },
@@ -31,9 +31,9 @@ export function StudentsPageClient({ initialStudents, columns }: StudentsPageCli
     { key: 'emergency_contact_name', header: 'Emergency Contact Name' },
     { key: 'emergency_contact_phone', header: 'Emergency Contact Phone' },
     { key: 'notes', header: 'Notes' },
-  ];
+  ], []);
 
-  const handleImport = async (data: any[]) => {
+  const handleImport = useCallback(async (data: any[]) => {
     try {
       // Process each student
       for (const studentData of data) {
@@ -67,9 +67,9 @@ export function StudentsPageClient({ initialStudents, columns }: StudentsPageCli
       });
       throw error;
     }
-  };
+  }, [toast, router]);
 
-  const handleExport = async () => {
+  const handleExport = useCallback(async () => {
     try {
       const { data, error } = await studentService.getAll({
         orderBy: { column: 'created_at', ascending: false },
@@ -98,14 +98,14 @@ export function StudentsPageClient({ initialStudents, columns }: StudentsPageCli
       });
       throw error;
     }
-  };
+  }, [toast]);
 
   return (
     <div className="container mx-auto py-10">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">Students</h1>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setImportExportOpen(true)}>
+          <Button variant="outline" onClick={useCallback(() => setImportExportOpen(true), [])}>
             <Upload className="mr-2 h-4 w-4" />
             Import/Export
           </Button>
@@ -135,4 +135,6 @@ export function StudentsPageClient({ initialStudents, columns }: StudentsPageCli
       />
     </div>
   );
-}
+});
+
+StudentsPageClient.displayName = 'StudentsPageClient';

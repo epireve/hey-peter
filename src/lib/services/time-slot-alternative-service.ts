@@ -12,7 +12,7 @@
 
 import { supabase } from '@/lib/supabase';
 import { CRUDService, withRetry } from './crud-service';
-import { conflictDetectionService } from './conflict-detection-service';
+// Conflict detection service has been removed - using placeholder
 import type {
   TimeSlot,
   StudentProgress,
@@ -786,6 +786,9 @@ export class TimeSlotAlternativeService {
     scheduledAt: string,
     durationMinutes: number
   ): Promise<boolean> {
+    // Conflict detection service has been removed - returning no conflicts
+    const conflicts = [];
+    /*
     const conflicts = await conflictDetectionService.checkBookingConflicts({
       studentId,
       teacherId: 'temp', // We don't know teacher yet
@@ -793,8 +796,9 @@ export class TimeSlotAlternativeService {
       scheduledAt,
       durationMinutes,
     });
+    */
 
-    return conflicts.some(c => c.severity === 'error' || c.severity === 'critical');
+    return conflicts.length > 0; // For now, return false since we have no conflicts
   }
 
   private timeRangesOverlap(

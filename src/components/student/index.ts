@@ -21,3 +21,8 @@ export { HourBalanceDisplay } from './HourBalanceDisplay';
 export { HourTransactionHistory } from './HourTransactionHistory';
 export { HourPurchaseDialog } from './HourPurchaseDialog';
 export { LeaveRequestForm } from './LeaveRequestForm';
+export { StudentHourDashboard } from './hours';
+
+// Make-up Class Components
+export { MakeUpClassSelector } from './makeup-classes/MakeUpClassSelector';
+export { PostponementStatus } from './makeup-classes/PostponementStatus';

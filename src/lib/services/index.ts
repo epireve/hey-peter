@@ -46,9 +46,7 @@ export {
   type OneOnOneAutoMatchingCriteria
 } from './one-on-one-booking-service';
 
-export { 
-  conflictDetectionService
-} from './conflict-detection-service';
+// Conflict detection service has been removed
 
 // Analytics Services
 export { 
@@ -96,3 +94,36 @@ export {
   hourEmailNotificationService,
   default as hourEmailNotificationServiceDefault 
 } from './hour-email-notifications';
+
+// Hour Management System
+export { 
+  hourManagementService,
+  HourManagementService
+} from './hour-management-service';
+
+export { 
+  leaveRulesService,
+  LeaveRulesService
+} from './leave-rules-service';
+
+// Auto-Postponement and Make-up Class Services
+export { 
+  autoPostponementService,
+  AutoPostponementService,
+  type ClassPostponement,
+  type MakeUpClass,
+  type StudentSchedulePreferences,
+  type MakeUpSuggestion,
+  type PostponementSummary,
+  type MakeUpClassSelectionRequest,
+  type MakeUpClassApprovalRequest
+} from './auto-postponement-service';
+
+export { 
+  makeUpClassSuggestionService,
+  MakeUpClassSuggestionService,
+  type MakeUpSuggestionRequest,
+  type DetailedMakeUpSuggestion,
+  type SuggestionAlgorithmConfig,
+  type SuggestionConstraints
+} from './makeup-class-suggestion-service';

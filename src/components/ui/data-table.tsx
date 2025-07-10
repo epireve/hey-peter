@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRenderTracking } from "@/lib/utils/performance-monitor";
 import {
   ColumnDef,
   flexRender,
@@ -33,51 +34,71 @@ interface DataTableProps<TData, TValue> {
   filterPlaceholder?: string;
 }
 
-export function DataTable<TData, TValue>({
+export const DataTable = React.memo(<TData, TValue>({
   columns,
   data,
   filterColumn = "email",
   filterPlaceholder = "Filter emails...",
-}: DataTableProps<TData, TValue>) {
+}: DataTableProps<TData, TValue>) => {
+  // Track render performance
+  useRenderTracking("DataTable");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   );
   
-  // Debug logging
+  // Memoize column definitions to prevent unnecessary re-renders
+  const memoizedColumns = React.useMemo(() => columns, [columns]);
+  
+  // Debug logging only in development
   React.useEffect(() => {
-    console.log("DataTable Debug:", {
-      filterColumn,
-      availableColumns: columns.map(c => (c as any).accessorKey || (c as any).id),
-      dataLength: data.length
-    });
+    if (process.env.NODE_ENV === "development") {
+      console.log("DataTable Debug:", {
+        filterColumn,
+        availableColumns: columns.map(c => (c as any).accessorKey || (c as any).id),
+        dataLength: data.length
+      });
+    }
   }, [columns, data, filterColumn]);
   
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
-    getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
-    getFilteredRowModel: getFilteredRowModel(),
-    state: {
-      sorting,
-      columnFilters,
-    },
-  });
+  // Memoize table instance to prevent recreation on every render
+  const table = React.useMemo(
+    () => ({
+      data,
+      columns: memoizedColumns,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      onSortingChange: setSorting,
+      getSortedRowModel: getSortedRowModel(),
+      onColumnFiltersChange: setColumnFilters,
+      getFilteredRowModel: getFilteredRowModel(),
+      state: {
+        sorting,
+        columnFilters,
+      },
+      initialState: {
+        pagination: {
+          pageSize: 10,
+        },
+      },
+    }),
+    [data, memoizedColumns, sorting, columnFilters]
+  );
+  
+  const tableInstance = useReactTable(table);
 
   return (
     <div>
       <div className="flex items-center py-4">
-        {filterColumn && table.getColumn(filterColumn) && (
+        {filterColumn && tableInstance.getColumn(filterColumn) && (
           <Input
             placeholder={filterPlaceholder}
-            value={(table.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn(filterColumn)?.setFilterValue(event.target.value)
-            }
+            value={(tableInstance.getColumn(filterColumn)?.getFilterValue() as string) ?? ""}
+            onChange={React.useCallback(
+              (event: React.ChangeEvent<HTMLInputElement>) =>
+                tableInstance.getColumn(filterColumn)?.setFilterValue(event.target.value),
+              [filterColumn]
+            )}
             className="max-w-sm"
           />
         )}
@@ -85,7 +106,7 @@ export function DataTable<TData, TValue>({
       <div className="rounded-md border">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
+            {tableInstance.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
@@ -103,8 +124,8 @@ export function DataTable<TData, TValue>({
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
+            {tableInstance.getRowModel().rows?.length ? (
+              tableInstance.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
@@ -136,20 +157,24 @@ export function DataTable<TData, TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
+          onClick={React.useCallback(() => tableInstance.previousPage(), [])}
+          disabled={!tableInstance.getCanPreviousPage()}
         >
           Previous
         </Button>
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
+          onClick={React.useCallback(() => tableInstance.nextPage(), [])}
+          disabled={!tableInstance.getCanNextPage()}
         >
           Next
         </Button>
       </div>
     </div>
   );
-}
+}) as <TData, TValue>(
+  props: DataTableProps<TData, TValue>
+) => React.ReactElement;
+
+DataTable.displayName = "DataTable";

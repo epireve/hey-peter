@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   LineChart,
   Line,
@@ -38,7 +39,7 @@ interface AnalyticsChartProps {
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
 
-export function AnalyticsChart({
+export const AnalyticsChart = React.memo(({
   title,
   description,
   data,
@@ -47,8 +48,8 @@ export function AnalyticsChart({
   xAxisKey = "name",
   height = 300,
   colors = COLORS,
-}: AnalyticsChartProps) {
-  const renderChart = () => {
+}: AnalyticsChartProps) => {
+  const renderChart = React.useCallback(() => {
     switch (type) {
       case "line":
         return (
@@ -155,7 +156,7 @@ export function AnalyticsChart({
       default:
         return null;
     }
-  };
+  }, [type, data, dataKey, xAxisKey, colors]);
 
   return (
     <Card>
@@ -170,4 +171,6 @@ export function AnalyticsChart({
       </CardContent>
     </Card>
   );
-}
+});
+
+AnalyticsChart.displayName = "AnalyticsChart";

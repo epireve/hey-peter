@@ -31,31 +31,33 @@ interface StudentFormProps {
   mode?: "create" | "edit";
 }
 
-export function StudentForm({ student, mode = "create" }: StudentFormProps) {
+export const StudentForm = React.memo(({ student, mode = "create" }: StudentFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = React.useState(false);
 
+  const defaultValues = React.useMemo(() => ({
+    email: student?.user?.email || "",
+    full_name: student?.user?.full_name || "",
+    password: "",
+    internal_code: student?.internal_code || "",
+    test_level: student?.test_level || undefined,
+    course_type: student?.course_type || "Offline",
+    total_hours: student?.hours_remaining || 0,
+    gender: student?.metadata?.gender || undefined,
+    photo_url: student?.metadata?.photo_url || "",
+    purchased_materials: student?.metadata?.purchased_materials || false,
+    lead_source: student?.metadata?.lead_source || "",
+    sales_representative: student?.metadata?.sales_representative || "",
+    payment_amount: student?.metadata?.payment_amount || undefined,
+    discount: student?.metadata?.discount || 0,
+  }), [student]);
+
   const form = useForm<CreateStudentData>({
     resolver: zodResolver(createStudentSchema),
-    defaultValues: {
-      email: student?.user?.email || "",
-      full_name: student?.user?.full_name || "",
-      password: "",
-      internal_code: student?.internal_code || "",
-      test_level: student?.test_level || undefined,
-      course_type: student?.course_type || "Offline",
-      total_hours: student?.hours_remaining || 0,
-      gender: student?.metadata?.gender || undefined,
-      photo_url: student?.metadata?.photo_url || "",
-      purchased_materials: student?.metadata?.purchased_materials || false,
-      lead_source: student?.metadata?.lead_source || "",
-      sales_representative: student?.metadata?.sales_representative || "",
-      payment_amount: student?.metadata?.payment_amount || undefined,
-      discount: student?.metadata?.discount || 0,
-    },
+    defaultValues,
   });
 
-  async function onSubmit(data: CreateStudentData) {
+  const onSubmit = React.useCallback(async (data: CreateStudentData) => {
     setIsLoading(true);
     try {
       if (mode === "create") {
@@ -84,7 +86,7 @@ export function StudentForm({ student, mode = "create" }: StudentFormProps) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [mode, student?.id, router]);
 
   return (
     <Form {...form}>
@@ -441,7 +443,7 @@ export function StudentForm({ student, mode = "create" }: StudentFormProps) {
           <Button
             type="button"
             variant="outline"
-            onClick={() => router.push("/admin/students")}
+            onClick={React.useCallback(() => router.push("/admin/students"), [router])}
             disabled={isLoading}
           >
             Cancel
@@ -454,4 +456,6 @@ export function StudentForm({ student, mode = "create" }: StudentFormProps) {
       </form>
     </Form>
   );
-}
+});
+
+StudentForm.displayName = "StudentForm";

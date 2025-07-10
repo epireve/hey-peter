@@ -1,1 +1,320 @@
-/**\n * Tests for OneOnOneBooking component\n */\n\nimport React from 'react';\nimport { render, screen, fireEvent, waitFor } from '@testing-library/react';\nimport userEvent from '@testing-library/user-event';\nimport { OneOnOneBooking } from '../OneOnOneBooking';\nimport type { OneOnOneBookingResult } from '@/types/scheduling';\n\n// Mock the booking service\njest.mock('@/lib/services/one-on-one-booking-service', () => ({\n  oneOnOneBookingService: {\n    getAvailableTeachers: jest.fn().mockResolvedValue([\n      {\n        id: 'teacher-1',\n        fullName: 'John Doe',\n        bio: 'Experienced English teacher',\n        experienceYears: 5,\n        specializations: ['Conversation', 'Business English'],\n        certifications: ['TESOL'],\n        languagesSpoken: ['English', 'Spanish'],\n        ratings: {\n          averageRating: 4.5,\n          totalReviews: 100,\n          recentReviews: []\n        },\n        availabilitySummary: {\n          availableThisWeek: 10,\n          availableNextWeek: 8\n        },\n        pricing: {\n          rate30Min: 45,\n          rate60Min: 80,\n          currency: 'USD'\n        },\n        teachingStyle: ['Interactive'],\n        personalityTraits: ['Patient']\n      }\n    ]),\n    book1v1Session: jest.fn().mockResolvedValue({\n      requestId: 'test-request',\n      success: true,\n      booking: {\n        id: 'booking-123',\n        studentId: 'student-1',\n        teacherId: 'teacher-1',\n        courseId: 'course-1',\n        timeSlot: {\n          id: 'slot-1',\n          startTime: '10:00',\n          endTime: '11:00',\n          duration: 60,\n          dayOfWeek: 1,\n          isAvailable: true,\n          capacity: { maxStudents: 1, minStudents: 1, currentEnrollment: 0, availableSpots: 1 }\n        },\n        duration: 60,\n        learningGoals: {\n          primaryObjectives: ['improve conversation'],\n          skillFocus: [],\n          improvementAreas: []\n        },\n        status: 'confirmed',\n        bookingReference: '1V1-ABCD1234',\n        meetingLink: 'https://meet.heypeter.academy/booking-123',\n        location: 'Online'\n      },\n      metrics: {\n        processingTime: 1500,\n        teachersEvaluated: 5,\n        timeSlotsConsidered: 20,\n        algorithmVersion: '1.0.0'\n      }\n    })\n  }\n}));\n\n// Mock the UI components\njest.mock('@/components/ui/card', () => ({\n  Card: ({ children, className }: any) => <div className={className} data-testid=\"card\">{children}</div>,\n  CardContent: ({ children }: any) => <div data-testid=\"card-content\">{children}</div>,\n  CardHeader: ({ children }: any) => <div data-testid=\"card-header\">{children}</div>,\n  CardTitle: ({ children }: any) => <h3 data-testid=\"card-title\">{children}</h3>\n}));\n\njest.mock('@/components/ui/button', () => ({\n  Button: ({ children, onClick, disabled, ...props }: any) => (\n    <button onClick={onClick} disabled={disabled} {...props} data-testid=\"button\">\n      {children}\n    </button>\n  )\n}));\n\njest.mock('@/components/ui/badge', () => ({\n  Badge: ({ children }: any) => <span data-testid=\"badge\">{children}</span>\n}));\n\n// Mock sub-components\njest.mock('../LearningGoalsForm', () => ({\n  LearningGoalsForm: ({ onSubmit }: any) => (\n    <div data-testid=\"learning-goals-form\">\n      <button \n        data-testid=\"submit-goals\" \n        onClick={() => onSubmit({\n          primaryObjectives: ['improve conversation'],\n          skillFocus: [],\n          improvementAreas: []\n        })}\n      >\n        Submit Goals\n      </button>\n    </div>\n  )\n}));\n\njest.mock('../DurationSelector', () => ({\n  DurationSelector: ({ onSelect, onBack }: any) => (\n    <div data-testid=\"duration-selector\">\n      <button data-testid=\"back-duration\" onClick={onBack}>Back</button>\n      <button data-testid=\"select-60min\" onClick={() => onSelect(60)}>60 minutes</button>\n    </div>\n  )\n}));\n\njest.mock('../TeacherSelectionInterface', () => ({\n  TeacherSelectionInterface: ({ onSelection, onBack }: any) => (\n    <div data-testid=\"teacher-selection\">\n      <button data-testid=\"back-teacher\" onClick={onBack}>Back</button>\n      <button \n        data-testid=\"select-teacher\" \n        onClick={() => onSelection({\n          preferredTeacherIds: ['teacher-1'],\n          genderPreference: 'no_preference'\n        })}\n      >\n        Select Teacher\n      </button>\n    </div>\n  )\n}));\n\njest.mock('../BookingRecommendations', () => ({\n  BookingRecommendations: ({ result }: any) => (\n    <div data-testid=\"booking-recommendations\">\n      {result.success ? 'Booking Successful' : 'Booking Failed'}\n    </div>\n  )\n}));\n\ndescribe('OneOnOneBooking', () => {\n  const defaultProps = {\n    studentId: 'student-1',\n    courseId: 'course-1',\n    onBookingComplete: jest.fn(),\n    onBookingCancel: jest.fn()\n  };\n\n  beforeEach(() => {\n    jest.clearAllMocks();\n  });\n\n  it('should render the booking interface with step indicator', () => {\n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    expect(screen.getByText('Book a 1-on-1 Session')).toBeInTheDocument();\n    expect(screen.getByText('Get personalized attention from our expert teachers')).toBeInTheDocument();\n    \n    // Should start with learning goals step\n    expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();\n  });\n\n  it('should progress through all booking steps', async () => {\n    const user = userEvent.setup();\n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    // Step 1: Learning Goals\n    expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();\n    \n    await user.click(screen.getByTestId('submit-goals'));\n    \n    // Step 2: Duration Selection\n    await waitFor(() => {\n      expect(screen.getByTestId('duration-selector')).toBeInTheDocument();\n    });\n    \n    await user.click(screen.getByTestId('select-60min'));\n    \n    // Step 3: Teacher Selection\n    await waitFor(() => {\n      expect(screen.getByTestId('teacher-selection')).toBeInTheDocument();\n    });\n    \n    await user.click(screen.getByTestId('select-teacher'));\n    \n    // Step 4: Schedule (would show in real implementation)\n    // Step 5: Confirmation would be next\n  });\n\n  it('should allow navigation back to previous steps', async () => {\n    const user = userEvent.setup();\n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    // Go to duration step\n    await user.click(screen.getByTestId('submit-goals'));\n    \n    await waitFor(() => {\n      expect(screen.getByTestId('duration-selector')).toBeInTheDocument();\n    });\n    \n    // Go back to goals\n    await user.click(screen.getByTestId('back-duration'));\n    \n    await waitFor(() => {\n      expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();\n    });\n  });\n\n  it('should handle successful booking completion', async () => {\n    const user = userEvent.setup();\n    const onBookingComplete = jest.fn();\n    \n    render(<OneOnOneBooking {...defaultProps} onBookingComplete={onBookingComplete} />);\n    \n    // Navigate through all steps (mocked)\n    await user.click(screen.getByTestId('submit-goals'));\n    await waitFor(() => screen.getByTestId('duration-selector'));\n    \n    await user.click(screen.getByTestId('select-60min'));\n    await waitFor(() => screen.getByTestId('teacher-selection'));\n    \n    await user.click(screen.getByTestId('select-teacher'));\n    \n    // In a real scenario, the booking would be submitted and onBookingComplete called\n    // For this test, we'll simulate the completion\n    expect(onBookingComplete).not.toHaveBeenCalled(); // Since we haven't completed booking yet\n  });\n\n  it('should handle booking cancellation', async () => {\n    const user = userEvent.setup();\n    const onBookingCancel = jest.fn();\n    \n    render(<OneOnOneBooking {...defaultProps} onBookingCancel={onBookingCancel} />);\n    \n    // Navigate to a later step where cancel would be available\n    await user.click(screen.getByTestId('submit-goals'));\n    await waitFor(() => screen.getByTestId('duration-selector'));\n    \n    // Cancel button would be available in confirmation step\n    // This tests the prop is properly passed\n    expect(onBookingCancel).toBeDefined();\n  });\n\n  it('should display step indicator with correct states', () => {\n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    // Check that step indicators are present\n    // The step indicator would show Learning Goals, Duration, Teacher, Schedule, Confirm\n    const stepTexts = ['Learning Goals', 'Duration', 'Teacher', 'Schedule', 'Confirm'];\n    \n    stepTexts.forEach(stepText => {\n      expect(screen.getByText(stepText)).toBeInTheDocument();\n    });\n  });\n\n  it('should handle errors during booking process', async () => {\n    // Mock a booking service error\n    const mockBookingService = require('@/lib/services/one-on-one-booking-service');\n    mockBookingService.oneOnOneBookingService.book1v1Session.mockRejectedValueOnce(\n      new Error('Booking failed')\n    );\n    \n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    // Navigate through steps and attempt booking\n    // Error handling would be tested here in a full implementation\n    expect(screen.getByText('Book a 1-on-1 Session')).toBeInTheDocument();\n  });\n\n  it('should validate required fields before proceeding', async () => {\n    const user = userEvent.setup();\n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    // Try to proceed without filling required fields\n    // The LearningGoalsForm mock automatically submits valid data\n    // In a real scenario, validation would prevent progression\n    \n    expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();\n  });\n\n  it('should load available teachers on mount', async () => {\n    const mockBookingService = require('@/lib/services/one-on-one-booking-service');\n    \n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    await waitFor(() => {\n      expect(mockBookingService.oneOnOneBookingService.getAvailableTeachers).toHaveBeenCalled();\n    });\n  });\n\n  it('should maintain booking state throughout the process', async () => {\n    const user = userEvent.setup();\n    render(<OneOnOneBooking {...defaultProps} />);\n    \n    // Submit learning goals\n    await user.click(screen.getByTestId('submit-goals'));\n    \n    // State should be maintained as we navigate\n    await waitFor(() => {\n      expect(screen.getByTestId('duration-selector')).toBeInTheDocument();\n    });\n    \n    // Navigate back and forth to ensure state persistence\n    await user.click(screen.getByTestId('back-duration'));\n    \n    await waitFor(() => {\n      expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();\n    });\n  });\n});"
+/**
+ * Tests for OneOnOneBooking component
+ */
+
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { OneOnOneBooking } from '../OneOnOneBooking';
+import type { OneOnOneBookingResult } from '@/types/scheduling';
+
+// Mock the booking service
+jest.mock('@/lib/services/one-on-one-booking-service', () => ({
+  oneOnOneBookingService: {
+    getAvailableTeachers: jest.fn().mockResolvedValue([
+      {
+        id: 'teacher-1',
+        fullName: 'John Doe',
+        bio: 'Experienced English teacher',
+        experienceYears: 5,
+        specializations: ['Conversation', 'Business English'],
+        certifications: ['TESOL'],
+        languagesSpoken: ['English', 'Spanish'],
+        ratings: {
+          averageRating: 4.5,
+          totalReviews: 100,
+          recentReviews: []
+        },
+        availabilitySummary: {
+          availableThisWeek: 10,
+          availableNextWeek: 8
+        },
+        pricing: {
+          rate30Min: 45,
+          rate60Min: 80,
+          currency: 'USD'
+        },
+        teachingStyle: ['Interactive'],
+        personalityTraits: ['Patient']
+      }
+    ]),
+    book1v1Session: jest.fn().mockResolvedValue({
+      requestId: 'test-request',
+      success: true,
+      booking: {
+        id: 'booking-123',
+        studentId: 'student-1',
+        teacherId: 'teacher-1',
+        courseId: 'course-1',
+        timeSlot: {
+          id: 'slot-1',
+          startTime: '10:00',
+          endTime: '11:00',
+          duration: 60,
+          dayOfWeek: 1,
+          isAvailable: true,
+          capacity: { maxStudents: 1, minStudents: 1, currentEnrollment: 0, availableSpots: 1 }
+        },
+        duration: 60,
+        learningGoals: {
+          primaryObjectives: ['improve conversation'],
+          skillFocus: [],
+          improvementAreas: []
+        },
+        status: 'confirmed',
+        bookingReference: '1V1-ABCD1234',
+        meetingLink: 'https://meet.heypeter.academy/booking-123',
+        location: 'Online'
+      },
+      metrics: {
+        processingTime: 1500,
+        teachersEvaluated: 5,
+        timeSlotsConsidered: 20,
+        algorithmVersion: '1.0.0'
+      }
+    })
+  }
+}));
+
+// Mock the UI components
+jest.mock('@/components/ui/card', () => ({
+  Card: ({ children, className }: any) => <div className={className} data-testid="card">{children}</div>,
+  CardContent: ({ children }: any) => <div data-testid="card-content">{children}</div>,
+  CardHeader: ({ children }: any) => <div data-testid="card-header">{children}</div>,
+  CardTitle: ({ children }: any) => <h3 data-testid="card-title">{children}</h3>
+}));
+
+jest.mock('@/components/ui/button', () => ({
+  Button: ({ children, onClick, disabled, ...props }: any) => (
+    <button onClick={onClick} disabled={disabled} {...props} data-testid="button">
+      {children}
+    </button>
+  )
+}));
+
+jest.mock('@/components/ui/badge', () => ({
+  Badge: ({ children }: any) => <span data-testid="badge">{children}</span>
+}));
+
+// Mock sub-components
+jest.mock('../LearningGoalsForm', () => ({
+  LearningGoalsForm: ({ onSubmit }: any) => (
+    <div data-testid="learning-goals-form">
+      <button 
+        data-testid="submit-goals" 
+        onClick={() => onSubmit({
+          primaryObjectives: ['improve conversation'],
+          skillFocus: [],
+          improvementAreas: []
+        })}
+      >
+        Submit Goals
+      </button>
+    </div>
+  )
+}));
+
+jest.mock('../DurationSelector', () => ({
+  DurationSelector: ({ onSelect, onBack }: any) => (
+    <div data-testid="duration-selector">
+      <button data-testid="back-duration" onClick={onBack}>Back</button>
+      <button data-testid="select-60min" onClick={() => onSelect(60)}>60 minutes</button>
+    </div>
+  )
+}));
+
+jest.mock('../TeacherSelectionInterface', () => ({
+  TeacherSelectionInterface: ({ onSelection, onBack }: any) => (
+    <div data-testid="teacher-selection">
+      <button data-testid="back-teacher" onClick={onBack}>Back</button>
+      <button 
+        data-testid="select-teacher" 
+        onClick={() => onSelection({
+          preferredTeacherIds: ['teacher-1'],
+          genderPreference: 'no_preference'
+        })}
+      >
+        Select Teacher
+      </button>
+    </div>
+  )
+}));
+
+jest.mock('../BookingRecommendations', () => ({
+  BookingRecommendations: ({ result }: any) => (
+    <div data-testid="booking-recommendations">
+      {result.success ? 'Booking Successful' : 'Booking Failed'}
+    </div>
+  )
+}));
+
+describe('OneOnOneBooking', () => {
+  const defaultProps = {
+    studentId: 'student-1',
+    courseId: 'course-1',
+    onBookingComplete: jest.fn(),
+    onBookingCancel: jest.fn()
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('should render the booking interface with step indicator', () => {
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    expect(screen.getByText('Book a 1-on-1 Session')).toBeInTheDocument();
+    expect(screen.getByText('Get personalized attention from our expert teachers')).toBeInTheDocument();
+    
+    // Should start with learning goals step
+    expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();
+  });
+
+  it('should progress through all booking steps', async () => {
+    const user = userEvent.setup();
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    // Step 1: Learning Goals
+    expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();
+    
+    await user.click(screen.getByTestId('submit-goals'));
+    
+    // Step 2: Duration Selection
+    await waitFor(() => {
+      expect(screen.getByTestId('duration-selector')).toBeInTheDocument();
+    });
+    
+    await user.click(screen.getByTestId('select-60min'));
+    
+    // Step 3: Teacher Selection
+    await waitFor(() => {
+      expect(screen.getByTestId('teacher-selection')).toBeInTheDocument();
+    });
+    
+    await user.click(screen.getByTestId('select-teacher'));
+    
+    // Step 4: Schedule (would show in real implementation)
+    // Step 5: Confirmation would be next
+  });
+
+  it('should allow navigation back to previous steps', async () => {
+    const user = userEvent.setup();
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    // Go to duration step
+    await user.click(screen.getByTestId('submit-goals'));
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('duration-selector')).toBeInTheDocument();
+    });
+    
+    // Go back to goals
+    await user.click(screen.getByTestId('back-duration'));
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();
+    });
+  });
+
+  it('should handle successful booking completion', async () => {
+    const user = userEvent.setup();
+    const onBookingComplete = jest.fn();
+    
+    render(<OneOnOneBooking {...defaultProps} onBookingComplete={onBookingComplete} />);
+    
+    // Navigate through all steps (mocked)
+    await user.click(screen.getByTestId('submit-goals'));
+    await waitFor(() => screen.getByTestId('duration-selector'));
+    
+    await user.click(screen.getByTestId('select-60min'));
+    await waitFor(() => screen.getByTestId('teacher-selection'));
+    
+    await user.click(screen.getByTestId('select-teacher'));
+    
+    // In a real scenario, the booking would be submitted and onBookingComplete called
+    // For this test, we'll simulate the completion
+    expect(onBookingComplete).not.toHaveBeenCalled(); // Since we haven't completed booking yet
+  });
+
+  it('should handle booking cancellation', async () => {
+    const user = userEvent.setup();
+    const onBookingCancel = jest.fn();
+    
+    render(<OneOnOneBooking {...defaultProps} onBookingCancel={onBookingCancel} />);
+    
+    // Navigate to a later step where cancel would be available
+    await user.click(screen.getByTestId('submit-goals'));
+    await waitFor(() => screen.getByTestId('duration-selector'));
+    
+    // Cancel button would be available in confirmation step
+    // This tests the prop is properly passed
+    expect(onBookingCancel).toBeDefined();
+  });
+
+  it('should display step indicator with correct states', () => {
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    // Check that step indicators are present
+    // The step indicator would show Learning Goals, Duration, Teacher, Schedule, Confirm
+    const stepTexts = ['Learning Goals', 'Duration', 'Teacher', 'Schedule', 'Confirm'];
+    
+    stepTexts.forEach(stepText => {
+      expect(screen.getByText(stepText)).toBeInTheDocument();
+    });
+  });
+
+  it('should handle errors during booking process', async () => {
+    // Mock a booking service error
+    const mockBookingService = require('@/lib/services/one-on-one-booking-service');
+    mockBookingService.oneOnOneBookingService.book1v1Session.mockRejectedValueOnce(
+      new Error('Booking failed')
+    );
+    
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    // Navigate through steps and attempt booking
+    // Error handling would be tested here in a full implementation
+    expect(screen.getByText('Book a 1-on-1 Session')).toBeInTheDocument();
+  });
+
+  it('should validate required fields before proceeding', async () => {
+    const user = userEvent.setup();
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    // Try to proceed without filling required fields
+    // The LearningGoalsForm mock automatically submits valid data
+    // In a real scenario, validation would prevent progression
+    
+    expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();
+  });
+
+  it('should load available teachers on mount', async () => {
+    const mockBookingService = require('@/lib/services/one-on-one-booking-service');
+    
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    await waitFor(() => {
+      expect(mockBookingService.oneOnOneBookingService.getAvailableTeachers).toHaveBeenCalled();
+    });
+  });
+
+  it('should maintain booking state throughout the process', async () => {
+    const user = userEvent.setup();
+    render(<OneOnOneBooking {...defaultProps} />);
+    
+    // Submit learning goals
+    await user.click(screen.getByTestId('submit-goals'));
+    
+    // State should be maintained as we navigate
+    await waitFor(() => {
+      expect(screen.getByTestId('duration-selector')).toBeInTheDocument();
+    });
+    
+    // Navigate back and forth to ensure state persistence
+    await user.click(screen.getByTestId('back-duration'));
+    
+    await waitFor(() => {
+      expect(screen.getByTestId('learning-goals-form')).toBeInTheDocument();
+    });
+  });
+});
