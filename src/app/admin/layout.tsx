@@ -8,12 +8,15 @@ import {
   BarChart3, 
   Settings,
   UserCheck,
-  FileText
+  FileText,
+  UserCog
 } from "lucide-react";
+import { Toaster } from "@/components/ui/toaster";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/students", label: "Students", icon: GraduationCap },
+  { href: "/admin/student-management", label: "Student Management", icon: UserCog },
   { href: "/admin/teachers", label: "Teachers", icon: UserCheck },
   { href: "/admin/users", label: "Users", icon: Users },
   { href: "/admin/courses", label: "Courses", icon: BookOpen },
@@ -55,6 +58,7 @@ export default function AdminLayout({
         </nav>
       </aside>
       <main className="flex-1 overflow-y-auto p-8">{children}</main>
+      <Toaster />
     </div>
   );
 }

@@ -1,8 +1,9 @@
+'use client';
+
 // Export the enhanced version
 export { ClassHourTracker } from './ClassHourTrackerEnhanced';
 
 // Keep the old implementation as ClassHourTrackerLegacy for backward compatibility
-'use client';
 
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

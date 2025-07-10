@@ -353,7 +353,7 @@
         "id": 5,
         "title": "Develop Teacher Portal with Student Management",
         "description": "Build teacher dashboard with class management, student tracking, availability scheduling, and compensation display",
-        "status": "in-progress",
+        "status": "done",
         "priority": "medium",
         "complexity": 7,
         "dependencies": [
@@ -372,13 +372,13 @@
           {
             "id": "5.1",
             "title": "Create Teacher Dashboard Layout",
-            "status": "pending",
+            "status": "done",
             "dependencies": []
           },
           {
             "id": "5.2",
             "title": "Implement Class Hour Tracking System with Filtering",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "5.1"
             ]
@@ -386,7 +386,7 @@
           {
             "id": "5.3",
             "title": "Build Teaching Availability Scheduler (Weekly Time Slots)",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "5.1"
             ]
@@ -394,7 +394,7 @@
           {
             "id": "5.4",
             "title": "Create Weekly Timetable with Drag-and-Drop Editing",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "5.2",
               "5.3"
@@ -403,7 +403,7 @@
           {
             "id": "5.5",
             "title": "Implement Compensation Display (Weekly/Monthly Income, Salary Status)",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "5.2"
             ]
@@ -411,7 +411,7 @@
           {
             "id": "5.6",
             "title": "Add Teacher Analytics Dashboard (Hours, Feedback, Attendance)",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "5.4",
               "5.5"
@@ -420,7 +420,7 @@
           {
             "id": "5.7",
             "title": "Build Export Functionality for Timetables (Excel/PDF + Printing)",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "5.4"
             ]
@@ -428,7 +428,7 @@
           {
             "id": "5.8",
             "title": "Create Bonus and Compensation Rules Display",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "5.5"
             ]
@@ -439,7 +439,7 @@
         "id": 6,
         "title": "Create Student Portal with Booking and Progress Tracking",
         "description": "Build student dashboard with course progress, class booking, leave management, and learning materials access",
-        "status": "pending",
+        "status": "in-progress",
         "priority": "medium",
         "complexity": 8,
         "dependencies": [
@@ -458,13 +458,13 @@
           {
             "id": "6.1",
             "title": "Design Student Dashboard Interface",
-            "status": "pending",
+            "status": "done",
             "dependencies": []
           },
           {
             "id": "6.2",
             "title": "Implement Course Progress Tracking with Visual Indicators",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "6.1"
             ]
@@ -472,7 +472,7 @@
           {
             "id": "6.3",
             "title": "Build Monthly Calendar with Progress Display (Unit/Lesson Format)",
-            "status": "pending",
+            "status": "done",
             "dependencies": [
               "6.2"
             ]
@@ -1138,7 +1138,7 @@
         "id": 14,
         "title": "Build Student Information Management System",
         "description": "Implement comprehensive student information entry and management system with auto-generated IDs, internal codes, course types, and material tracking",
-        "status": "pending",
+        "status": "in-progress",
         "priority": "high",
         "complexity": 6,
         "dependencies": [
@@ -1535,11 +1535,11 @@
     ],
     "metadata": {
       "version": "2.1.0",
-      "last_updated": "2024-06-29T07:30:00Z",
+      "last_updated": "2025-07-10T13:10:46.660Z",
       "total_tasks": 17,
-      "completed_tasks": 5,
+      "completed_tasks": 6,
       "total_subtasks": 142,
-      "completed_subtasks": 41,
+      "completed_subtasks": 52,
       "project_name": "HeyPeter Academy LMS + MySakinah Studio",
       "progress_percentage": 29,
       "subtask_progress_percentage": 29,
@@ -1554,7 +1554,7 @@
       ],
       "created": "2025-06-28T23:12:54.179Z",
       "description": "Tasks for master context",
-      "updated": "2025-06-29T02:01:55.350Z"
+      "updated": "2025-07-10T13:11:53.571Z"
     }
   }
 }
