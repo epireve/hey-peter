@@ -23,6 +23,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Progress Tracking with overall metrics, module progress, skills tracking, and analytics
   - Recent activity timeline and upcoming tasks management
   - Goal setting and study recommendations system
+  - Student Class Booking system with comprehensive booking workflow
+    - Available classes display with time slots and pricing
+    - Class filtering by level, time, and search terms
+    - Booking management with notes and recurring options
+    - Wishlist functionality for favorite classes
+    - Booking history and cancellation/rescheduling features
+  - Student Profile Management with complete profile editing
+    - Personal information management with validation
+    - Profile photo upload with file type/size validation
+    - Emergency contacts management (add/edit/delete)
+    - Course preferences (class time, teacher gender, learning goals)
+    - Language preferences and proficiency tracking
+    - Notification settings with toggle controls
+    - Accessibility features with ARIA labels and keyboard navigation
 - Student Information Management System with comprehensive admin features
   - Auto-generated Student IDs (HPA001 format) and Internal Code Generation (SC001-001 format)
   - Complete student profile management with photo upload capability
