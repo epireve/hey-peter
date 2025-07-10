@@ -5,13 +5,17 @@ import {
   Users, 
   GraduationCap, 
   Calendar, 
-  BookOpen 
+  BookOpen,
+  Clock
 } from "lucide-react";
 import { KPICard } from "./KPICard";
 import { AnalyticsChart } from "./AnalyticsChart";
 import { RecentUsersTable } from "./RecentUsersTable";
 import { QuickActions } from "./QuickActions";
 import { ActivityTimeline } from "./ActivityTimeline";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 interface DashboardContentProps {
   stats: {
@@ -120,7 +124,36 @@ export const DashboardContent = React.memo(({
           )}
         </div>
         <div className="col-span-3">
-          <QuickActions />
+          <div className="space-y-4">
+            <QuickActions />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Clock className="h-5 w-5 mr-2" />
+                  Hour Analytics
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-sm text-muted-foreground">
+                    View detailed hour consumption analytics and class efficiency metrics
+                  </p>
+                  <div className="flex flex-col space-y-2">
+                    <Link href="/admin/hours/consumption-analytics">
+                      <Button variant="outline" className="w-full justify-start">
+                        Consumption Analytics
+                      </Button>
+                    </Link>
+                    <Link href="/admin/hours/comparison">
+                      <Button variant="outline" className="w-full justify-start">
+                        Class Type Comparison
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
 

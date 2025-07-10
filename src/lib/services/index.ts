@@ -69,6 +69,16 @@ export {
 } from './teacher-performance-analytics';
 
 export { 
+  enhancedTeacherPerformanceAnalytics,
+  EnhancedTeacherPerformanceAnalytics
+} from './teacher-performance-analytics-enhanced';
+
+export { 
+  teacherPerformanceDbService,
+  TeacherPerformanceDbService
+} from './teacher-performance-db-service';
+
+export { 
   studentProgressAnalytics,
   type StudentProgressAnalysis,
   type StudentCohortAnalysis
@@ -102,9 +112,27 @@ export {
 } from './hour-management-service';
 
 export { 
+  hourUsageAnalyticsService,
+  HourUsageAnalyticsService
+} from './hour-usage-analytics-service';
+
+export { 
   leaveRulesService,
   LeaveRulesService
 } from './leave-rules-service';
+
+export { 
+  hourConsumptionAnalyticsService,
+  HourConsumptionAnalyticsService,
+  type ClassTypeConsumption,
+  type HourConsumptionTrend,
+  type EfficiencyMetrics,
+  type ConsumptionPattern,
+  type PredictiveInsights,
+  type ComparativeAnalytics,
+  type HourPlanningRecommendations,
+  type ConsumptionAnalyticsDashboard
+} from './hour-consumption-analytics-service';
 
 // Auto-Postponement and Make-up Class Services
 export { 
@@ -127,3 +155,21 @@ export {
   type SuggestionAlgorithmConfig,
   type SuggestionConstraints
 } from './makeup-class-suggestion-service';
+
+// Attendance Analytics Services
+export { 
+  attendanceAnalyticsService,
+  type AttendanceFilters,
+  type AttendanceRecord,
+  type AttendanceClassSummary,
+  type AttendanceTeacherSummary,
+  type AttendancePeriodSummary,
+  type AttendanceTrendData,
+  type AttendanceReportPeriod,
+  type AttendanceStatus
+} from './attendance-analytics-service';
+
+export { 
+  classAttendanceAnalyticsService,
+  ClassAttendanceAnalyticsService
+} from './class-attendance-analytics-service';

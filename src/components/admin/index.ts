@@ -14,6 +14,22 @@ export { AnalyticsChart } from './dashboard/AnalyticsChart';
 export { QuickActions } from './dashboard/QuickActions';
 export { RecentUsersTable } from './dashboard/RecentUsersTable';
 
+// Analytics Components
+export { AnalyticsDashboard } from './analytics/AnalyticsDashboard';
+export { MetricCard } from './analytics/MetricCard';
+export { AnalyticsFilter } from './analytics/AnalyticsFilter';
+export { AnalyticsExport } from './analytics/AnalyticsExport';
+export { 
+  AnalyticsLayout, 
+  AnalyticsGrid, 
+  AnalyticsCardGrid, 
+  AnalyticsSection,
+  ResponsiveChartContainer 
+} from './analytics/AnalyticsLayout';
+// export { EnhancedStudentAnalytics } from './analytics/EnhancedStudentAnalytics'; // TODO: Create this component
+export { MobileAnalyticsCard, MobileAnalyticsGrid } from './analytics/MobileAnalyticsCard';
+export { ResponsiveChart, ChartGrid, MobileChart } from './analytics/ResponsiveChart';
+
 // Content Management
 export { ContentManagementClient } from './content/ContentManagementClient';
 export { ContentSyncManager } from './content/ContentSyncManager';
@@ -53,6 +69,22 @@ export { TeacherFormEnhanced } from './teachers/TeacherFormEnhanced';
 export { TeachersPageClient } from './teachers/TeachersPageClient';
 export { AvailabilityScheduler } from './teachers/AvailabilityScheduler';
 
+// Teacher Performance Analytics
+export { TeacherPerformanceDashboard } from './dashboard/analytics/TeacherPerformanceDashboard';
+export { TeacherComparisonAnalytics } from './dashboard/analytics/TeacherComparisonAnalytics';
+export { TeacherIndividualAnalytics } from './dashboard/analytics/TeacherIndividualAnalytics';
+export { TeacherPerformanceManagement } from './dashboard/TeacherPerformanceManagement';
+export { 
+  MetricCard,
+  TeacherProfileCard,
+  PerformanceRadarChart,
+  RankingList,
+  RecommendationCard,
+  TrendIndicator,
+  AlertCard,
+  PerformanceSummary
+} from './dashboard/analytics/TeacherPerformanceComponents';
+
 // User Management
 export { UserManagementClient } from './users/UserManagementClient';
 export { UserManagementWorkflow } from './users/UserManagementWorkflow';
@@ -65,7 +97,16 @@ export { EmailPreferencesManager } from './email/EmailPreferencesManager';
 // Hour Management
 export { HourManagementDashboard as LegacyHourManagementDashboard } from './HourManagementDashboard';
 export { LeaveRequestApproval } from './LeaveRequestApproval';
-export { HourManagementDashboard } from './hours';
+export { 
+  HourUsageAnalytics,
+  BalanceTracker,
+  ConsumptionPatterns,
+  AlertManager,
+  HourAnalyticsDashboard,
+  HourConsumptionAnalyticsChart,
+  HourConsumptionDashboard,
+  HourConsumptionComparison
+} from './hours';
 
 // Postponement Management
 export { PostponementManagement } from './postponements/PostponementManagement';
