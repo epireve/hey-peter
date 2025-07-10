@@ -9,6 +9,396 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      hour_transactions: {
+        Row: {
+          id: string
+          student_id: string
+          transaction_type: 'purchase' | 'deduction' | 'refund' | 'bonus' | 'adjustment' | 'makeup'
+          amount: number
+          booking_id: string | null
+          class_id: string | null
+          teacher_id: string | null
+          description: string | null
+          reason: string | null
+          balance_before: number
+          balance_after: number
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          transaction_type: 'purchase' | 'deduction' | 'refund' | 'bonus' | 'adjustment' | 'makeup'
+          amount: number
+          booking_id?: string | null
+          class_id?: string | null
+          teacher_id?: string | null
+          description?: string | null
+          reason?: string | null
+          balance_before: number
+          balance_after: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          transaction_type?: 'purchase' | 'deduction' | 'refund' | 'bonus' | 'adjustment' | 'makeup'
+          amount?: number
+          booking_id?: string | null
+          class_id?: string | null
+          teacher_id?: string | null
+          description?: string | null
+          reason?: string | null
+          balance_before?: number
+          balance_after?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hour_transactions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hour_transactions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hour_transactions_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hour_transactions_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hour_transactions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      hour_purchases: {
+        Row: {
+          id: string
+          student_id: string
+          package_name: string
+          hours_purchased: number
+          price_per_hour: number
+          total_amount: number
+          currency: string
+          payment_method: 'credit_card' | 'bank_transfer' | 'cash' | 'voucher' | 'other'
+          payment_reference: string | null
+          expiration_date: string | null
+          purchase_date: string
+          created_by: string | null
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          package_name: string
+          hours_purchased: number
+          price_per_hour: number
+          total_amount: number
+          currency?: string
+          payment_method: 'credit_card' | 'bank_transfer' | 'cash' | 'voucher' | 'other'
+          payment_reference?: string | null
+          expiration_date?: string | null
+          purchase_date?: string
+          created_by?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          package_name?: string
+          hours_purchased?: number
+          price_per_hour?: number
+          total_amount?: number
+          currency?: string
+          payment_method?: 'credit_card' | 'bank_transfer' | 'cash' | 'voucher' | 'other'
+          payment_reference?: string | null
+          expiration_date?: string | null
+          purchase_date?: string
+          created_by?: string | null
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hour_purchases_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hour_purchases_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      hour_policies: {
+        Row: {
+          id: string
+          course_type: 'Basic' | 'Everyday A' | 'Everyday B' | 'Speak Up' | 'Business English' | '1-on-1'
+          deduction_rate: number
+          makeup_allowed: boolean
+          makeup_deadline_days: number
+          late_cancellation_penalty: number
+          no_show_penalty: number
+          minimum_advance_notice_hours: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          course_type: 'Basic' | 'Everyday A' | 'Everyday B' | 'Speak Up' | 'Business English' | '1-on-1'
+          deduction_rate?: number
+          makeup_allowed?: boolean
+          makeup_deadline_days?: number
+          late_cancellation_penalty?: number
+          no_show_penalty?: number
+          minimum_advance_notice_hours?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          course_type?: 'Basic' | 'Everyday A' | 'Everyday B' | 'Speak Up' | 'Business English' | '1-on-1'
+          deduction_rate?: number
+          makeup_allowed?: boolean
+          makeup_deadline_days?: number
+          late_cancellation_penalty?: number
+          no_show_penalty?: number
+          minimum_advance_notice_hours?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      teacher_hours: {
+        Row: {
+          id: string
+          teacher_id: string
+          booking_id: string | null
+          class_id: string | null
+          teaching_date: string
+          start_time: string
+          end_time: string
+          duration_minutes: number
+          hours_taught: number
+          hourly_rate: number
+          base_compensation: number
+          bonus_amount: number
+          total_compensation: number
+          compensation_type: 'standard' | 'overtime' | 'holiday' | 'substitute' | 'bonus'
+          status: 'pending' | 'approved' | 'paid' | 'disputed'
+          notes: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          teacher_id: string
+          booking_id?: string | null
+          class_id?: string | null
+          teaching_date: string
+          start_time: string
+          end_time: string
+          duration_minutes: number
+          hours_taught: number
+          hourly_rate: number
+          base_compensation: number
+          bonus_amount?: number
+          total_compensation: number
+          compensation_type?: 'standard' | 'overtime' | 'holiday' | 'substitute' | 'bonus'
+          status?: 'pending' | 'approved' | 'paid' | 'disputed'
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          teacher_id?: string
+          booking_id?: string | null
+          class_id?: string | null
+          teaching_date?: string
+          start_time?: string
+          end_time?: string
+          duration_minutes?: number
+          hours_taught?: number
+          hourly_rate?: number
+          base_compensation?: number
+          bonus_amount?: number
+          total_compensation?: number
+          compensation_type?: 'standard' | 'overtime' | 'holiday' | 'substitute' | 'bonus'
+          status?: 'pending' | 'approved' | 'paid' | 'disputed'
+          notes?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_hours_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_hours_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_hours_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      teacher_compensation_rules: {
+        Row: {
+          id: string
+          teacher_id: string
+          course_type: 'Basic' | 'Everyday A' | 'Everyday B' | 'Speak Up' | 'Business English' | '1-on-1'
+          base_rate: number
+          overtime_rate: number | null
+          holiday_rate: number | null
+          substitute_rate: number | null
+          bonus_thresholds: Json
+          effective_date: string
+          end_date: string | null
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          teacher_id: string
+          course_type: 'Basic' | 'Everyday A' | 'Everyday B' | 'Speak Up' | 'Business English' | '1-on-1'
+          base_rate: number
+          overtime_rate?: number | null
+          holiday_rate?: number | null
+          substitute_rate?: number | null
+          bonus_thresholds?: Json
+          effective_date?: string
+          end_date?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          teacher_id?: string
+          course_type?: 'Basic' | 'Everyday A' | 'Everyday B' | 'Speak Up' | 'Business English' | '1-on-1'
+          base_rate?: number
+          overtime_rate?: number | null
+          holiday_rate?: number | null
+          substitute_rate?: number | null
+          bonus_thresholds?: Json
+          effective_date?: string
+          end_date?: string | null
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_compensation_rules_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      hour_expirations: {
+        Row: {
+          id: string
+          student_id: string
+          purchase_id: string | null
+          hours_expiring: number
+          expiration_date: string
+          warning_sent: boolean
+          warning_sent_at: string | null
+          status: 'active' | 'warned' | 'expired' | 'extended'
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          purchase_id?: string | null
+          hours_expiring: number
+          expiration_date: string
+          warning_sent?: boolean
+          warning_sent_at?: string | null
+          status?: 'active' | 'warned' | 'expired' | 'extended'
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          purchase_id?: string | null
+          hours_expiring?: number
+          expiration_date?: string
+          warning_sent?: boolean
+          warning_sent_at?: string | null
+          status?: 'active' | 'warned' | 'expired' | 'extended'
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hour_expirations_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hour_expirations_purchase_id_fkey"
+            columns: ["purchase_id"]
+            isOneToOne: false
+            referencedRelation: "hour_purchases"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
       users: {
         Row: {
           id: string
@@ -302,6 +692,117 @@ export type Database = {
           {
             foreignKeyName: "availability_blocks_teacher_id_fkey"
             columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      leave_requests: {
+        Row: {
+          id: string
+          student_id: string
+          teacher_id: string | null
+          class_id: string | null
+          start_date: string
+          end_date: string
+          leave_type: 'personal' | 'medical' | 'emergency' | 'vacation' | 'other'
+          reason: string | null
+          hours_affected: number | null
+          hours_recovered: number
+          advance_notice_hours: number | null
+          status: 'pending' | 'approved' | 'rejected'
+          admin_notes: string | null
+          approved_by: string | null
+          approved_at: string | null
+          rejected_by: string | null
+          rejected_at: string | null
+          makeup_scheduled: boolean
+          makeup_deadline: string | null
+          attachments: Json
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          student_id: string
+          teacher_id?: string | null
+          class_id?: string | null
+          start_date: string
+          end_date: string
+          leave_type?: 'personal' | 'medical' | 'emergency' | 'vacation' | 'other'
+          reason?: string | null
+          hours_affected?: number | null
+          hours_recovered?: number
+          advance_notice_hours?: number | null
+          status?: 'pending' | 'approved' | 'rejected'
+          admin_notes?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          rejected_by?: string | null
+          rejected_at?: string | null
+          makeup_scheduled?: boolean
+          makeup_deadline?: string | null
+          attachments?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          student_id?: string
+          teacher_id?: string | null
+          class_id?: string | null
+          start_date?: string
+          end_date?: string
+          leave_type?: 'personal' | 'medical' | 'emergency' | 'vacation' | 'other'
+          reason?: string | null
+          hours_affected?: number | null
+          hours_recovered?: number
+          advance_notice_hours?: number | null
+          status?: 'pending' | 'approved' | 'rejected'
+          admin_notes?: string | null
+          approved_by?: string | null
+          approved_at?: string | null
+          rejected_by?: string | null
+          rejected_at?: string | null
+          makeup_scheduled?: boolean
+          makeup_deadline?: string | null
+          attachments?: Json
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leave_requests_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_class_id_fkey"
+            columns: ["class_id"]
+            isOneToOne: false
+            referencedRelation: "classes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leave_requests_rejected_by_fkey"
+            columns: ["rejected_by"]
             isOneToOne: false
             referencedRelation: "users"
             referencedColumns: ["id"]

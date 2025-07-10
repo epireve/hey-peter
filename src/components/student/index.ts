@@ -15,3 +15,9 @@ export { TeacherSelectionInterface } from './TeacherSelectionInterface';
 export { DurationSelector } from './DurationSelector';
 export { LearningGoalsForm } from './LearningGoalsForm';
 export { BookingRecommendations } from './BookingRecommendations';
+
+// Hour Management Components
+export { HourBalanceDisplay } from './HourBalanceDisplay';
+export { HourTransactionHistory } from './HourTransactionHistory';
+export { HourPurchaseDialog } from './HourPurchaseDialog';
+export { LeaveRequestForm } from './LeaveRequestForm';

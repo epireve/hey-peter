@@ -10,3 +10,6 @@ export { default as ClassCapacityManagement } from './ClassCapacityManagement';
 export { AvailabilityScheduler as AvailabilitySchedulerLegacy } from './AvailabilityScheduler';
 export { ClassHourTrackerLegacy } from './ClassHourTracker';
 export { WeeklyTimetable as WeeklyTimetableLegacy } from './WeeklyTimetable';
+
+// Hour Management Components
+export { TeacherHourDashboard } from './TeacherHourDashboard';

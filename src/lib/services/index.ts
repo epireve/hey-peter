@@ -91,3 +91,8 @@ export {
   teacherHourTrackingService,
   default as teacherHourTrackingServiceDefault 
 } from './teacher-hour-tracking-service';
+
+export { 
+  hourEmailNotificationService,
+  default as hourEmailNotificationServiceDefault 
+} from './hour-email-notifications';
