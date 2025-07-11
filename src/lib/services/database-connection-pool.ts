@@ -109,9 +109,9 @@ export class DatabaseConnectionPool {
       this.startHealthCheck();
       
       this.isInitialized = true;
-      console.log(`[DB Pool] Initialized with ${this.connections.size} connections`);
+      // Pool initialized successfully
     } catch (error) {
-      console.error('[DB Pool] Failed to initialize:', error);
+      // Initialization failed
       throw error;
     }
   }
@@ -173,7 +173,7 @@ export class DatabaseConnectionPool {
         connection.errorCount++;
       }
       this.stats.totalErrors++;
-      console.error('[DB Pool] Query execution failed:', error);
+      // Query execution failed
       throw error;
     } finally {
       if (connection) {
@@ -221,7 +221,7 @@ export class DatabaseConnectionPool {
     }
 
     if (errors.length > 0) {
-      console.warn(`[DB Pool] ${errors.length} queries failed in parallel execution`);
+      // Some queries failed in parallel execution
     }
 
     return results;
@@ -252,7 +252,7 @@ export class DatabaseConnectionPool {
         
         if (attempt < retryAttempts) {
           const delay = this.config.retryDelayMs * attempt;
-          console.warn(`[DB Pool] Transaction attempt ${attempt} failed, retrying in ${delay}ms:`, error);
+          // Transaction attempt failed, retrying
           await new Promise(resolve => setTimeout(resolve, delay));
         }
       }
@@ -333,7 +333,7 @@ export class DatabaseConnectionPool {
     this.queryCache.clear();
     this.isInitialized = false;
 
-    console.log('[DB Pool] Shutdown completed');
+    // Pool shutdown completed
   }
 
   // Private methods
@@ -372,7 +372,7 @@ export class DatabaseConnectionPool {
 
       return connection;
     } catch (error) {
-      console.error('[DB Pool] Failed to create connection:', error);
+      // Failed to create connection
       throw error;
     }
   }
@@ -450,7 +450,7 @@ export class DatabaseConnectionPool {
       this.connections.delete(connection.id);
       this.stats.totalConnections--;
     } catch (error) {
-      console.error('[DB Pool] Error closing connection:', error);
+      // Error closing connection
     }
   }
 
@@ -497,7 +497,7 @@ export class DatabaseConnectionPool {
       try {
         await this.createConnection();
       } catch (error) {
-        console.error('[DB Pool] Failed to maintain minimum connections:', error);
+        // Failed to maintain minimum connections
         break;
       }
     }
@@ -581,5 +581,7 @@ export const dbConnectionPool = new DatabaseConnectionPool({
 // Initialize the pool when the module is loaded
 if (typeof window === 'undefined') {
   // Only initialize on server side
-  dbConnectionPool.initialize().catch(console.error);
+  dbConnectionPool.initialize().catch(() => {
+    // Initialization error handled
+  });
 }

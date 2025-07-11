@@ -90,7 +90,6 @@ export async function GET(request: NextRequest) {
       },
     });
   } catch (error) {
-    console.error('Error generating metrics:', error);
     return new NextResponse('Error generating metrics', { status: 500 });
   }
 }

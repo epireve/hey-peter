@@ -3,6 +3,10 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { useRouter } from "next/navigation";
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useState } from "react";
+import { toast } from "sonner";
 import {
   Form,
   FormControl,
@@ -35,9 +39,29 @@ export default function SignUpForm() {
     },
   });
 
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+  const [isLoading, setIsLoading] = useState(false);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // TODO: Implement signup logic
-    console.log(values);
+    setIsLoading(true);
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Account created successfully! Please check your email to verify your account.");
+        router.push("/login");
+      }
+    } catch (error) {
+      toast.error("An unexpected error occurred");
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (
@@ -82,7 +106,7 @@ export default function SignUpForm() {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">
+        <Button type="submit" className="w-full" disabled={isLoading}>
           Sign Up
         </Button>
         <div className="text-center text-sm">

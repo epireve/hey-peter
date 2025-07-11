@@ -50,16 +50,6 @@ export const DataTable = React.memo(<TData, TValue>({
   // Memoize column definitions to prevent unnecessary re-renders
   const memoizedColumns = React.useMemo(() => columns, [columns]);
   
-  // Debug logging only in development
-  React.useEffect(() => {
-    if (process.env.NODE_ENV === "development") {
-      console.log("DataTable Debug:", {
-        filterColumn,
-        availableColumns: columns.map(c => (c as any).accessorKey || (c as any).id),
-        dataLength: data.length
-      });
-    }
-  }, [columns, data, filterColumn]);
   
   // Memoize table instance to prevent recreation on every render
   const table = React.useMemo(

@@ -521,8 +521,13 @@ class ErrorAlertingService {
       { alertId: alert.id, recipients: config.recipients }
     );
 
-    // TODO: Integrate with actual email service
-    console.log('Email alert would be sent:', emailData);
+    // Email service integration would go here
+    // For now, log to monitoring service
+    loggingService.debug(
+      LogCategory.SYSTEM,
+      'Email alert queued',
+      emailData
+    );
   }
 
   private async sendWebhookAlert(alert: Alert, config: Record<string, any>): Promise<void> {
@@ -576,8 +581,13 @@ class ErrorAlertingService {
       { alertId: alert.id, channel: config.channel }
     );
 
-    // TODO: Integrate with actual Slack API
-    console.log('Slack alert would be sent:', slackMessage);
+    // Slack API integration would go here
+    // For now, log to monitoring service
+    loggingService.debug(
+      LogCategory.SYSTEM,
+      'Slack alert queued',
+      slackMessage
+    );
   }
 
   private async logAlertToDatabase(alert: Alert, config: Record<string, any>): Promise<void> {

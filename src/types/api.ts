@@ -327,7 +327,19 @@ export type GetLessonResponse = ApiResponse<{
   student: Tables<'users'>
   teacher: Tables<'users'>
   subject: Tables<'classes'> // Subject info from classes table
-  lessonPlan?: Record<string, unknown> // TODO: Define lesson plan structure
+  lessonPlan?: {
+    id: string
+    title: string
+    objectives: string[]
+    materials: string[]
+    duration: number
+    level: string
+    activities: Array<{
+      type: string
+      description: string
+      duration: number
+    }>
+  }
 }>
 
 // =============================================================================

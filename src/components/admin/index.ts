@@ -26,7 +26,7 @@ export {
   AnalyticsSection,
   ResponsiveChartContainer 
 } from './analytics/AnalyticsLayout';
-// export { EnhancedStudentAnalytics } from './analytics/EnhancedStudentAnalytics'; // TODO: Create this component
+export { EnhancedStudentAnalytics } from './dashboard/analytics/EnhancedStudentAnalytics';
 export { MobileAnalyticsCard, MobileAnalyticsGrid } from './analytics/MobileAnalyticsCard';
 export { ResponsiveChart, ChartGrid, MobileChart } from './analytics/ResponsiveChart';
 

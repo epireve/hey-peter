@@ -160,10 +160,6 @@ export class ErrorBoundary extends React.Component<
       onError(error, errorInfo);
     }
 
-    // Log error to console in development
-    if (process.env.NODE_ENV === 'development') {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
-    }
 
     // In production, you might want to log to an error reporting service
     // logErrorToService(error, errorInfo);
@@ -265,8 +261,7 @@ export const DashboardErrorBoundary: React.FC<{ children: React.ReactNode }> = (
   <ErrorBoundary
     fallback={DefaultErrorFallback}
     onError={(error, errorInfo) => {
-      // Log dashboard errors specifically
-      console.error('Dashboard Error:', error, errorInfo);
+      // Dashboard error handler
     }}
   >
     {children}
@@ -279,8 +274,7 @@ export const AnalyticsErrorBoundary: React.FC<{ children: React.ReactNode }> = (
   <ErrorBoundary
     fallback={CompactErrorFallback}
     onError={(error, errorInfo) => {
-      // Log analytics errors specifically
-      console.error('Analytics Error:', error, errorInfo);
+      // Analytics error handler
     }}
   >
     {children}
@@ -294,8 +288,7 @@ export const FormErrorBoundary: React.FC<{ children: React.ReactNode }> = ({
     fallback={MinimalErrorFallback}
     resetOnPropsChange={true}
     onError={(error, errorInfo) => {
-      // Log form errors specifically
-      console.error('Form Error:', error, errorInfo);
+      // Form error handler
     }}
   >
     {children}
@@ -308,8 +301,7 @@ export const TableErrorBoundary: React.FC<{ children: React.ReactNode }> = ({
   <ErrorBoundary
     fallback={CompactErrorFallback}
     onError={(error, errorInfo) => {
-      // Log table errors specifically
-      console.error('Table Error:', error, errorInfo);
+      // Table error handler
     }}
   >
     {children}
