@@ -5,11 +5,14 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:analyze": "ANALYZE=true next build",
     "start": "next start",
     "lint": "next lint",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
+    "bundle:analyze": "node scripts/analyze-bundle.js",
+    "bundle:build-analyze": "npm run build && npm run bundle:analyze",
     "docker:dev": "./scripts/docker-dev.sh",
     "docker:prod": "./scripts/docker-prod.sh",
     "docker:stop": "./scripts/docker-stop.sh",
@@ -62,6 +65,7 @@
     "tailwind-merge": "^3.3.1",
     "xlsx": "^0.18.5",
     "file-saver": "^2.0.5",
+    "prom-client": "^15.1.0",
     "zod": "^3.25.67",
     "zustand": "^5.0.5"
   },

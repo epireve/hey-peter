@@ -1,15 +1,11 @@
-import dynamic from "next/dynamic";
-import { Loader2 } from "lucide-react";
+import { createLazyAdminComponent } from "@/lib/utils/lazy-factory";
 
-// Lazy load the DashboardContent component
-const DashboardContent = dynamic(
+// Lazy load the DashboardContent component with enhanced loading and error boundaries
+const DashboardContent = createLazyAdminComponent(
   () => import("@/components/admin/dashboard/DashboardContent").then(mod => ({ default: mod.DashboardContent })),
   {
-    loading: () => (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    ),
+    preload: true, // Preload since this is a primary dashboard component
+    retry: 3
   }
 );
 import {

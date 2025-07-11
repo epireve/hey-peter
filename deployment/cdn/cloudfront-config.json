@@ -1,0 +1,214 @@
+{
+  "CallerReference": "heypeter-academy-cdn-2025",
+  "Comment": "HeyPeter Academy LMS CDN Distribution",
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "heypeter-academy-origin",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "TrustedSigners": {
+      "Enabled": false,
+      "Quantity": 0
+    },
+    "ForwardedValues": {
+      "QueryString": false,
+      "Cookies": {
+        "Forward": "none"
+      },
+      "Headers": {
+        "Quantity": 3,
+        "Items": [
+          "Accept",
+          "Accept-Language",
+          "Authorization"
+        ]
+      }
+    },
+    "MinTTL": 0,
+    "DefaultTTL": 86400,
+    "MaxTTL": 31536000,
+    "Compress": true,
+    "AllowedMethods": {
+      "Quantity": 7,
+      "Items": [
+        "DELETE",
+        "GET",
+        "HEAD",
+        "OPTIONS",
+        "PATCH",
+        "POST",
+        "PUT"
+      ],
+      "CachedMethods": {
+        "Quantity": 2,
+        "Items": [
+          "GET",
+          "HEAD"
+        ]
+      }
+    }
+  },
+  "CacheBehaviors": {
+    "Quantity": 4,
+    "Items": [
+      {
+        "PathPattern": "/_next/static/*",
+        "TargetOriginId": "heypeter-academy-origin",
+        "ViewerProtocolPolicy": "redirect-to-https",
+        "TrustedSigners": {
+          "Enabled": false,
+          "Quantity": 0
+        },
+        "ForwardedValues": {
+          "QueryString": false,
+          "Cookies": {
+            "Forward": "none"
+          }
+        },
+        "MinTTL": 31536000,
+        "DefaultTTL": 31536000,
+        "MaxTTL": 31536000,
+        "Compress": true
+      },
+      {
+        "PathPattern": "/static/*",
+        "TargetOriginId": "heypeter-academy-origin",
+        "ViewerProtocolPolicy": "redirect-to-https",
+        "TrustedSigners": {
+          "Enabled": false,
+          "Quantity": 0
+        },
+        "ForwardedValues": {
+          "QueryString": false,
+          "Cookies": {
+            "Forward": "none"
+          }
+        },
+        "MinTTL": 86400,
+        "DefaultTTL": 86400,
+        "MaxTTL": 31536000,
+        "Compress": true
+      },
+      {
+        "PathPattern": "/api/*",
+        "TargetOriginId": "heypeter-academy-origin",
+        "ViewerProtocolPolicy": "redirect-to-https",
+        "TrustedSigners": {
+          "Enabled": false,
+          "Quantity": 0
+        },
+        "ForwardedValues": {
+          "QueryString": true,
+          "Cookies": {
+            "Forward": "all"
+          },
+          "Headers": {
+            "Quantity": 5,
+            "Items": [
+              "Accept",
+              "Accept-Language",
+              "Authorization",
+              "Content-Type",
+              "X-Requested-With"
+            ]
+          }
+        },
+        "MinTTL": 0,
+        "DefaultTTL": 0,
+        "MaxTTL": 86400,
+        "Compress": true
+      },
+      {
+        "PathPattern": "/uploads/*",
+        "TargetOriginId": "heypeter-academy-s3-origin",
+        "ViewerProtocolPolicy": "redirect-to-https",
+        "TrustedSigners": {
+          "Enabled": false,
+          "Quantity": 0
+        },
+        "ForwardedValues": {
+          "QueryString": false,
+          "Cookies": {
+            "Forward": "none"
+          }
+        },
+        "MinTTL": 86400,
+        "DefaultTTL": 604800,
+        "MaxTTL": 31536000,
+        "Compress": true
+      }
+    ]
+  },
+  "Origins": {
+    "Quantity": 2,
+    "Items": [
+      {
+        "Id": "heypeter-academy-origin",
+        "DomainName": "your-domain.com",
+        "CustomOriginConfig": {
+          "HTTPPort": 80,
+          "HTTPSPort": 443,
+          "OriginProtocolPolicy": "https-only",
+          "OriginSslProtocols": {
+            "Quantity": 1,
+            "Items": [
+              "TLSv1.2"
+            ]
+          }
+        }
+      },
+      {
+        "Id": "heypeter-academy-s3-origin",
+        "DomainName": "your-s3-bucket.s3.amazonaws.com",
+        "S3OriginConfig": {
+          "OriginAccessIdentity": ""
+        }
+      }
+    ]
+  },
+  "Enabled": true,
+  "PriceClass": "PriceClass_100",
+  "HttpVersion": "http2",
+  "IsIPV6Enabled": true,
+  "WebACLId": "",
+  "CustomErrorResponses": {
+    "Quantity": 3,
+    "Items": [
+      {
+        "ErrorCode": 404,
+        "ResponsePagePath": "/404.html",
+        "ResponseCode": "404",
+        "ErrorCachingMinTTL": 300
+      },
+      {
+        "ErrorCode": 500,
+        "ResponsePagePath": "/500.html",
+        "ResponseCode": "500",
+        "ErrorCachingMinTTL": 0
+      },
+      {
+        "ErrorCode": 503,
+        "ResponsePagePath": "/maintenance.html",
+        "ResponseCode": "503",
+        "ErrorCachingMinTTL": 0
+      }
+    ]
+  },
+  "Aliases": {
+    "Quantity": 2,
+    "Items": [
+      "your-domain.com",
+      "www.your-domain.com"
+    ]
+  },
+  "ViewerCertificate": {
+    "CloudFrontDefaultCertificate": false,
+    "ACMCertificateArn": "arn:aws:acm:us-east-1:ACCOUNT-ID:certificate/CERTIFICATE-ID",
+    "SSLSupportMethod": "sni-only",
+    "MinimumProtocolVersion": "TLSv1.2_2021"
+  },
+  "Logging": {
+    "Enabled": true,
+    "IncludeCookies": false,
+    "Bucket": "your-logging-bucket.s3.amazonaws.com",
+    "Prefix": "cloudfront-logs/"
+  }
+}

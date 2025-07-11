@@ -2,6 +2,8 @@ import { useQuery, useQueryClient, useInfiniteQuery as useInfiniteQueryBase } fr
 import { useCallback, useMemo } from "react";
 import React from "react";
 import { performanceMonitor } from "@/lib/utils/performance-monitor";
+import { queryOptimizationService } from "@/lib/services/query-optimization-service";
+import { dbConnectionPool } from "@/lib/services/database-connection-pool";
 
 interface UseOptimizedQueryOptions<T> {
   queryKey: string[];
@@ -154,4 +156,127 @@ export function useInfiniteOptimizedQuery<T>({
     ...infiniteQuery,
     prefetchNextPage,
   };
+}
+
+/**
+ * Hook for database queries with optimization service integration
+ */
+export function useOptimizedDatabaseQuery<T>({
+  table,
+  select,
+  filters,
+  orderBy,
+  limit,
+  cacheable = true,
+  cacheKey,
+  cacheTTL,
+  ...options
+}: {
+  table: string;
+  select?: string;
+  filters?: Array<{
+    column: string;
+    operator: 'eq' | 'neq' | 'gt' | 'gte' | 'lt' | 'lte' | 'like' | 'ilike' | 'in';
+    value: any;
+  }>;
+  orderBy?: { column: string; ascending?: boolean };
+  limit?: number;
+  cacheable?: boolean;
+  cacheKey?: string;
+  cacheTTL?: number;
+} & Omit<UseOptimizedQueryOptions<T>, 'queryKey' | 'queryFn'>) {
+  const queryKey = useMemo(() => [
+    'optimized-db-query',
+    table,
+    select,
+    JSON.stringify(filters),
+    JSON.stringify(orderBy),
+    limit,
+  ], [table, select, filters, orderBy, limit]);
+
+  const queryFn = useCallback(async () => {
+    const result = await queryOptimizationService.executeOptimizedQuery<T>({
+      table,
+      select,
+      filters,
+      orderBy,
+      limit,
+      cacheable,
+      cacheKey,
+      cacheTTL,
+      enableOptimization: true,
+    });
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    return result.data;
+  }, [table, select, filters, orderBy, limit, cacheable, cacheKey, cacheTTL]);
+
+  return useOptimizedQuery<T>({
+    ...options,
+    queryKey,
+    queryFn,
+    staleTime: cacheTTL || options.staleTime,
+  });
+}
+
+/**
+ * Hook for analytics queries with materialized view optimization
+ */
+export function useAnalyticsQuery<T>({
+  queryType,
+  filters = {},
+  ...options
+}: {
+  queryType: 'student_metrics' | 'teacher_metrics' | 'revenue_metrics' | 'usage_metrics';
+  filters?: Record<string, any>;
+} & Omit<UseOptimizedQueryOptions<T>, 'queryKey' | 'queryFn'>) {
+  const queryKey = useMemo(() => [
+    'analytics-query',
+    queryType,
+    JSON.stringify(filters),
+  ], [queryType, filters]);
+
+  const queryFn = useCallback(async () => {
+    const result = await queryOptimizationService.executeAnalyticsQuery<T>(
+      queryType,
+      filters
+    );
+
+    if (result.error) {
+      throw result.error;
+    }
+
+    return result.data;
+  }, [queryType, filters]);
+
+  return useOptimizedQuery<T>({
+    ...options,
+    queryKey,
+    queryFn,
+    staleTime: 600000, // 10 minutes for analytics
+  });
+}
+
+/**
+ * Hook for monitoring database performance metrics
+ */
+export function useDatabasePerformanceMetrics() {
+  return useQuery({
+    queryKey: ['database-performance-metrics'],
+    queryFn: async () => {
+      const poolStats = dbConnectionPool.getStats();
+      const queryStats = queryOptimizationService.getPerformanceSummary();
+      
+      return {
+        poolStats,
+        queryStats,
+        timestamp: new Date(),
+      };
+    },
+    staleTime: 30000, // 30 seconds
+    refetchInterval: 60000, // 1 minute
+  });
 }

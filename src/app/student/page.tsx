@@ -1,8 +1,15 @@
+import { LazyStudentDashboardLayout, preloadStudentDashboard } from '@/components/student/LazyStudentComponents';
+import { useEffect } from 'react';
+
 export default function StudentPage() {
+  useEffect(() => {
+    // Preload commonly used student components
+    preloadStudentDashboard();
+  }, []);
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold">Student Page</h1>
-      <p>Welcome, Student!</p>
+      <LazyStudentDashboardLayout />
     </div>
   );
 }

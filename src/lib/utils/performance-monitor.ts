@@ -1,283 +1,332 @@
 /**
- * Performance monitoring utilities for tracking component render times and API calls
+ * Performance monitoring utilities for code splitting and bundle analysis
  */
 
-import React from "react";
+interface BundleMetrics {
+  bundleSize: number;
+  chunkCount: number;
+  loadTime: number;
+  memoryUsage?: {
+    used: number;
+    total: number;
+    limit: number;
+  };
+}
 
-interface PerformanceEntry {
-  name: string;
-  type: "render" | "api" | "query";
-  duration: number;
-  timestamp: number;
-  metadata?: Record<string, any>;
+interface ComponentLoadMetrics {
+  componentName: string;
+  loadTime: number;
+  chunkSize?: number;
+  errorCount: number;
+  cacheHit: boolean;
 }
 
 class PerformanceMonitor {
-  private entries: PerformanceEntry[] = [];
-  private maxEntries = 1000;
-  private isEnabled = process.env.NODE_ENV === "development";
+  private metrics: ComponentLoadMetrics[] = [];
+  private bundleMetrics: BundleMetrics[] = [];
+  private loadStartTimes: Map<string, number> = new Map();
 
-  /**
-   * Track component render time
-   */
-  trackRender(componentName: string, callback: () => void): void {
-    if (!this.isEnabled) {
-      callback();
-      return;
+  // Start timing a component load
+  startComponentLoad(componentName: string): void {
+    this.loadStartTimes.set(componentName, performance.now());
+  }
+
+  // End timing a component load
+  endComponentLoad(componentName: string, error?: boolean): void {
+    const startTime = this.loadStartTimes.get(componentName);
+    if (!startTime) return;
+
+    const loadTime = performance.now() - startTime;
+    this.loadStartTimes.delete(componentName);
+
+    const existingMetric = this.metrics.find(m => m.componentName === componentName);
+    if (existingMetric) {
+      existingMetric.loadTime = (existingMetric.loadTime + loadTime) / 2; // Average
+      if (error) existingMetric.errorCount++;
+    } else {
+      this.metrics.push({
+        componentName,
+        loadTime,
+        errorCount: error ? 1 : 0,
+        cacheHit: loadTime < 50 // Assume cache hit if very fast
+      });
+    }
+  }
+
+  // Record bundle metrics
+  recordBundleMetrics(): void {
+    if (typeof window === 'undefined') return;
+
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
+    const loadTime = navigation.loadEventEnd - navigation.navigationStart;
+
+    const bundleMetric: BundleMetrics = {
+      bundleSize: this.estimateBundleSize(),
+      chunkCount: this.getChunkCount(),
+      loadTime,
+    };
+
+    // Add memory usage if available
+    if ('memory' in performance) {
+      const memory = (performance as any).memory;
+      bundleMetric.memoryUsage = {
+        used: memory.usedJSHeapSize,
+        total: memory.totalJSHeapSize,
+        limit: memory.jsHeapSizeLimit
+      };
     }
 
-    const start = performance.now();
-    callback();
-    const duration = performance.now() - start;
+    this.bundleMetrics.push(bundleMetric);
+  }
 
-    this.addEntry({
-      name: componentName,
-      type: "render",
-      duration,
-      timestamp: Date.now(),
+  // Estimate bundle size from loaded scripts
+  private estimateBundleSize(): number {
+    if (typeof window === 'undefined') return 0;
+
+    const scripts = Array.from(document.scripts);
+    let totalSize = 0;
+
+    scripts.forEach(script => {
+      if (script.src && script.src.includes('chunk')) {
+        // Estimate based on typical chunk sizes
+        if (script.src.includes('vendor')) totalSize += 500000; // ~500KB
+        else if (script.src.includes('admin')) totalSize += 200000; // ~200KB
+        else if (script.src.includes('student')) totalSize += 150000; // ~150KB
+        else if (script.src.includes('teacher')) totalSize += 150000; // ~150KB
+        else if (script.src.includes('analytics')) totalSize += 100000; // ~100KB
+        else totalSize += 50000; // ~50KB for other chunks
+      }
     });
 
-    if (duration > 16) {
-      // Longer than one frame (60fps)
-      console.warn(
-        `[Performance] Slow render detected in ${componentName}: ${duration.toFixed(2)}ms`
-      );
-    }
+    return totalSize;
   }
 
-  /**
-   * Track API call duration
-   */
-  async trackAPI<T>(
-    apiName: string,
-    apiCall: () => Promise<T>,
-    metadata?: Record<string, any>
-  ): Promise<T> {
-    if (!this.isEnabled) {
-      return apiCall();
-    }
+  // Count loaded chunks
+  private getChunkCount(): number {
+    if (typeof window === 'undefined') return 0;
 
-    const start = performance.now();
-    try {
-      const result = await apiCall();
-      const duration = performance.now() - start;
-
-      this.addEntry({
-        name: apiName,
-        type: "api",
-        duration,
-        timestamp: Date.now(),
-        metadata,
-      });
-
-      if (duration > 1000) {
-        // Longer than 1 second
-        console.warn(
-          `[Performance] Slow API call detected for ${apiName}: ${duration.toFixed(2)}ms`,
-          metadata
-        );
-      }
-
-      return result;
-    } catch (error) {
-      const duration = performance.now() - start;
-      this.addEntry({
-        name: apiName,
-        type: "api",
-        duration,
-        timestamp: Date.now(),
-        metadata: { ...metadata, error: true },
-      });
-      throw error;
-    }
+    return Array.from(document.scripts)
+      .filter(script => script.src && script.src.includes('chunk'))
+      .length;
   }
 
-  /**
-   * Track database query duration
-   */
-  async trackQuery<T>(
-    queryName: string,
-    query: () => Promise<T>,
-    metadata?: Record<string, any>
-  ): Promise<T> {
-    if (!this.isEnabled) {
-      return query();
-    }
+  // Get performance report
+  getPerformanceReport(): {
+    componentMetrics: ComponentLoadMetrics[];
+    bundleMetrics: BundleMetrics[];
+    summary: {
+      averageComponentLoadTime: number;
+      slowestComponent: string;
+      fastestComponent: string;
+      totalErrorCount: number;
+      cacheHitRate: number;
+      estimatedBundleSavings: string;
+    };
+  } {
+    const componentMetrics = [...this.metrics];
+    const bundleMetrics = [...this.bundleMetrics];
 
-    const start = performance.now();
-    try {
-      const result = await query();
-      const duration = performance.now() - start;
+    // Calculate summary statistics
+    const loadTimes = componentMetrics.map(m => m.loadTime);
+    const averageComponentLoadTime = loadTimes.length > 0 
+      ? loadTimes.reduce((a, b) => a + b, 0) / loadTimes.length 
+      : 0;
 
-      this.addEntry({
-        name: queryName,
-        type: "query",
-        duration,
-        timestamp: Date.now(),
-        metadata,
-      });
+    const slowestComponent = componentMetrics.reduce((prev, current) => 
+      current.loadTime > prev.loadTime ? current : prev, 
+      componentMetrics[0]
+    )?.componentName || 'None';
 
-      if (duration > 100) {
-        // Longer than 100ms
-        console.warn(
-          `[Performance] Slow query detected for ${queryName}: ${duration.toFixed(2)}ms`,
-          metadata
-        );
-      }
+    const fastestComponent = componentMetrics.reduce((prev, current) => 
+      current.loadTime < prev.loadTime ? current : prev, 
+      componentMetrics[0]
+    )?.componentName || 'None';
 
-      return result;
-    } catch (error) {
-      const duration = performance.now() - start;
-      this.addEntry({
-        name: queryName,
-        type: "query",
-        duration,
-        timestamp: Date.now(),
-        metadata: { ...metadata, error: true },
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Get performance statistics
-   */
-  getStats(type?: PerformanceEntry["type"]) {
-    const filteredEntries = type
-      ? this.entries.filter((e) => e.type === type)
-      : this.entries;
-
-    if (filteredEntries.length === 0) {
-      return null;
-    }
-
-    const durations = filteredEntries.map((e) => e.duration);
-    const sorted = [...durations].sort((a, b) => a - b);
+    const totalErrorCount = componentMetrics.reduce((sum, m) => sum + m.errorCount, 0);
+    const cacheHitRate = componentMetrics.length > 0 
+      ? componentMetrics.filter(m => m.cacheHit).length / componentMetrics.length 
+      : 0;
 
     return {
-      count: filteredEntries.length,
-      total: durations.reduce((sum, d) => sum + d, 0),
-      average: durations.reduce((sum, d) => sum + d, 0) / durations.length,
-      median: sorted[Math.floor(sorted.length / 2)],
-      p95: sorted[Math.floor(sorted.length * 0.95)],
-      p99: sorted[Math.floor(sorted.length * 0.99)],
-      min: Math.min(...durations),
-      max: Math.max(...durations),
+      componentMetrics,
+      bundleMetrics,
+      summary: {
+        averageComponentLoadTime,
+        slowestComponent,
+        fastestComponent,
+        totalErrorCount,
+        cacheHitRate,
+        estimatedBundleSavings: this.calculateBundleSavings()
+      }
     };
   }
 
-  /**
-   * Get slowest operations
-   */
-  getSlowest(count = 10, type?: PerformanceEntry["type"]) {
-    const filteredEntries = type
-      ? this.entries.filter((e) => e.type === type)
-      : this.entries;
-
-    return filteredEntries
-      .sort((a, b) => b.duration - a.duration)
-      .slice(0, count)
-      .map((entry) => ({
-        ...entry,
-        duration: `${entry.duration.toFixed(2)}ms`,
-      }));
-  }
-
-  /**
-   * Clear all entries
-   */
-  clear() {
-    this.entries = [];
-  }
-
-  /**
-   * Export performance data
-   */
-  export() {
-    return {
-      entries: this.entries,
-      stats: {
-        all: this.getStats(),
-        render: this.getStats("render"),
-        api: this.getStats("api"),
-        query: this.getStats("query"),
-      },
-      slowest: {
-        all: this.getSlowest(10),
-        render: this.getSlowest(10, "render"),
-        api: this.getSlowest(10, "api"),
-        query: this.getSlowest(10, "query"),
-      },
+  // Calculate estimated bundle savings from code splitting
+  private calculateBundleSavings(): string {
+    const estimatedSavings = {
+      recharts: 200,      // KB
+      xlsx: 100,          // KB
+      reactTable: 80,     // KB
+      dateFns: 50,        // KB
+      icons: 30,          // KB
+      adminComponents: 150, // KB
+      studentComponents: 120, // KB
+      teacherComponents: 120, // KB
+      analyticsComponents: 100, // KB
     };
+
+    const totalSavings = Object.values(estimatedSavings).reduce((a, b) => a + b, 0);
+    return `~${totalSavings}KB`;
   }
 
-  private addEntry(entry: PerformanceEntry) {
-    this.entries.push(entry);
+  // Log performance metrics to console (development only)
+  logMetrics(): void {
+    if (process.env.NODE_ENV !== 'development') return;
 
-    // Keep only the most recent entries
-    if (this.entries.length > this.maxEntries) {
-      this.entries = this.entries.slice(-this.maxEntries);
-    }
+    const report = this.getPerformanceReport();
+    
+    console.group('🚀 Performance Metrics');
+    console.log('📊 Component Load Times:', report.componentMetrics);
+    console.log('📦 Bundle Metrics:', report.bundleMetrics);
+    console.log('📈 Summary:', report.summary);
+    console.groupEnd();
+  }
+
+  // Monitor Core Web Vitals
+  measureCoreWebVitals(): void {
+    if (typeof window === 'undefined') return;
+
+    // Largest Contentful Paint (LCP)
+    new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      const lastEntry = entries[entries.length - 1];
+      console.log('LCP:', lastEntry.startTime);
+    }).observe({ entryTypes: ['largest-contentful-paint'] });
+
+    // First Input Delay (FID)
+    new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      entries.forEach(entry => {
+        console.log('FID:', entry.processingStart - entry.startTime);
+      });
+    }).observe({ entryTypes: ['first-input'] });
+
+    // Cumulative Layout Shift (CLS)
+    let clsValue = 0;
+    new PerformanceObserver((entryList) => {
+      const entries = entryList.getEntries();
+      entries.forEach(entry => {
+        if (!(entry as any).hadRecentInput) {
+          clsValue += (entry as any).value;
+        }
+      });
+      console.log('CLS:', clsValue);
+    }).observe({ entryTypes: ['layout-shift'] });
+  }
+
+  // Monitor chunk loading
+  monitorChunkLoads(): void {
+    if (typeof window === 'undefined') return;
+
+    // Monitor script loads
+    const observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        mutation.addedNodes.forEach((node) => {
+          if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            if (element.tagName === 'SCRIPT' && element.getAttribute('src')?.includes('chunk')) {
+              const chunkName = this.extractChunkName(element.getAttribute('src') || '');
+              console.log(`📦 Chunk loaded: ${chunkName}`);
+            }
+          }
+        });
+      });
+    });
+
+    observer.observe(document.head, { childList: true });
+  }
+
+  // Extract chunk name from script src
+  private extractChunkName(src: string): string {
+    const match = src.match(/([^\/]+)\.chunk\.js$/);
+    return match ? match[1] : 'unknown';
+  }
+
+  // Clear metrics
+  clearMetrics(): void {
+    this.metrics = [];
+    this.bundleMetrics = [];
+    this.loadStartTimes.clear();
+  }
+
+  // Export metrics for analysis
+  exportMetrics(): string {
+    const report = this.getPerformanceReport();
+    return JSON.stringify(report, null, 2);
   }
 }
 
 // Create singleton instance
 export const performanceMonitor = new PerformanceMonitor();
 
-// React hook for tracking render performance
-export function useRenderTracking(componentName: string) {
-  if (process.env.NODE_ENV !== "development") {
-    return;
-  }
-
-  const renderStart = performance.now();
-  
-  // Track on unmount
-  React.useEffect(() => {
-    return () => {
-      const duration = performance.now() - renderStart;
-      (performanceMonitor as any).addEntry({
-        name: componentName,
-        type: "render",
-        duration,
-        timestamp: Date.now(),
-      });
-    };
-  }, [componentName, renderStart]);
-}
-
-// HOC for tracking component performance
+// Higher-order component to automatically track component load times
 export function withPerformanceTracking<P extends object>(
   Component: React.ComponentType<P>,
-  componentName: string
+  componentName?: string
 ) {
-  return React.memo((props: P) => {
-    useRenderTracking(componentName);
+  const WrappedComponent = (props: P) => {
+    const name = componentName || Component.displayName || Component.name;
+    
+    React.useEffect(() => {
+      performanceMonitor.startComponentLoad(name);
+      
+      return () => {
+        performanceMonitor.endComponentLoad(name);
+      };
+    }, [name]);
+
     return React.createElement(Component, props);
-  });
+  };
+
+  WrappedComponent.displayName = `withPerformanceTracking(${
+    Component.displayName || Component.name
+  })`;
+
+  return WrappedComponent;
 }
 
-// Hook for tracking expensive computations
-export function useTrackedMemo<T>(
-  factory: () => T,
-  deps: React.DependencyList,
-  name: string
-): T {
-  return React.useMemo(() => {
-    if (process.env.NODE_ENV !== "development") {
-      return factory();
-    }
-
-    const start = performance.now();
-    const result = factory();
-    const duration = performance.now() - start;
-
-    if (duration > 10) {
-      console.warn(
-        `[Performance] Slow computation in ${name}: ${duration.toFixed(2)}ms`
-      );
-    }
-
-    return result;
-  }, deps);
+// Hook for component-level performance tracking
+export function usePerformanceTracking(componentName: string) {
+  React.useEffect(() => {
+    performanceMonitor.startComponentLoad(componentName);
+    
+    return () => {
+      performanceMonitor.endComponentLoad(componentName);
+    };
+  }, [componentName]);
 }
+
+// Initialize performance monitoring
+export function initializePerformanceMonitoring(): void {
+  if (typeof window === 'undefined') return;
+
+  // Start monitoring when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => {
+      performanceMonitor.recordBundleMetrics();
+      performanceMonitor.measureCoreWebVitals();
+      performanceMonitor.monitorChunkLoads();
+    });
+  } else {
+    performanceMonitor.recordBundleMetrics();
+    performanceMonitor.measureCoreWebVitals();
+    performanceMonitor.monitorChunkLoads();
+  }
+
+  // Log metrics after 5 seconds
+  setTimeout(() => {
+    performanceMonitor.logMetrics();
+  }, 5000);
+}
+
+export default performanceMonitor;

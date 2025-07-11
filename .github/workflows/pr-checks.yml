@@ -1,0 +1,298 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Fast feedback for PR
+  quick-check:
+    name: ⚡ Quick Checks
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Lint changed files
+        uses: tj-actions/eslint-changed-files@v20
+        with:
+          config_path: eslint.config.mjs
+          ignore_path: .gitignore
+          extra_args: '--max-warnings=0'
+
+      - name: 🔧 Type check
+        run: npx tsc --noEmit
+
+      - name: 🧪 Run tests for changed files
+        run: |
+          # Get changed files
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- '*.ts' '*.tsx' '*.js' '*.jsx' | grep -E '^src/' | head -20)
+          
+          if [ ! -z "$CHANGED_FILES" ]; then
+            echo "Running tests for changed files:"
+            echo "$CHANGED_FILES"
+            
+            # Run tests related to changed files
+            npm test -- --findRelatedTests $CHANGED_FILES --passWithNoTests
+          else
+            echo "No relevant files changed, running all tests"
+            npm test
+          fi
+
+  # Build verification
+  build-check:
+    name: 🏗️ Build Verification
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 🐳 Build Docker image
+        run: |
+          docker build -t heypeter-pr:${{ github.event.pull_request.number }} .
+
+  # Security check for PRs
+  security-check:
+    name: 🔒 Security Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Check for secrets
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+
+      - name: 🔍 Audit dependencies
+        run: npm audit --audit-level=moderate
+
+  # Size impact analysis
+  size-check:
+    name: 📊 Bundle Size Impact
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 📊 Bundle size analysis
+        uses: preactjs/compressed-size-action@v2
+        with:
+          repo-token: '${{ secrets.GITHUB_TOKEN }}'
+          build-script: 'build'
+          minimum-change-threshold: 100
+
+  # Accessibility check
+  a11y-check:
+    name: ♿ Accessibility Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: ♿ Run accessibility tests
+        run: |
+          npm start &
+          sleep 10
+          npx @axe-core/cli http://localhost:3000 --timeout 30000
+          npx @axe-core/cli http://localhost:3000/login --timeout 30000
+          npx @axe-core/cli http://localhost:3000/dashboard --timeout 30000
+
+  # Code coverage diff
+  coverage-check:
+    name: 📊 Coverage Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run tests with coverage
+        run: npm run test:coverage
+
+      - name: 📊 Coverage comment
+        uses: romeovs/lcov-reporter-action@v0.3.1
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          lcov-file: ./coverage/lcov.info
+          delete-old-comments: true
+
+  # Visual regression testing (placeholder)
+  visual-regression:
+    name: 👀 Visual Regression
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 👀 Visual regression tests
+        run: |
+          echo "Visual regression testing would be configured here"
+          echo "Tools like Percy, Chromatic, or Playwright can be integrated"
+
+  # PR Summary
+  pr-summary:
+    name: 📋 PR Summary
+    runs-on: ubuntu-latest
+    needs: [quick-check, build-check, security-check, size-check, a11y-check, coverage-check]
+    if: always() && github.event.pull_request.draft == false
+    
+    steps:
+      - name: 📋 Create PR summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            
+            const checks = {
+              'quick-check': '${{ needs.quick-check.result }}',
+              'build-check': '${{ needs.build-check.result }}',
+              'security-check': '${{ needs.security-check.result }}',
+              'size-check': '${{ needs.size-check.result }}',
+              'a11y-check': '${{ needs.a11y-check.result }}',
+              'coverage-check': '${{ needs.coverage-check.result }}'
+            };
+            
+            const getEmoji = (status) => {
+              switch(status) {
+                case 'success': return '✅';
+                case 'failure': return '❌';
+                case 'cancelled': return '⚠️';
+                default: return '⏳';
+              }
+            };
+            
+            let summary = `## 🔍 PR Check Summary\n\n`;
+            summary += `| Check | Status |\n|-------|--------|\n`;
+            
+            Object.entries(checks).forEach(([check, status]) => {
+              const emoji = getEmoji(status);
+              const name = check.replace('-', ' ').replace(/\b\w/g, l => l.toUpperCase());
+              summary += `| ${name} | ${emoji} ${status} |\n`;
+            });
+            
+            summary += `\n---\n*This summary is automatically generated by the CI/CD pipeline.*`;
+            
+            // Find existing summary comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            
+            const botComment = comments.find(comment => 
+              comment.user.type === 'Bot' && 
+              comment.body.includes('PR Check Summary')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: summary
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary
+              });
+            }

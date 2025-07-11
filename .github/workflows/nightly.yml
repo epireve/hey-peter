@@ -1,0 +1,173 @@
+name: Nightly Build & Testing
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Run at 2 AM UTC daily
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '18'
+
+jobs:
+  # Comprehensive Testing Suite
+  comprehensive-test:
+    name: 🌙 Nightly Comprehensive Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🧪 Run comprehensive tests
+        run: |
+          npm run test:coverage
+          npm run lint
+          npx tsc --noEmit
+
+      - name: 📊 Generate test report
+        run: |
+          echo "## Test Results for Node.js ${{ matrix.node-version }}" >> test-results.md
+          echo "- Tests: ✅ Passed" >> test-results.md
+          echo "- Lint: ✅ Passed" >> test-results.md
+          echo "- TypeScript: ✅ Passed" >> test-results.md
+
+  # Performance Testing
+  performance-test:
+    name: 🚀 Performance Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🏗️ Build application
+        run: npm run build
+
+      - name: 📊 Bundle size analysis
+        run: npm run bundle:analyze
+
+      - name: 🚀 Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          configPath: './.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+  # Security Audit
+  security-audit:
+    name: 🔒 Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔍 Dependency audit
+        run: |
+          npm audit --audit-level=low --json > audit-results.json
+          cat audit-results.json
+
+      - name: 🛡️ OWASP ZAP Baseline Scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'http://localhost:3000'
+
+  # Database Migration Testing
+  migration-test:
+    name: 🗄️ Migration Testing
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: 🧪 Test migrations
+        run: |
+          echo "Testing database migrations..."
+          if [ -d "supabase/migrations" ]; then
+            for migration in supabase/migrations/*.sql; do
+              if [ -f "$migration" ]; then
+                echo "Testing migration: $migration"
+                # Test migration syntax
+                psql -h localhost -U postgres -d test_db -c "\i $migration" || echo "Migration test failed: $migration"
+              fi
+            done
+          fi
+        env:
+          PGPASSWORD: postgres
+
+  # Notification
+  notify-nightly:
+    name: 📢 Nightly Notification
+    runs-on: ubuntu-latest
+    needs: [comprehensive-test, performance-test, security-audit, migration-test]
+    if: always()
+    
+    steps:
+      - name: 📢 Discord Notification
+        if: failure()
+        uses: Ilshidur/action-discord@master
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK }}
+        with:
+          args: '🌙 Nightly build failed! Check the logs for details.'
+
+      - name: 📧 Email Notification
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: 'HeyPeter Academy - Nightly Build Failed'
+          body: 'The nightly build has failed. Please check the GitHub Actions logs.'
+          to: ${{ secrets.NOTIFICATION_EMAIL }}

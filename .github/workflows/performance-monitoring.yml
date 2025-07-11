@@ -1,0 +1,382 @@
+name: Performance Monitoring
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'  # Every 6 hours
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: 'Target URL for performance testing'
+        required: true
+        default: 'https://heypeter.academy'
+      duration:
+        description: 'Test duration in minutes'
+        required: true
+        default: '5'
+
+jobs:
+  # Lighthouse Performance Audit
+  lighthouse-audit:
+    name: 🚀 Lighthouse Performance Audit
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        url: [
+          '/',
+          '/login',
+          '/dashboard',
+          '/admin/dashboard',
+          '/teacher',
+          '/student'
+        ]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 🚀 Run Lighthouse Audit
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: '${{ github.event.inputs.target_url || "https://heypeter.academy" }}${{ matrix.url }}'
+          configPath: './.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          
+      - name: 📊 Parse Lighthouse Results
+        run: |
+          echo "Lighthouse audit completed for ${{ matrix.url }}"
+          
+          # Extract key metrics
+          if [ -f "lhci_reports/manifest.json" ]; then
+            node -e "
+              const fs = require('fs');
+              const manifest = JSON.parse(fs.readFileSync('lhci_reports/manifest.json', 'utf8'));
+              const report = JSON.parse(fs.readFileSync(manifest[0].jsonPath, 'utf8'));
+              
+              const metrics = {
+                performance: Math.round(report.categories.performance.score * 100),
+                accessibility: Math.round(report.categories.accessibility.score * 100),
+                bestPractices: Math.round(report.categories['best-practices'].score * 100),
+                seo: Math.round(report.categories.seo.score * 100),
+                fcp: report.audits['first-contentful-paint'].numericValue,
+                lcp: report.audits['largest-contentful-paint'].numericValue,
+                cls: report.audits['cumulative-layout-shift'].numericValue,
+                tbt: report.audits['total-blocking-time'].numericValue
+              };
+              
+              console.log('Performance Metrics:');
+              console.log(\`Performance Score: \${metrics.performance}%\`);
+              console.log(\`Accessibility Score: \${metrics.accessibility}%\`);
+              console.log(\`Best Practices Score: \${metrics.bestPractices}%\`);
+              console.log(\`SEO Score: \${metrics.seo}%\`);
+              console.log(\`First Contentful Paint: \${Math.round(metrics.fcp)}ms\`);
+              console.log(\`Largest Contentful Paint: \${Math.round(metrics.lcp)}ms\`);
+              console.log(\`Cumulative Layout Shift: \${metrics.cls.toFixed(3)}\`);
+              console.log(\`Total Blocking Time: \${Math.round(metrics.tbt)}ms\`);
+              
+              // Save metrics for later use
+              fs.writeFileSync('lighthouse-metrics.json', JSON.stringify(metrics, null, 2));
+            "
+          fi
+
+      - name: 📤 Upload metrics
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-metrics-${{ matrix.url }}-${{ github.run_number }}
+          path: lighthouse-metrics.json
+
+  # Load Testing with Artillery
+  load-testing:
+    name: 🏋️ Load Testing
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: 📦 Install Artillery
+        run: npm install -g artillery@latest
+
+      - name: 📝 Create load test configuration
+        run: |
+          cat > load-test.yml << 'EOF'
+          config:
+            target: '${{ github.event.inputs.target_url || "https://heypeter.academy" }}'
+            phases:
+              - duration: ${{ github.event.inputs.duration || 5 }}m
+                arrivalRate: 5
+                name: "Ramp up"
+              - duration: ${{ github.event.inputs.duration || 5 }}m
+                arrivalRate: 10
+                name: "Sustained load"
+              - duration: 2m
+                arrivalRate: 20
+                name: "Peak load"
+            payload:
+              path: './test-data.csv'
+              fields:
+                - username
+                - password
+            plugins:
+              expect: {}
+              metrics-by-endpoint: {}
+          
+          scenarios:
+            - name: "Homepage and Login Flow"
+              weight: 40
+              flow:
+                - get:
+                    url: "/"
+                    expect:
+                      - statusCode: 200
+                      - contentType: text/html
+                - think: 2
+                - get:
+                    url: "/login"
+                    expect:
+                      - statusCode: 200
+                - think: 5
+                
+            - name: "API Health Check"
+              weight: 20
+              flow:
+                - get:
+                    url: "/api/health"
+                    expect:
+                      - statusCode: 200
+                      - contentType: application/json
+                      
+            - name: "Dashboard Access"
+              weight: 30
+              flow:
+                - get:
+                    url: "/dashboard"
+                    expect:
+                      - statusCode: [200, 302, 401]
+                      
+            - name: "Admin Panel"
+              weight: 10
+              flow:
+                - get:
+                    url: "/admin/dashboard"
+                    expect:
+                      - statusCode: [200, 302, 401]
+          EOF
+
+      - name: 📊 Create test data
+        run: |
+          cat > test-data.csv << 'EOF'
+          username,password
+          testuser1,password123
+          testuser2,password123
+          testuser3,password123
+          EOF
+
+      - name: 🏋️ Run load test
+        run: |
+          artillery run load-test.yml --output load-test-results.json
+          
+          # Generate HTML report
+          artillery report load-test-results.json --output load-test-report.html
+
+      - name: 📊 Parse load test results
+        run: |
+          node -e "
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('load-test-results.json', 'utf8'));
+            
+            const aggregate = results.aggregate;
+            
+            console.log('Load Test Results:');
+            console.log(\`Scenarios Launched: \${aggregate.scenariosCreated}\`);
+            console.log(\`Scenarios Completed: \${aggregate.scenariosCompleted}\`);
+            console.log(\`Requests Completed: \${aggregate.requestsCompleted}\`);
+            console.log(\`RPS: \${aggregate.rps?.mean?.toFixed(2) || 'N/A'}\`);
+            console.log(\`Response Time P95: \${aggregate.latency?.p95 || 'N/A'}ms\`);
+            console.log(\`Response Time P99: \${aggregate.latency?.p99 || 'N/A'}ms\`);
+            console.log(\`Errors: \${Object.keys(aggregate.errors || {}).length}\`);
+            
+            // Check for performance thresholds
+            const p95Latency = aggregate.latency?.p95 || 0;
+            const errorRate = (Object.keys(aggregate.errors || {}).length / aggregate.requestsCompleted) * 100;
+            
+            if (p95Latency > 2000) {
+              console.log('⚠️ WARNING: P95 latency exceeds 2000ms');
+              process.exit(1);
+            }
+            
+            if (errorRate > 5) {
+              console.log('⚠️ WARNING: Error rate exceeds 5%');
+              process.exit(1);
+            }
+            
+            console.log('✅ Load test passed all thresholds');
+          "
+
+      - name: 📤 Upload load test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: load-test-results-${{ github.run_number }}
+          path: |
+            load-test-results.json
+            load-test-report.html
+
+  # Website monitoring with Uptime Robot API
+  uptime-monitoring:
+    name: 📈 Uptime Monitoring Check
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📊 Get uptime statistics
+        run: |
+          if [ -n "${{ secrets.UPTIMEROBOT_API_KEY }}" ]; then
+            # Get monitor statistics from Uptime Robot
+            curl -X POST \
+              "https://api.uptimerobot.com/v2/getMonitors" \
+              -H "Content-Type: application/x-www-form-urlencoded" \
+              -d "api_key=${{ secrets.UPTIMEROBOT_API_KEY }}&format=json&logs=1" \
+              > uptime-stats.json
+            
+            echo "Uptime statistics retrieved"
+            cat uptime-stats.json | jq '.monitors[] | {friendly_name, status, url, uptimeRatio: .all_time_uptime_ratio}'
+          else
+            echo "Uptime Robot API key not configured"
+          fi
+
+  # Performance regression detection
+  performance-regression:
+    name: 📉 Performance Regression Detection
+    runs-on: ubuntu-latest
+    needs: [lighthouse-audit, load-testing]
+    
+    steps:
+      - name: 📥 Download lighthouse metrics
+        uses: actions/download-artifact@v4
+        with:
+          pattern: lighthouse-metrics-*
+          merge-multiple: true
+
+      - name: 📊 Analyze performance trends
+        run: |
+          echo "Analyzing performance trends..."
+          
+          # This would typically connect to a time-series database
+          # For now, we'll create a simple analysis
+          
+          for metrics_file in lighthouse-metrics.json; do
+            if [ -f "$metrics_file" ]; then
+              echo "Processing $metrics_file"
+              
+              node -e "
+                const fs = require('fs');
+                const metrics = JSON.parse(fs.readFileSync('$metrics_file', 'utf8'));
+                
+                // Define performance thresholds
+                const thresholds = {
+                  performance: 90,
+                  accessibility: 95,
+                  fcp: 1500,
+                  lcp: 2500,
+                  cls: 0.1,
+                  tbt: 200
+                };
+                
+                let warnings = [];
+                
+                if (metrics.performance < thresholds.performance) {
+                  warnings.push(\`Performance score (\${metrics.performance}%) below threshold (\${thresholds.performance}%)\`);
+                }
+                
+                if (metrics.accessibility < thresholds.accessibility) {
+                  warnings.push(\`Accessibility score (\${metrics.accessibility}%) below threshold (\${thresholds.accessibility}%)\`);
+                }
+                
+                if (metrics.fcp > thresholds.fcp) {
+                  warnings.push(\`First Contentful Paint (\${Math.round(metrics.fcp)}ms) above threshold (\${thresholds.fcp}ms)\`);
+                }
+                
+                if (metrics.lcp > thresholds.lcp) {
+                  warnings.push(\`Largest Contentful Paint (\${Math.round(metrics.lcp)}ms) above threshold (\${thresholds.lcp}ms)\`);
+                }
+                
+                if (metrics.cls > thresholds.cls) {
+                  warnings.push(\`Cumulative Layout Shift (\${metrics.cls.toFixed(3)}) above threshold (\${thresholds.cls})\`);
+                }
+                
+                if (metrics.tbt > thresholds.tbt) {
+                  warnings.push(\`Total Blocking Time (\${Math.round(metrics.tbt)}ms) above threshold (\${thresholds.tbt}ms)\`);
+                }
+                
+                if (warnings.length > 0) {
+                  console.log('🚨 Performance Issues Detected:');
+                  warnings.forEach(warning => console.log(\`  - \${warning}\`));
+                  process.exit(1);
+                } else {
+                  console.log('✅ All performance metrics within acceptable thresholds');
+                }
+              "
+            fi
+          done
+
+  # Send performance report
+  performance-report:
+    name: 📧 Performance Report
+    runs-on: ubuntu-latest
+    needs: [lighthouse-audit, load-testing, performance-regression]
+    if: always()
+    
+    steps:
+      - name: 📊 Generate performance summary
+        run: |
+          echo "## 📊 Performance Monitoring Report" > performance-report.md
+          echo "" >> performance-report.md
+          echo "**Timestamp:** $(date -u)" >> performance-report.md
+          echo "**Target URL:** ${{ github.event.inputs.target_url || 'https://heypeter.academy' }}" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          echo "### Test Results" >> performance-report.md
+          echo "- Lighthouse Audit: ${{ needs.lighthouse-audit.result }}" >> performance-report.md
+          echo "- Load Testing: ${{ needs.load-testing.result }}" >> performance-report.md
+          echo "- Regression Detection: ${{ needs.performance-regression.result }}" >> performance-report.md
+          echo "" >> performance-report.md
+          
+          echo "### Next Steps" >> performance-report.md
+          if [ "${{ needs.performance-regression.result }}" = "failure" ]; then
+            echo "- 🚨 Performance regression detected - investigate immediately" >> performance-report.md
+            echo "- Review Lighthouse reports for specific issues" >> performance-report.md
+            echo "- Check load testing results for bottlenecks" >> performance-report.md
+          else
+            echo "- ✅ All performance metrics within acceptable ranges" >> performance-report.md
+            echo "- Continue monitoring trends" >> performance-report.md
+          fi
+
+      - name: 📧 Send report via Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "📊 Performance Monitoring Report",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: "*Performance Monitoring Results*\n\n• Lighthouse: ${{ needs.lighthouse-audit.result }}\n• Load Testing: ${{ needs.load-testing.result }}\n• Regression Check: ${{ needs.performance-regression.result }}"
+                  }
+                }
+              ]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

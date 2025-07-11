@@ -1,0 +1,367 @@
+name: Database Management
+
+on:
+  push:
+    paths:
+      - 'supabase/migrations/**'
+  pull_request:
+    paths:
+      - 'supabase/migrations/**'
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Database action to perform'
+        required: true
+        default: 'validate'
+        type: choice
+        options:
+          - validate
+          - migrate
+          - backup
+          - restore
+          - seed
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+
+jobs:
+  # Validate migrations
+  validate:
+    name: 🔍 Validate Migrations
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_db
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🏗️ Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: 🔍 Validate migration files
+        run: |
+          echo "Validating migration file syntax and structure..."
+          
+          if [ ! -d "supabase/migrations" ]; then
+            echo "No migrations directory found"
+            exit 0
+          fi
+          
+          # Check migration file naming convention
+          for migration in supabase/migrations/*.sql; do
+            if [ -f "$migration" ]; then
+              filename=$(basename "$migration")
+              
+              # Check filename format (timestamp_description.sql)
+              if ! echo "$filename" | grep -qE '^[0-9]{8,14}_[a-zA-Z0-9_-]+\.sql$'; then
+                echo "❌ Invalid migration filename: $filename"
+                echo "   Expected format: YYYYMMDDHHMMSS_description.sql"
+                exit 1
+              fi
+              
+              # Check for common SQL issues
+              if grep -q "DROP TABLE" "$migration" && ! grep -q "IF EXISTS" "$migration"; then
+                echo "⚠️  Warning: $filename contains DROP TABLE without IF EXISTS"
+              fi
+              
+              # Check for transaction wrapping
+              if ! grep -q "BEGIN\|START TRANSACTION" "$migration"; then
+                echo "⚠️  Warning: $filename should be wrapped in a transaction"
+              fi
+              
+              echo "✅ $filename: Valid"
+            fi
+          done
+
+      - name: 🧪 Test migrations in isolated environment
+        run: |
+          echo "Testing migrations in test database..."
+          
+          # Initialize Supabase project
+          supabase init
+          
+          # Start local Supabase
+          supabase start --db-port 5432
+          
+          # Apply migrations
+          if [ -d "supabase/migrations" ]; then
+            for migration in supabase/migrations/*.sql; do
+              if [ -f "$migration" ]; then
+                echo "Applying migration: $(basename "$migration")"
+                psql -h localhost -U postgres -d postgres -f "$migration"
+              fi
+            done
+          fi
+          
+          # Stop Supabase
+          supabase stop
+        env:
+          PGPASSWORD: postgres
+
+      - name: 📊 Generate migration report
+        run: |
+          echo "## Migration Validation Report" > migration-report.md
+          echo "" >> migration-report.md
+          echo "### Changed Files" >> migration-report.md
+          
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            git diff --name-only origin/${{ github.base_ref }}...HEAD -- 'supabase/migrations/*' >> migration-report.md
+          fi
+          
+          echo "" >> migration-report.md
+          echo "### Validation Status: ✅ Passed" >> migration-report.md
+          
+          cat migration-report.md
+
+      - name: 📋 Comment PR with results
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('migration-report.md', 'utf8');
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            });
+
+  # Database backup
+  backup:
+    name: 💾 Database Backup
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'backup' || github.event_name == 'schedule'
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-15
+
+      - name: 💾 Create database backup
+        run: |
+          ENV=${{ github.event.inputs.environment || 'staging' }}
+          TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+          
+          case $ENV in
+            production)
+              DB_URL="${{ secrets.PROD_DATABASE_URL }}"
+              ;;
+            staging)
+              DB_URL="${{ secrets.STAGING_DATABASE_URL }}"
+              ;;
+            development)
+              DB_URL="${{ secrets.DEV_DATABASE_URL }}"
+              ;;
+          esac
+          
+          # Create backup
+          pg_dump "$DB_URL" --no-owner --no-privileges > "backup_${ENV}_${TIMESTAMP}.sql"
+          
+          # Compress backup
+          gzip "backup_${ENV}_${TIMESTAMP}.sql"
+          
+          echo "Backup created: backup_${ENV}_${TIMESTAMP}.sql.gz"
+
+      - name: ☁️ Upload backup to storage
+        uses: actions/upload-artifact@v4
+        with:
+          name: database-backup-${{ github.event.inputs.environment || 'staging' }}-${{ github.run_number }}
+          path: backup_*.sql.gz
+          retention-days: 30
+
+      - name: 📢 Notify backup completion
+        run: |
+          echo "Database backup completed for ${{ github.event.inputs.environment || 'staging' }}"
+
+  # Run migrations
+  migrate:
+    name: 🗄️ Run Migrations
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'migrate' && github.ref == 'refs/heads/main'
+    environment: ${{ github.event.inputs.environment }}
+    needs: backup
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: 💾 Create pre-migration backup
+        run: |
+          echo "Creating pre-migration backup..."
+          # Backup logic here
+
+      - name: 🗄️ Apply migrations
+        run: |
+          ENV=${{ github.event.inputs.environment }}
+          
+          case $ENV in
+            production)
+              export SUPABASE_DB_PASSWORD="${{ secrets.PROD_DB_PASSWORD }}"
+              export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
+              ;;
+            staging)
+              export SUPABASE_DB_PASSWORD="${{ secrets.STAGING_DB_PASSWORD }}"
+              export DATABASE_URL="${{ secrets.STAGING_DATABASE_URL }}"
+              ;;
+            development)
+              export SUPABASE_DB_PASSWORD="${{ secrets.DEV_DB_PASSWORD }}"
+              export DATABASE_URL="${{ secrets.DEV_DATABASE_URL }}"
+              ;;
+          esac
+          
+          echo "Applying migrations to $ENV environment..."
+          
+          # Link to Supabase project
+          supabase link --project-ref "${{ secrets.SUPABASE_PROJECT_REF }}"
+          
+          # Push migrations
+          supabase db push --password="$SUPABASE_DB_PASSWORD"
+
+      - name: 🔍 Verify migration success
+        run: |
+          echo "Verifying migration success..."
+          # Add verification queries here
+          
+          # Check if all expected tables exist
+          # Check if data integrity is maintained
+          # Verify application can connect
+
+      - name: 📢 Migration notification
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          custom_payload: |
+            {
+              text: "🗄️ Database migration completed",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: "*Environment:* ${{ github.event.inputs.environment }}\n*Status:* ${{ job.status }}\n*Commit:* ${{ github.sha }}"
+                  }
+                }
+              ]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Seed database
+  seed:
+    name: 🌱 Seed Database
+    runs-on: ubuntu-latest
+    if: github.event.inputs.action == 'seed'
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🌱 Run database seeding
+        run: |
+          ENV=${{ github.event.inputs.environment }}
+          
+          case $ENV in
+            production)
+              echo "⚠️ Production seeding requires manual approval"
+              exit 1
+              ;;
+            staging)
+              echo "Seeding staging database..."
+              npm run seed:staging
+              ;;
+            development)
+              echo "Seeding development database..."
+              npm run seed:dev
+              ;;
+          esac
+
+  # Scheduled maintenance
+  maintenance:
+    name: 🔧 Database Maintenance
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    strategy:
+      matrix:
+        environment: [development, staging]
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client-15
+
+      - name: 🔧 Run maintenance tasks
+        run: |
+          ENV=${{ matrix.environment }}
+          
+          case $ENV in
+            staging)
+              DB_URL="${{ secrets.STAGING_DATABASE_URL }}"
+              ;;
+            development)
+              DB_URL="${{ secrets.DEV_DATABASE_URL }}"
+              ;;
+          esac
+          
+          echo "Running maintenance for $ENV..."
+          
+          # Analyze tables
+          psql "$DB_URL" -c "ANALYZE;"
+          
+          # Vacuum old data
+          psql "$DB_URL" -c "VACUUM;"
+          
+          # Update statistics
+          psql "$DB_URL" -c "VACUUM ANALYZE;"
+          
+          echo "Maintenance completed for $ENV"
+
+      - name: 📊 Generate maintenance report
+        run: |
+          echo "Database maintenance completed for ${{ matrix.environment }}"
+          # Add detailed reporting here

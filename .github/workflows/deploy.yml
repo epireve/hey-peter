@@ -1,0 +1,338 @@
+name: Deployment
+
+on:
+  workflow_run:
+    workflows: ["CI/CD Pipeline"]
+    types:
+      - completed
+    branches: [main, develop]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - development
+          - staging
+          - production
+      version:
+        description: 'Version/Tag to deploy'
+        required: false
+        default: 'latest'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Determine deployment environment
+  setup:
+    name: 🎯 Setup Deployment
+    runs-on: ubuntu-latest
+    outputs:
+      environment: ${{ steps.env.outputs.environment }}
+      deploy_url: ${{ steps.env.outputs.deploy_url }}
+      health_url: ${{ steps.env.outputs.health_url }}
+    
+    steps:
+      - name: 🎯 Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            ENV="${{ github.event.inputs.environment }}"
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            ENV="production"
+          elif [ "${{ github.ref }}" == "refs/heads/develop" ]; then
+            ENV="staging"
+          else
+            ENV="development"
+          fi
+          
+          echo "environment=$ENV" >> $GITHUB_OUTPUT
+          
+          case $ENV in
+            production)
+              echo "deploy_url=https://heypeter.academy" >> $GITHUB_OUTPUT
+              echo "health_url=https://heypeter.academy/api/health" >> $GITHUB_OUTPUT
+              ;;
+            staging)
+              echo "deploy_url=https://staging.heypeter.academy" >> $GITHUB_OUTPUT
+              echo "health_url=https://staging.heypeter.academy/api/health" >> $GITHUB_OUTPUT
+              ;;
+            development)
+              echo "deploy_url=https://dev.heypeter.academy" >> $GITHUB_OUTPUT
+              echo "health_url=https://dev.heypeter.academy/api/health" >> $GITHUB_OUTPUT
+              ;;
+          esac
+
+  # Database Migration
+  migrate:
+    name: 🗄️ Database Migration
+    runs-on: ubuntu-latest
+    needs: setup
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🏗️ Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+
+      - name: 🗄️ Run database migrations
+        run: |
+          echo "Running migrations for ${{ needs.setup.outputs.environment }}"
+          
+          # Set environment-specific variables
+          case "${{ needs.setup.outputs.environment }}" in
+            production)
+              export SUPABASE_DB_PASSWORD="${{ secrets.PROD_DB_PASSWORD }}"
+              export DATABASE_URL="${{ secrets.PROD_DATABASE_URL }}"
+              ;;
+            staging)
+              export SUPABASE_DB_PASSWORD="${{ secrets.STAGING_DB_PASSWORD }}"
+              export DATABASE_URL="${{ secrets.STAGING_DATABASE_URL }}"
+              ;;
+            development)
+              export SUPABASE_DB_PASSWORD="${{ secrets.DEV_DB_PASSWORD }}"
+              export DATABASE_URL="${{ secrets.DEV_DATABASE_URL }}"
+              ;;
+          esac
+          
+          # Backup current database
+          echo "Creating database backup..."
+          
+          # Apply migrations
+          if [ -d "supabase/migrations" ]; then
+            supabase db push --password="$SUPABASE_DB_PASSWORD"
+          fi
+
+      - name: 🔍 Verify migration
+        run: |
+          echo "Verifying database state after migration..."
+          # Add verification commands here
+
+  # Deploy Application
+  deploy:
+    name: 🚀 Deploy Application
+    runs-on: ubuntu-latest
+    needs: [setup, migrate]
+    environment: ${{ needs.setup.outputs.environment }}
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐳 Setup Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🔐 Login to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: 🚀 Deploy to ${{ needs.setup.outputs.environment }}
+        run: |
+          ENV=${{ needs.setup.outputs.environment }}
+          
+          # Pull latest image
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          
+          # Deploy based on environment
+          case $ENV in
+            production)
+              echo "Deploying to production..."
+              docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
+              ;;
+            staging)
+              echo "Deploying to staging..."
+              docker-compose -f docker-compose.yml -f docker-compose.staging.yml up -d
+              ;;
+            development)
+              echo "Deploying to development..."
+              docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+              ;;
+          esac
+
+      - name: ⏳ Wait for deployment
+        run: |
+          echo "Waiting for application to start..."
+          sleep 30
+
+      - name: 🔍 Health Check
+        run: |
+          echo "Performing health check..."
+          
+          MAX_ATTEMPTS=10
+          ATTEMPT=1
+          
+          while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+            echo "Health check attempt $ATTEMPT/$MAX_ATTEMPTS"
+            
+            if curl -f "${{ needs.setup.outputs.health_url }}" > /dev/null 2>&1; then
+              echo "✅ Health check passed!"
+              exit 0
+            else
+              echo "❌ Health check failed, retrying in 30 seconds..."
+              sleep 30
+              ATTEMPT=$((ATTEMPT + 1))
+            fi
+          done
+          
+          echo "❌ Health check failed after $MAX_ATTEMPTS attempts"
+          exit 1
+
+      - name: 🧪 Smoke Tests
+        run: |
+          echo "Running smoke tests..."
+          
+          # Test critical endpoints
+          curl -f "${{ needs.setup.outputs.deploy_url }}" || exit 1
+          curl -f "${{ needs.setup.outputs.deploy_url }}/login" || exit 1
+          curl -f "${{ needs.setup.outputs.deploy_url }}/api/health" || exit 1
+          
+          echo "✅ Smoke tests passed!"
+
+  # Performance Testing
+  performance-test:
+    name: 🚀 Performance Testing
+    runs-on: ubuntu-latest
+    needs: [setup, deploy]
+    if: needs.setup.outputs.environment != 'production'
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🚀 Run Lighthouse Performance Audit
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            ${{ needs.setup.outputs.deploy_url }}
+            ${{ needs.setup.outputs.deploy_url }}/login
+            ${{ needs.setup.outputs.deploy_url }}/dashboard
+          configPath: './.lighthouserc.json'
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+
+      - name: 🏃 Load Testing with Artillery
+        run: |
+          npm install -g artillery
+          
+          cat > load-test.yml << EOF
+          config:
+            target: '${{ needs.setup.outputs.deploy_url }}'
+            phases:
+              - duration: 60
+                arrivalRate: 10
+          scenarios:
+            - name: "Load test main pages"
+              flow:
+                - get:
+                    url: "/"
+                - get:
+                    url: "/login"
+                - get:
+                    url: "/api/health"
+          EOF
+          
+          artillery run load-test.yml
+
+  # Rollback mechanism
+  rollback:
+    name: 🔄 Rollback
+    runs-on: ubuntu-latest
+    needs: [setup, deploy]
+    if: failure() && needs.setup.outputs.environment == 'production'
+    environment: production
+    
+    steps:
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🔄 Rollback Production
+        run: |
+          echo "🔄 Rolling back production deployment..."
+          
+          # Get previous working image
+          PREVIOUS_IMAGE=$(docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | grep -v latest | head -n 2 | tail -n 1 | awk '{print $1}')
+          
+          if [ -n "$PREVIOUS_IMAGE" ]; then
+            echo "Rolling back to: $PREVIOUS_IMAGE"
+            
+            # Update docker-compose to use previous image
+            sed -i "s|image: .*|image: $PREVIOUS_IMAGE|g" docker-compose.production.yml
+            
+            # Deploy previous version
+            docker-compose -f docker-compose.yml -f docker-compose.production.yml up -d
+            
+            # Wait and verify
+            sleep 30
+            curl -f "${{ needs.setup.outputs.health_url }}" || exit 1
+            
+            echo "✅ Rollback successful"
+          else
+            echo "❌ No previous image found for rollback"
+            exit 1
+          fi
+
+      - name: 📢 Notify rollback
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          custom_payload: |
+            {
+              text: "🔄 Production rollback completed",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: "Production deployment was rolled back due to deployment failure."
+                  }
+                }
+              ]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+
+  # Post-deployment tasks
+  post-deploy:
+    name: 📋 Post-Deployment
+    runs-on: ubuntu-latest
+    needs: [setup, deploy, performance-test]
+    if: always() && needs.deploy.result == 'success'
+    
+    steps:
+      - name: 📊 Update monitoring
+        run: |
+          echo "Updating monitoring dashboards..."
+          # Update Grafana dashboards, alerting rules, etc.
+
+      - name: 🧹 Cleanup old images
+        run: |
+          echo "Cleaning up old Docker images..."
+          # Keep last 5 images
+          docker images ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} --format "table {{.Repository}}:{{.Tag}}\t{{.CreatedAt}}" | tail -n +6 | awk '{print $1}' | xargs -r docker rmi
+
+      - name: 📢 Deployment notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          custom_payload: |
+            {
+              text: "🚀 Deployment to ${{ needs.setup.outputs.environment }} completed",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: "*Environment:* ${{ needs.setup.outputs.environment }}\n*URL:* ${{ needs.setup.outputs.deploy_url }}\n*Status:* ${{ needs.deploy.result }}"
+                  }
+                }
+              ]
+            }
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}

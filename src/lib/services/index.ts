@@ -173,3 +173,111 @@ export {
   classAttendanceAnalyticsService,
   ClassAttendanceAnalyticsService
 } from './class-attendance-analytics-service';
+
+// Database Optimization and Performance Services
+export { 
+  dbConnectionPool,
+  DatabaseConnectionPool
+} from './database-connection-pool';
+
+export { 
+  queryOptimizationService,
+  QueryOptimizationService
+} from './query-optimization-service';
+
+export { 
+  dbPerformanceMonitor,
+  DatabasePerformanceMonitor
+} from './database-performance-monitor';
+
+export { 
+  analyticsAggregationService
+} from './analytics-aggregation-service';
+
+export { 
+  financialAnalyticsService
+} from './financial-analytics-service';
+
+// Feedback and Rating System Services
+export { 
+  feedbackService,
+  FeedbackService,
+  type StudentFeedback,
+  type TeacherFeedback,
+  type CourseFeedback,
+  type FeedbackResponse,
+  type FeedbackAlert,
+  type TeacherRecommendation,
+  type CourseRecommendation,
+  type FeedbackAnalytics
+} from './feedback-service';
+
+export { 
+  feedbackNotificationService,
+  FeedbackNotificationService
+} from './feedback-notification-service';
+
+export { 
+  feedbackRecommendationEngine,
+  FeedbackRecommendationEngine
+} from './feedback-recommendation-engine';
+
+// Error Tracking and Logging Services
+export { 
+  loggingService,
+  LogLevel,
+  LogCategory,
+  type LogEntry,
+  type LogFilter,
+  type LogMetrics
+} from './logging-service';
+
+export { 
+  errorTrackingService,
+  type ErrorContext,
+  type ErrorBreadcrumb,
+  type ErrorReport,
+  type ErrorStats
+} from './error-tracking-service';
+
+export { 
+  performanceTrackingService,
+  PerformanceCategory,
+  type PerformanceMetric,
+  type PerformanceThreshold,
+  type PerformanceAlert,
+  type PerformanceReport
+} from './performance-tracking-service';
+
+export { 
+  userActionTrackingService,
+  UserActionType,
+  type UserAction,
+  type UserSession,
+  type UserJourney
+} from './user-action-tracking-service';
+
+export { 
+  errorAlertingService,
+  type AlertRule,
+  type AlertCondition,
+  type AlertAction,
+  type Alert,
+  type AlertingSummary
+} from './error-alerting-service';
+
+// Popup Marketing System Services
+export { 
+  popupMarketingService,
+  PopupMarketingService
+} from './popup-marketing-service';
+
+export { 
+  PopupTriggerEngine,
+  createVisitorSession
+} from './popup-trigger-engine';
+
+export { 
+  popupEmailIntegrationService,
+  PopupEmailIntegrationService
+} from './popup-email-integration-service';
