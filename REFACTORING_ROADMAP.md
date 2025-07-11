@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-This document outlines a comprehensive refactoring strategy for the HeyPeter Academy LMS codebase. The roadmap is designed to improve code quality, maintainability, and performance while maintaining business continuity.
+This document outlines a focused refactoring strategy for the HeyPeter Academy LMS codebase. The roadmap covers three critical phases designed to improve code quality, maintainability, and performance while maintaining business continuity. Phases 4 and 5 are out of scope for the current initiative.
 
 ## Current State Analysis
 
@@ -20,7 +20,7 @@ This document outlines a comprehensive refactoring strategy for the HeyPeter Aca
 4. **Low test coverage** for business-critical features
 5. **Performance bottlenecks** in data fetching and rendering
 
-## Refactoring Phases
+## Refactoring Phases (Scope: Phases 1-3 Only)
 
 ### Phase 1: Foundation & Quick Wins (2-3 weeks)
 **Priority: HIGH | Effort: LOW | Impact: HIGH**
@@ -131,35 +131,6 @@ export const renderWithProviders = (
 - Implement E2E tests for user journeys
 - Add performance testing suite
 
-### Phase 4: Database & Security (3-4 weeks)
-**Priority: MEDIUM | Effort: MEDIUM | Impact: MEDIUM**
-
-#### 4.1 Database Optimization
-- Implement database connection pooling
-- Add query result caching layer
-- Optimize slow queries with indexes
-- Implement read replicas for analytics
-
-#### 4.2 Security Hardening
-- Add input sanitization middleware
-- Implement CSRF protection
-- Add rate limiting per user/IP
-- Enhance RLS policies
-
-### Phase 5: Developer Experience (2-3 weeks)
-**Priority: LOW | Effort: LOW | Impact: MEDIUM**
-
-#### 5.1 Development Tools
-- Set up Storybook for component documentation
-- Add Husky for pre-commit hooks
-- Implement conventional commits
-- Add bundle analyzer to CI/CD
-
-#### 5.2 Code Quality Tools
-- Configure stricter ESLint rules
-- Add Prettier for consistent formatting
-- Implement SonarQube for code quality metrics
-- Add dependency vulnerability scanning
 
 ## Implementation Strategy
 
@@ -190,8 +161,6 @@ export const renderWithProviders = (
 | State Management | HIGH | MEDIUM | 3 | Week 4-5 |
 | Testing Infrastructure | HIGH | HIGH | 4 | Week 6-8 |
 | Performance Optimization | MEDIUM | MEDIUM | 5 | Week 9-11 |
-| Security Hardening | MEDIUM | LOW | 6 | Week 12-13 |
-| Developer Tools | LOW | LOW | 7 | Week 14-15 |
 
 ## Next Steps
 
@@ -203,6 +172,8 @@ export const renderWithProviders = (
 
 ## Conclusion
 
-This refactoring roadmap provides a structured approach to improving the HeyPeter Academy LMS codebase. By following this phased approach, we can achieve significant improvements in code quality, performance, and maintainability while minimizing risk to the production system.
+This refactoring roadmap provides a structured approach to improving the HeyPeter Academy LMS codebase. By following this phased approach (Phases 1-3), we can achieve significant improvements in code quality, performance, and maintainability while minimizing risk to the production system.
 
-The total estimated timeline is 15-18 weeks, but benefits will be realized incrementally throughout the process. Each phase builds upon the previous one, creating a sustainable path to a modern, maintainable codebase.
+The total estimated timeline is 9-11 weeks for the three phases in scope. Benefits will be realized incrementally throughout the process. Each phase builds upon the previous one, creating a sustainable path to a modern, maintainable codebase.
+
+Note: Phases 4 (Database & Security) and 5 (Developer Experience) are out of scope for the current initiative but can be considered for future improvements.
