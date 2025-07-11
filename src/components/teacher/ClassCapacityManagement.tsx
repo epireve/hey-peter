@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { 
   Card, 
@@ -118,7 +120,7 @@ export default function ClassCapacityManagement({
       const recs = await classCapacityService.getClassesThatNeedAttention();
       setRecommendations(recs.filter(r => r.class_id === classId));
     } catch (err) {
-      console.error('Failed to load recommendations:', err);
+      logger.error('Failed to load recommendations:', err);
     } finally {
       setLoading(false);
     }

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * HeyPeter Academy - 1v1 Booking Service
  * 
@@ -255,7 +256,7 @@ export class OneOnOneBookingService {
 
       return teacherProfiles;
     } catch (error) {
-      console.error('Error getting available teachers:', error);
+      logger.error('Error getting available teachers:', error);
       return [];
     }
   }

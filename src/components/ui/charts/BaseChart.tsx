@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ResponsiveContainer, Tooltip, Legend, CartesianGrid } from 'recharts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -138,7 +140,7 @@ export const BaseChart: React.FC<BaseChartComponentProps> = ({
         });
       }
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
     }
   }, [data, title, onExport]);
 

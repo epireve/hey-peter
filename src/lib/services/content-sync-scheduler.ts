@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { contentSynchronizationService } from "./content-synchronization-service";
+import { logger } from '@/lib/services';
 import { 
   ContentSyncConfig, 
   ContentSyncStatus, 
@@ -550,7 +551,7 @@ export class ContentSyncScheduler {
         .eq('id', schedule.id);
 
     } catch (error) {
-      console.error(`Failed to execute schedule ${schedule.id}:`, error);
+      logger.error(`Failed to execute schedule ${schedule.id}:`, error);
     }
   }
 

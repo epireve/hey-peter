@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -112,7 +114,7 @@ export default function ContentSynchronizationDashboard({ className }: SyncDashb
       setConflicts(conflictList);
 
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      logger.error('Error loading dashboard data:', error);
     } finally {
       setIsLoading(false);
     }
@@ -123,7 +125,7 @@ export default function ContentSynchronizationDashboard({ className }: SyncDashb
       await contentSyncIntegration.forceSyncClass(groupId);
       await loadDashboardData();
     } catch (error) {
-      console.error('Error forcing sync:', error);
+      logger.error('Error forcing sync:', error);
     }
   };
 

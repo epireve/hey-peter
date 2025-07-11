@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Query Optimization Service
  * 
@@ -143,7 +144,7 @@ export class QueryOptimizationService {
 
       // Log slow queries
       if (executionTime > this.config.slowQueryThreshold) {
-        console.warn(`[Query Optimization] Slow query detected:`, {
+        logger.warn(`[Query Optimization] Slow query detected:`, {
           queryId,
           table: options.table,
           executionTime,
@@ -461,7 +462,7 @@ export class QueryOptimizationService {
 
       return { success: true, refreshedViews };
     } catch (error) {
-      console.error('[Query Optimization] Failed to refresh analytics views:', error);
+      logger.error('[Query Optimization] Failed to refresh analytics views:', error);
       return { success: false, refreshedViews: [], error };
     }
   }

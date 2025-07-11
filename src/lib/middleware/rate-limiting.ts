@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { RateLimiter } from '../utils/security';
 
+import { logger } from '@/lib/services';
 // Create rate limiters for different endpoints
 const apiLimiter = new RateLimiter(100, 60 * 1000); // 100 requests per minute for API
 const authLimiter = new RateLimiter(5, 15 * 60 * 1000); // 5 requests per 15 minutes for auth
@@ -55,7 +56,7 @@ export function rateLimitMiddleware(request: NextRequest, path: string): NextRes
   if (!limiter.isAllowed(clientId)) {
     const remainingRequests = limiter.getRemainingRequests(clientId);
     
-    console.warn(`Rate limit exceeded for ${clientId} on ${limitType} endpoint: ${path}`);
+    logger.warn(`Rate limit exceeded for ${clientId} on ${limitType} endpoint: ${path}`);
     
     return new NextResponse(
       JSON.stringify({
@@ -138,7 +139,7 @@ export function withRateLimit(
       
       return response;
     } catch (error) {
-      console.error('API handler error:', error);
+      logger.error('API handler error:', error);
       return new NextResponse(
         JSON.stringify({ error: 'Internal server error' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }

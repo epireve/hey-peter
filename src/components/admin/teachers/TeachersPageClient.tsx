@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState } from 'react';
 import { DataTable } from '@/components/ui/data-table';
 import { Button } from '@/components/ui/button';
@@ -24,7 +26,7 @@ export function TeachersPageClient({ initialTeachers, columns }: TeachersPageCli
   
   // Debug logging
   React.useEffect(() => {
-    console.log("TeachersPageClient Debug:", {
+    logger.info("TeachersPageClient Debug:", {
       columnsCount: columns.length,
       columnKeys: columns.map((c: any) => c.accessorKey || c.id),
       teachersCount: teachers.length,

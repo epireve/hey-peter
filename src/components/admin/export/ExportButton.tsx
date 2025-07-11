@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { 
@@ -76,7 +78,7 @@ export function ExportButton({
 
       onExportComplete?.(true, `Successfully exported ${data.length} records as ${format.toUpperCase()}`);
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       onExportComplete?.(false, 'Export failed: ' + (error as Error).message);
     } finally {
       setIsExporting(false);

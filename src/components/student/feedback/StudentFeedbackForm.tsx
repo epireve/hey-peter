@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -164,7 +166,7 @@ export const StudentFeedbackForm: React.FC<StudentFeedbackFormProps> = ({
       }
 
     } catch (error) {
-      console.error('Error submitting feedback:', error);
+      logger.error('Error submitting feedback:', error);
       toast({
         title: "Error",
         description: "Failed to submit feedback. Please try again.",

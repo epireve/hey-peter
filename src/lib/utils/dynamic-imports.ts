@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Dynamic imports for heavy libraries to optimize bundle size
  * This module provides lazy-loaded access to heavy dependencies
@@ -254,7 +255,7 @@ export const isLibraryLoaded = (libraryName: string): boolean => {
 export const monitorMemoryUsage = () => {
   if (process.env.NODE_ENV === 'development' && 'memory' in performance) {
     const memory = (performance as any).memory;
-    console.log('Memory Usage:', {
+    logger.info('Memory Usage:', {
       used: `${Math.round(memory.usedJSHeapSize / 1048576)}MB`,
       total: `${Math.round(memory.totalJSHeapSize / 1048576)}MB`,
       limit: `${Math.round(memory.jsHeapSizeLimit / 1048576)}MB`

@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -133,7 +135,7 @@ export default function ContentSyncManager({ className }: ContentSyncManagerProp
 
       setClassGroups(mockGroups);
     } catch (error) {
-      console.error('Error loading class groups:', error);
+      logger.error('Error loading class groups:', error);
     } finally {
       setIsLoading(false);
     }

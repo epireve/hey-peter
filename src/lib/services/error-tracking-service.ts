@@ -1,5 +1,6 @@
 import { loggingService, LogCategory, LogLevel } from './logging-service';
 
+import { logger } from '@/lib/services';
 export interface ErrorContext {
   userId?: string;
   sessionId?: string;
@@ -342,7 +343,7 @@ class ErrorTrackingService {
           });
       }
     } catch (error) {
-      console.error('Failed to store error report:', error);
+      logger.error('Failed to store error report:', error);
     }
   }
 
@@ -477,7 +478,7 @@ class ErrorTrackingService {
         errorTrends
       };
     } catch (error) {
-      console.error('Failed to get error stats:', error);
+      logger.error('Failed to get error stats:', error);
       return this.getEmptyStats();
     }
   }
@@ -535,7 +536,7 @@ class ErrorTrackingService {
         fingerprint
       });
     } catch (error) {
-      console.error('Failed to resolve error:', error);
+      logger.error('Failed to resolve error:', error);
     }
   }
 }

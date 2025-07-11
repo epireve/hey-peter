@@ -1,3 +1,20 @@
+// Centralized Logger Service (exported first to avoid circular dependencies)
+export { 
+  logger,
+  LogLevel,
+  debug,
+  info,
+  warn,
+  error,
+  fatal,
+  startTimer,
+  endTimer,
+  withLogging,
+  useLogger,
+  type LogEntry,
+  type LoggerConfig
+} from './logger';
+
 // Export all services
 export { CRUDService, withRetry } from './crud-service';
 export { courseService, type Course, type CourseWithStats } from './course-service';
@@ -111,6 +128,32 @@ export {
   HourManagementService
 } from './hour-management-service';
 
+// New Modular Hour Management Services
+export { 
+  hourPurchaseService,
+  HourPurchaseService
+} from './modules/hour-purchase-service';
+
+export { 
+  hourTransactionService,
+  HourTransactionService
+} from './modules/hour-transaction-service';
+
+export { 
+  hourAdjustmentService,
+  HourAdjustmentService
+} from './modules/hour-adjustment-service';
+
+export { 
+  hourStatisticsService,
+  HourStatisticsService
+} from './modules/hour-statistics-service';
+
+export { 
+  modularHourManagementService,
+  ModularHourManagementService
+} from './modules/hour-management-service-modular';
+
 export { 
   hourUsageAnalyticsService,
   HourUsageAnalyticsService
@@ -222,12 +265,13 @@ export {
   FeedbackRecommendationEngine
 } from './feedback-recommendation-engine';
 
-// Error Tracking and Logging Services
+
+// Legacy Logging Service (deprecated - use logger instead)
 export { 
   loggingService,
-  LogLevel,
+  LogLevel as LegacyLogLevel,
   LogCategory,
-  type LogEntry,
+  type LogEntry as LegacyLogEntry,
   type LogFilter,
   type LogMetrics
 } from './logging-service';
@@ -281,3 +325,61 @@ export {
   popupEmailIntegrationService,
   PopupEmailIntegrationService
 } from './popup-email-integration-service';
+
+// Performance Monitoring Services (Modular)
+export { 
+  webVitalsService,
+  WebVitalsService
+} from './modules/performance/web-vitals-service';
+
+export { 
+  performanceMetricsService,
+  PerformanceMetricsService
+} from './modules/performance/performance-metrics-service';
+
+export { 
+  performanceAlertService,
+  PerformanceAlertService
+} from './modules/performance/performance-alert-service';
+
+export { 
+  resourceMonitoringService,
+  ResourceMonitoringService
+} from './modules/performance/resource-monitoring-service';
+
+export { 
+  performanceMonitoringService,
+  PerformanceMonitoringService
+} from './modules/performance/performance-monitoring-service';
+
+// Service Interfaces and Dependencies
+export { 
+  ServiceContainer,
+  ServiceFactory,
+  withErrorHandling,
+  withCaching,
+  type BaseService,
+  type ServiceDependencies,
+  type ServiceError,
+  type IHourPurchaseService,
+  type IHourTransactionService,
+  type IHourAdjustmentService,
+  type IHourStatisticsService,
+  type IPerformanceMetricsService,
+  type IWebVitalsService,
+  type IPerformanceAlertService,
+  type IResourceMonitoringService,
+  type ICacheService,
+  type IAuditLogService,
+  type IErrorHandlingService
+} from './interfaces/service-interfaces';
+
+// Compatibility Layer for Backward Compatibility
+export { 
+  enhancedHourManagementService,
+  EnhancedHourManagementService,
+  enhancedPerformanceMonitor,
+  EnhancedPerformanceMonitorCompatibility,
+  MigrationUtils,
+  CompatibilityInfo
+} from './compatibility';

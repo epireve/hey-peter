@@ -3,6 +3,7 @@ import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 import { escapeHtml, sanitizeFilename } from '../utils/security';
 
+import { logger } from '@/lib/services';
 export type ExportFormat = 'csv' | 'excel' | 'json' | 'pdf';
 
 export interface ExportOptions {
@@ -169,7 +170,7 @@ class AnalyticsExportService {
           throw new Error(`Unsupported export format: ${options.format}`);
       }
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       throw error;
     }
   }
@@ -190,7 +191,7 @@ class AnalyticsExportService {
         await this.exportData(chartData.data, options);
       }
     } catch (error) {
-      console.error('Chart export failed:', error);
+      logger.error('Chart export failed:', error);
       throw error;
     }
   }
@@ -223,7 +224,7 @@ class AnalyticsExportService {
         await this.exportToJSON(combinedData, fileName);
       }
     } catch (error) {
-      console.error('Dashboard export failed:', error);
+      logger.error('Dashboard export failed:', error);
       throw error;
     }
   }
@@ -645,7 +646,7 @@ class AnalyticsExportService {
         }
       }
     } catch (error) {
-      console.error('Batch export failed:', error);
+      logger.error('Batch export failed:', error);
       throw error;
     }
   }
@@ -755,7 +756,7 @@ class AnalyticsExportService {
       });
 
     } catch (error) {
-      console.error('Email delivery failed:', error);
+      logger.error('Email delivery failed:', error);
       throw error;
     }
   }
@@ -772,9 +773,9 @@ class AnalyticsExportService {
   }): Promise<void> {
     // This would integrate with your email service (e.g., SendGrid, AWS SES, etc.)
     // For now, we'll just log the attempt
-    console.log('Email would be sent to:', params.to);
-    console.log('Subject:', params.subject);
-    console.log('Attachment:', params.attachment.filename);
+    logger.info('Email would be sent to:', params.to);
+    logger.info('Subject:', params.subject);
+    logger.info('Attachment:', params.attachment.filename);
     
     // In a real implementation, you'd call your email service here
     // Example with a hypothetical email service:

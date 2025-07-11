@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Hour Management Email Notifications
  * Integrates with the existing email service for hour-related notifications
@@ -242,7 +243,7 @@ class HourEmailNotificationService {
         });
         sentCount++;
       } catch (error) {
-        console.error(`Failed to send expiration warning to ${student.email}:`, error);
+        logger.error(`Failed to send expiration warning to ${student.email}:`, error);
       }
     }
     

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Comprehensive Performance Monitoring System
  * 
@@ -225,7 +226,7 @@ class EnhancedPerformanceMonitor {
         this.userId = user.id;
       }
     } catch (error) {
-      console.debug('Could not get user ID for performance tracking:', error);
+      logger.debug('Could not get user ID for performance tracking:', error);
     }
   }
   
@@ -266,7 +267,7 @@ class EnhancedPerformanceMonitor {
       try {
         observer.observe({ entryTypes: ['largest-contentful-paint'] });
       } catch (error) {
-        console.debug('LCP tracking not supported:', error);
+        logger.debug('LCP tracking not supported:', error);
       }
     }
   }
@@ -293,7 +294,7 @@ class EnhancedPerformanceMonitor {
       try {
         observer.observe({ entryTypes: ['first-input'] });
       } catch (error) {
-        console.debug('FID tracking not supported:', error);
+        logger.debug('FID tracking not supported:', error);
       }
     }
   }
@@ -329,7 +330,7 @@ class EnhancedPerformanceMonitor {
       try {
         observer.observe({ entryTypes: ['layout-shift'] });
       } catch (error) {
-        console.debug('CLS tracking not supported:', error);
+        logger.debug('CLS tracking not supported:', error);
       }
     }
   }
@@ -358,7 +359,7 @@ class EnhancedPerformanceMonitor {
       try {
         observer.observe({ entryTypes: ['navigation'] });
       } catch (error) {
-        console.debug('TTFB tracking not supported:', error);
+        logger.debug('TTFB tracking not supported:', error);
       }
     }
   }
@@ -387,7 +388,7 @@ class EnhancedPerformanceMonitor {
       try {
         observer.observe({ entryTypes: ['paint'] });
       } catch (error) {
-        console.debug('FCP tracking not supported:', error);
+        logger.debug('FCP tracking not supported:', error);
       }
     }
   }
@@ -501,7 +502,7 @@ class EnhancedPerformanceMonitor {
     if (duration > this.thresholds.slowRender) {
       const severity = duration > 100 ? 'high' : duration > 50 ? 'medium' : 'low';
       
-      console.warn(
+      logger.warn(
         `[Performance] Slow render detected in ${componentName}: ${duration.toFixed(2)}ms`
       );
       
@@ -563,7 +564,7 @@ class EnhancedPerformanceMonitor {
       if (duration > this.thresholds.slowAPI) {
         const severity = duration > 5000 ? 'high' : duration > 3000 ? 'medium' : 'low';
         
-        console.warn(
+        logger.warn(
           `[Performance] Slow API call detected for ${apiName}: ${duration.toFixed(2)}ms`,
           { ...metadata, responseSize }
         );
@@ -694,7 +695,7 @@ class EnhancedPerformanceMonitor {
       if (duration > this.thresholds.slowQuery) {
         const severity = duration > 1000 ? 'high' : duration > 500 ? 'medium' : 'low';
         
-        console.warn(
+        logger.warn(
           `[Performance] Slow query detected for ${queryName}: ${duration.toFixed(2)}ms`,
           { tableName, operation, rowsAffected, ...metadata }
         );
@@ -1004,7 +1005,7 @@ class EnhancedPerformanceMonitor {
       try {
         callback(alert);
       } catch (error) {
-        console.error('Error in alert callback:', error);
+        logger.error('Error in alert callback:', error);
       }
     });
     
@@ -1024,7 +1025,7 @@ class EnhancedPerformanceMonitor {
       try {
         callback(insight);
       } catch (error) {
-        console.error('Error in insight callback:', error);
+        logger.error('Error in insight callback:', error);
       }
     });
     
@@ -1168,7 +1169,7 @@ class EnhancedPerformanceMonitor {
       
       this.observers.navigation.observe({ entryTypes: ['navigation'] });
     } catch (error) {
-      console.debug('Navigation tracking not supported:', error);
+      logger.debug('Navigation tracking not supported:', error);
     }
   }
   
@@ -1213,7 +1214,7 @@ class EnhancedPerformanceMonitor {
       
       this.observers.longTask.observe({ entryTypes: ['longtask'] });
     } catch (error) {
-      console.debug('Long task tracking not supported:', error);
+      logger.debug('Long task tracking not supported:', error);
     }
   }
   
@@ -1297,7 +1298,7 @@ class EnhancedPerformanceMonitor {
           });
       }
     } catch (error) {
-      console.debug('Failed to send performance entry to server:', error);
+      logger.debug('Failed to send performance entry to server:', error);
     }
   }
   
@@ -1318,7 +1319,7 @@ class EnhancedPerformanceMonitor {
           });
       }
     } catch (error) {
-      console.debug('Failed to send web vital to server:', error);
+      logger.debug('Failed to send web vital to server:', error);
     }
   }
   
@@ -1343,7 +1344,7 @@ class EnhancedPerformanceMonitor {
           });
       }
     } catch (error) {
-      console.debug('Failed to send query metric to server:', error);
+      logger.debug('Failed to send query metric to server:', error);
     }
   }
   
@@ -1368,7 +1369,7 @@ class EnhancedPerformanceMonitor {
           });
       }
     } catch (error) {
-      console.debug('Failed to send user journey to server:', error);
+      logger.debug('Failed to send user journey to server:', error);
     }
   }
   
@@ -1391,7 +1392,7 @@ class EnhancedPerformanceMonitor {
           });
       }
     } catch (error) {
-      console.debug('Failed to send alert to server:', error);
+      logger.debug('Failed to send alert to server:', error);
     }
   }
   
@@ -1414,7 +1415,7 @@ class EnhancedPerformanceMonitor {
           });
       }
     } catch (error) {
-      console.debug('Failed to send insight to server:', error);
+      logger.debug('Failed to send insight to server:', error);
     }
   }
   
@@ -1453,14 +1454,14 @@ class EnhancedPerformanceMonitor {
           });
       }
       
-      console.debug('Periodic performance report sent', {
+      logger.debug('Periodic performance report sent', {
         entries: this.entries.length,
         alerts: this.alerts.length,
         insights: this.insights.length,
         overallScore: report.performance.overallScore
       });
     } catch (error) {
-      console.debug('Failed to send periodic report:', error);
+      logger.debug('Failed to send periodic report:', error);
     }
   }
   
@@ -1506,7 +1507,7 @@ class EnhancedPerformanceMonitor {
           .from('performance_alerts')
           .update({ acknowledged: true })
           .eq('alert_id', alertId)
-          .then(() => console.debug('Alert acknowledged'));
+          .then(() => logger.debug('Alert acknowledged'));
       }
     }
   }

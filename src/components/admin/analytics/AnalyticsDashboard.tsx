@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,12 +35,12 @@ export function AnalyticsDashboard() {
   const handleFilterChange = (newFilters: any) => {
     setFilters(newFilters);
     // In a real implementation, this would trigger data refetch
-    console.log("Filters changed:", newFilters);
+    logger.info("Filters changed:", newFilters);
   };
 
   const handleExport = async (exportSettings: any) => {
     // In a real implementation, this would trigger the export
-    console.log("Export settings:", exportSettings);
+    logger.info("Export settings:", exportSettings);
     // Simulate export delay
     await new Promise(resolve => setTimeout(resolve, 1000));
   };

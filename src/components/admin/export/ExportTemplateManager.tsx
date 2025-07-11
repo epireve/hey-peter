@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -181,7 +183,7 @@ export function ExportTemplateManager({ onTemplateCreated }: ExportTemplateManag
 
   const handlePreviewTemplate = (template: ExportTemplate) => {
     // This would open a preview dialog or generate a sample export
-    console.log('Preview template:', template);
+    logger.info('Preview template:', template);
   };
 
   const handleTestExport = async (template: ExportTemplate) => {
@@ -195,7 +197,7 @@ export function ExportTemplateManager({ onTemplateCreated }: ExportTemplateManag
         { fileName: `${template.name.toLowerCase().replace(/\s+/g, '-')}-sample` }
       );
     } catch (error) {
-      console.error('Test export failed:', error);
+      logger.error('Test export failed:', error);
     }
   };
 

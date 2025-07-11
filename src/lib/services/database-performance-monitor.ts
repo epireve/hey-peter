@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Database Performance Monitor Service
  * 
@@ -108,7 +109,7 @@ export class DatabasePerformanceMonitor {
     if (this.isMonitoring) return;
 
     this.isMonitoring = true;
-    console.log('[DB Performance Monitor] Starting monitoring...');
+    logger.info('[DB Performance Monitor] Starting monitoring...');
 
     // Initial metrics collection
     await this.collectMetrics();
@@ -121,7 +122,7 @@ export class DatabasePerformanceMonitor {
         await this.generateRecommendations();
         this.cleanupOldData();
       } catch (error) {
-        console.error('[DB Performance Monitor] Error during monitoring cycle:', error);
+        logger.error('[DB Performance Monitor] Error during monitoring cycle:', error);
       }
     }, intervalMs);
   }
@@ -135,7 +136,7 @@ export class DatabasePerformanceMonitor {
       this.monitoringInterval = undefined;
     }
     this.isMonitoring = false;
-    console.log('[DB Performance Monitor] Monitoring stopped');
+    logger.info('[DB Performance Monitor] Monitoring stopped');
   }
 
   /**
@@ -201,7 +202,7 @@ export class DatabasePerformanceMonitor {
 
       return metrics;
     } catch (error) {
-      console.error('[DB Performance Monitor] Failed to get database metrics:', error);
+      logger.error('[DB Performance Monitor] Failed to get database metrics:', error);
       throw error;
     }
   }
@@ -411,7 +412,7 @@ export class DatabasePerformanceMonitor {
       return { overall, checks };
 
     } catch (error) {
-      console.error('[DB Performance Monitor] Health check failed:', error);
+      logger.error('[DB Performance Monitor] Health check failed:', error);
       return {
         overall: 'critical',
         checks: [{
@@ -520,7 +521,7 @@ export class DatabasePerformanceMonitor {
       this.trends = this.trends.filter(t => t.timestamp >= cutoff);
 
     } catch (error) {
-      console.error('[DB Performance Monitor] Failed to collect metrics:', error);
+      logger.error('[DB Performance Monitor] Failed to collect metrics:', error);
     }
   }
 
@@ -583,7 +584,7 @@ export class DatabasePerformanceMonitor {
       }
 
     } catch (error) {
-      console.error('[DB Performance Monitor] Failed to analyze performance:', error);
+      logger.error('[DB Performance Monitor] Failed to analyze performance:', error);
     }
   }
 
@@ -637,7 +638,7 @@ export class DatabasePerformanceMonitor {
       }
 
     } catch (error) {
-      console.error('[DB Performance Monitor] Failed to generate recommendations:', error);
+      logger.error('[DB Performance Monitor] Failed to generate recommendations:', error);
     }
   }
 
@@ -657,7 +658,7 @@ export class DatabasePerformanceMonitor {
 
     if (!existingAlert) {
       this.alerts.set(id, alert);
-      console.warn(`[DB Performance Monitor] Alert created: ${alert.title}`);
+      logger.warn(`[DB Performance Monitor] Alert created: ${alert.title}`);
     }
   }
 

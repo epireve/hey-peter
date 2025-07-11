@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 import { 
   getEmailQueueService, 
   queueBookingConfirmation, 
@@ -126,7 +127,7 @@ export class EmailNotificationService {
     this.preferences.set(userId, updated);
     
     // In a real implementation, this would save to database
-    console.log(`Updated notification preferences for user ${userId}:`, updated);
+    logger.info(`Updated notification preferences for user ${userId}:`, updated);
   }
 
   // Get user notification preferences
@@ -372,7 +373,7 @@ export class EmailNotificationService {
         return this.handleTeacherAvailabilityChange(data as TeacherAvailabilityNotificationData);
         
       default:
-        console.warn(`Unknown notification trigger: ${trigger}`);
+        logger.warn(`Unknown notification trigger: ${trigger}`);
         return [];
     }
   }

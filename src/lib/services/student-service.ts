@@ -2,6 +2,7 @@ import { CRUDService, withRetry } from "./crud-service";
 import { supabase } from "@/lib/supabase";
 import { z } from "zod";
 
+import { logger } from '@/lib/services';
 // Student schema based on database structure
 export const studentSchema = z.object({
   id: z.string().uuid().optional(),
@@ -147,7 +148,7 @@ export class StudentService extends CRUDService<Student> {
     }, {
       maxRetries: 3,
       onRetry: (error, attempt) => {
-        console.log(`Retry attempt ${attempt} for student creation:`, error);
+        logger.info(`Retry attempt ${attempt} for student creation:`, error);
       },
     });
   }
@@ -233,7 +234,7 @@ export class StudentService extends CRUDService<Student> {
   private async updateStudentMetadata(studentId: string, metadata: any) {
     // This would typically be stored in a separate metadata table
     // For now, we'll skip this implementation
-    console.log("Storing student metadata:", { studentId, metadata });
+    logger.info("Storing student metadata:", { studentId, metadata });
   }
 }
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -105,7 +107,7 @@ export const AttendanceComparisonDashboard: React.FC<AttendanceComparisonDashboa
               riskStudents: analytics.attendanceMetrics.chronicallyAbsentStudents
             };
           } catch (err) {
-            console.warn(`Failed to get detailed analytics for class ${summary.classId}:`, err);
+            logger.warn(`Failed to get detailed analytics for class ${summary.classId}:`, err);
             
             // Fallback to basic data
             return {

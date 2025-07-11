@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,7 +85,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
       setSummary(summaryData);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('Failed to load analytics summary:', error);
+      logger.error('Failed to load analytics summary:', error);
     } finally {
       setLoading(false);
     }
@@ -91,7 +93,7 @@ export function AnalyticsDashboard({ className }: AnalyticsDashboardProps) {
 
   const handleExportData = () => {
     // Export analytics data as CSV/Excel
-    console.log('Exporting analytics data...');
+    logger.info('Exporting analytics data...');
   };
 
   const handleRefresh = () => {

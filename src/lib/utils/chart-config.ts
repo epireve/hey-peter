@@ -1,4 +1,5 @@
 import { format, parseISO, isValid } from 'date-fns';
+import { logger } from '@/lib/services';
 import { 
   ChartConfig, 
   ChartTheme, 
@@ -562,7 +563,7 @@ export class ChartExportUtils {
       link.href = canvas.toDataURL(`image/${format}`, quality);
       link.click();
     } catch (error) {
-      console.error('Failed to export chart:', error);
+      logger.error('Failed to export chart:', error);
       throw error;
     }
   }

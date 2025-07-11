@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -139,7 +141,7 @@ export function ExportDashboard({
     }
     
     // Show toast notification
-    console.log(success ? 'Export completed successfully' : 'Export failed', message);
+    logger.info(success ? 'Export completed successfully' : 'Export failed', message);
   };
 
   const getTotalRecords = () => {

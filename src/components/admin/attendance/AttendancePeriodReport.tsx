@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +49,7 @@ export function AttendancePeriodReport({ filters }: AttendancePeriodReportProps)
       const reports = await attendanceAnalyticsService.getAttendanceByPeriod(filters);
       setPeriodReports(reports);
     } catch (error) {
-      console.error('Error loading period reports:', error);
+      logger.error('Error loading period reports:', error);
     } finally {
       setLoading(false);
     }

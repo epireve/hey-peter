@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -69,7 +71,7 @@ export function AttendanceReportsPage({ className }: AttendanceReportsPageProps)
         { id: '3', name: 'Everyday English A', courseType: 'Everyday A' }
       ]);
     } catch (error) {
-      console.error('Error loading filter options:', error);
+      logger.error('Error loading filter options:', error);
     }
   };
 
@@ -79,7 +81,7 @@ export function AttendanceReportsPage({ className }: AttendanceReportsPageProps)
       const statsData = await attendanceAnalyticsService.getAttendanceStats(filters);
       setStats(statsData);
     } catch (error) {
-      console.error('Error loading attendance statistics:', error);
+      logger.error('Error loading attendance statistics:', error);
     } finally {
       setLoading(false);
     }

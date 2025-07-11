@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Cache invalidation strategies and utilities
  * Provides sophisticated cache invalidation patterns for maintaining data consistency
@@ -315,7 +316,7 @@ export class CacheInvalidationManager {
       try {
         await this.processRule(rule, 'time');
       } catch (error) {
-        console.error(`Error processing time-based rule ${rule.id}:`, error);
+        logger.error(`Error processing time-based rule ${rule.id}:`, error);
       }
     }, interval);
 
@@ -327,12 +328,12 @@ export class CacheInvalidationManager {
     if (!events) return;
 
     // In a real implementation, this would integrate with your event system
-    console.log(`Event-based rule ${rule.id} would listen for events:`, events);
+    logger.info(`Event-based rule ${rule.id} would listen for events:`, events);
   }
 
   private setupMutationBasedRule(rule: InvalidationRule): void {
     // Mutation tracking is handled in trackMutation method
-    console.log(`Mutation-based rule ${rule.id} is ready`);
+    logger.info(`Mutation-based rule ${rule.id} is ready`);
   }
 
   private setupDependencyBasedRule(rule: InvalidationRule): void {
@@ -340,7 +341,7 @@ export class CacheInvalidationManager {
     if (!dependencies) return;
 
     // In a real implementation, this would set up dependency tracking
-    console.log(`Dependency-based rule ${rule.id} tracking:`, dependencies);
+    logger.info(`Dependency-based rule ${rule.id} tracking:`, dependencies);
   }
 
   private setupSizeBasedRule(rule: InvalidationRule): void {
@@ -357,7 +358,7 @@ export class CacheInvalidationManager {
           await this.processRule(rule, 'size');
         }
       } catch (error) {
-        console.error(`Error processing size-based rule ${rule.id}:`, error);
+        logger.error(`Error processing size-based rule ${rule.id}:`, error);
       }
     }, 60000); // Check every minute
 
@@ -416,7 +417,7 @@ export class CacheInvalidationManager {
         return allKeys.filter(key => pattern.test(key));
       }
     } catch (error) {
-      console.error('Error finding matching keys:', error);
+      logger.error('Error finding matching keys:', error);
       return [];
     }
   }
@@ -472,7 +473,7 @@ export class CacheInvalidationManager {
           return false;
       }
     } catch (error) {
-      console.error(`Error evaluating condition for key ${key}:`, error);
+      logger.error(`Error evaluating condition for key ${key}:`, error);
       return false;
     }
   }
@@ -493,7 +494,7 @@ export class CacheInvalidationManager {
       try {
         listener(event);
       } catch (error) {
-        console.error('Error in invalidation event listener:', error);
+        logger.error('Error in invalidation event listener:', error);
       }
     });
   }

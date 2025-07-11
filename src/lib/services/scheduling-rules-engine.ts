@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { withRetry } from "./crud-service";
 import { contentAnalysisService } from "./content-analysis-service";
+import { logger } from '@/lib/services';
 import {
   SchedulingRule,
   RuleCondition,
@@ -114,7 +115,7 @@ export class SchedulingRulesEngine {
       };
 
     } catch (error) {
-      console.error('Scheduling error:', error);
+      logger.error('Scheduling error:', error);
       return {
         success: false,
         error: error.message,

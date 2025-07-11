@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Star, MessageSquare, Clock, Eye, Edit, Filter, Search, ChevronDown } from 'lucide-react';
@@ -83,7 +85,7 @@ const FeedbackHistoryList: React.FC<FeedbackHistoryListProps> = ({
       setFeedbackList(filteredData);
       setTotalCount(count);
     } catch (error) {
-      console.error('Error loading feedback:', error);
+      logger.error('Error loading feedback:', error);
       toast({
         title: "Error",
         description: "Failed to load feedback history. Please try again.",

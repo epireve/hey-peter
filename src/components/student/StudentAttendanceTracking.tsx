@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, addWeeks, subWeeks, isToday, differenceInDays, parseISO } from 'date-fns';
@@ -162,7 +164,7 @@ export function StudentAttendanceTracking({ studentId }: StudentAttendanceTracki
       if (error) throw error;
       setLeaveRequests(data || []);
     } catch (err) {
-      console.error('Failed to fetch leave requests:', err);
+      logger.error('Failed to fetch leave requests:', err);
     }
   }, [studentId, supabase]);
 
@@ -177,7 +179,7 @@ export function StudentAttendanceTracking({ studentId }: StudentAttendanceTracki
       if (error) throw error;
       setPolicies(data);
     } catch (err) {
-      console.error('Failed to fetch policies:', err);
+      logger.error('Failed to fetch policies:', err);
     }
   }, [supabase]);
 

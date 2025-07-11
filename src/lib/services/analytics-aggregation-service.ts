@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
+import { logger } from '@/lib/services';
 export type DateRangeType = 'today' | 'yesterday' | 'last_7_days' | 'last_30_days' | 'this_month' | 'last_month' | 'custom';
 export type AggregationPeriod = 'day' | 'week' | 'month' | 'quarter' | 'year';
 
@@ -181,7 +182,7 @@ class AnalyticsAggregationService {
         topPerformers
       };
     } catch (error) {
-      console.error('Error fetching student metrics:', error);
+      logger.error('Error fetching student metrics:', error);
       throw error;
     }
   }
@@ -277,7 +278,7 @@ class AnalyticsAggregationService {
         topPerformers
       };
     } catch (error) {
-      console.error('Error fetching teacher metrics:', error);
+      logger.error('Error fetching teacher metrics:', error);
       throw error;
     }
   }
@@ -334,7 +335,7 @@ class AnalyticsAggregationService {
         capacityAnalysis
       };
     } catch (error) {
-      console.error('Error fetching operational metrics:', error);
+      logger.error('Error fetching operational metrics:', error);
       throw error;
     }
   }
@@ -364,7 +365,7 @@ class AnalyticsAggregationService {
         notificationDeliveryRate
       };
     } catch (error) {
-      console.error('Error fetching system health metrics:', error);
+      logger.error('Error fetching system health metrics:', error);
       throw error;
     }
   }
@@ -410,7 +411,7 @@ class AnalyticsAggregationService {
 
       return atRiskCount;
     } catch (error) {
-      console.error('Error identifying at-risk students:', error);
+      logger.error('Error identifying at-risk students:', error);
       return 0;
     }
   }
@@ -464,7 +465,7 @@ class AnalyticsAggregationService {
         .slice(0, 5)
         .map(({ overallScore, ...rest }) => rest);
     } catch (error) {
-      console.error('Error getting top students:', error);
+      logger.error('Error getting top students:', error);
       return [];
     }
   }
@@ -546,7 +547,7 @@ class AnalyticsAggregationService {
 
       return needingSupportCount;
     } catch (error) {
-      console.error('Error identifying teachers needing support:', error);
+      logger.error('Error identifying teachers needing support:', error);
       return 0;
     }
   }
@@ -596,7 +597,7 @@ class AnalyticsAggregationService {
         .sort((a, b) => b.rating - a.rating)
         .slice(0, 5);
     } catch (error) {
-      console.error('Error getting top teachers:', error);
+      logger.error('Error getting top teachers:', error);
       return [];
     }
   }
@@ -670,7 +671,7 @@ class AnalyticsAggregationService {
         .sort((a, b) => b.enrollmentCount - a.enrollmentCount)
         .slice(0, 10);
     } catch (error) {
-      console.error('Error getting course rankings:', error);
+      logger.error('Error getting course rankings:', error);
       return [];
     }
   }
@@ -710,7 +711,7 @@ class AnalyticsAggregationService {
 
       return overallEfficiency;
     } catch (error) {
-      console.error('Error calculating resource efficiency:', error);
+      logger.error('Error calculating resource efficiency:', error);
       return 0;
     }
   }
@@ -736,7 +737,7 @@ class AnalyticsAggregationService {
         availableSlots
       };
     } catch (error) {
-      console.error('Error analyzing capacity:', error);
+      logger.error('Error analyzing capacity:', error);
       return {
         currentCapacity: 0,
         utilizedCapacity: 0,
@@ -759,7 +760,7 @@ class AnalyticsAggregationService {
       const uniqueUsers = new Set(data?.map(s => s.user_id) || []);
       return uniqueUsers.size;
     } catch (error) {
-      console.error('Error getting active users:', error);
+      logger.error('Error getting active users:', error);
       return 0;
     }
   }
@@ -783,7 +784,7 @@ class AnalyticsAggregationService {
       const { data: conflicts, error: conflictError } = await supabase
         .rpc('check_scheduling_conflicts');
 
-      if (conflictError) console.error('Error checking conflicts:', conflictError);
+      if (conflictError) logger.error('Error checking conflicts:', conflictError);
       if (conflicts && conflicts.length > 0) {
         issues.push(`${conflicts.length} scheduling conflicts detected`);
       }
@@ -795,7 +796,7 @@ class AnalyticsAggregationService {
         issues
       };
     } catch (error) {
-      console.error('Error checking data integrity:', error);
+      logger.error('Error checking data integrity:', error);
       return {
         status: 'warning' as const,
         issues: ['Unable to complete data integrity check']
@@ -823,7 +824,7 @@ class AnalyticsAggregationService {
       const efficiency = ((totalSchedules - rescheduled - cancelled) / totalSchedules) * 100;
       return Math.max(0, efficiency);
     } catch (error) {
-      console.error('Error calculating scheduling efficiency:', error);
+      logger.error('Error calculating scheduling efficiency:', error);
       return 85; // Default value
     }
   }
@@ -844,7 +845,7 @@ class AnalyticsAggregationService {
 
       return total > 0 ? (delivered / total) * 100 : 100;
     } catch (error) {
-      console.error('Error getting notification delivery rate:', error);
+      logger.error('Error getting notification delivery rate:', error);
       return 95; // Default value
     }
   }

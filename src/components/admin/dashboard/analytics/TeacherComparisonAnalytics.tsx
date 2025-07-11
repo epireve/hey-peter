@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -78,7 +80,7 @@ export function TeacherComparisonAnalytics({ teacherId, className }: TeacherComp
         setSelectedTeacher(result.teachers[0].teacherId);
       }
     } catch (err) {
-      console.error('Failed to load teachers list:', err);
+      logger.error('Failed to load teachers list:', err);
     }
   };
 
@@ -97,7 +99,7 @@ export function TeacherComparisonAnalytics({ teacherId, className }: TeacherComp
       setComparisonData(comparison);
       setCohortAnalysis(cohort);
     } catch (err) {
-      console.error('Failed to load comparison data:', err);
+      logger.error('Failed to load comparison data:', err);
       setError('Failed to load comparison data. Please try again.');
     } finally {
       setLoading(false);

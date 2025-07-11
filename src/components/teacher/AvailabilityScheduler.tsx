@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -158,7 +160,7 @@ export function AvailabilityScheduler({ teacher, availability, existingBookings 
         description: 'Failed to save availability. Please try again.',
         variant: 'destructive',
       });
-      console.error('Error saving availability:', error);
+      logger.error('Error saving availability:', error);
     } finally {
       setSaving(false);
     }

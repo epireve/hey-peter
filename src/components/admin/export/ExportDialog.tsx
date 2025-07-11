@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -192,7 +194,7 @@ export function ExportDialog({
       }, 500);
 
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
       onExportComplete?.(false, 'Export failed: ' + (error as Error).message);
     } finally {
       setIsExporting(false);

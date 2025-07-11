@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { format, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
 
+import { logger } from '@/lib/services';
 export interface RevenueMetrics {
   totalRevenue: number;
   revenueByPeriod: {
@@ -196,7 +197,7 @@ class FinancialAnalyticsService {
         }
       };
     } catch (error) {
-      console.error('Error fetching revenue metrics:', error);
+      logger.error('Error fetching revenue metrics:', error);
       throw error;
     }
   }
@@ -239,7 +240,7 @@ class FinancialAnalyticsService {
         .lte('created_at', endDate.toISOString())
         .single();
 
-      if (inquiryError) console.error('Error fetching inquiries:', inquiryError);
+      if (inquiryError) logger.error('Error fetching inquiries:', inquiryError);
 
       const conversionRate = inquiries?.count > 0 
         ? (totalPackagesSold / inquiries.count) * 100 
@@ -253,7 +254,7 @@ class FinancialAnalyticsService {
         popularPackages
       };
     } catch (error) {
-      console.error('Error fetching package sales metrics:', error);
+      logger.error('Error fetching package sales metrics:', error);
       throw error;
     }
   }
@@ -340,7 +341,7 @@ class FinancialAnalyticsService {
         paymentMethods: paymentMethodsAggregated
       };
     } catch (error) {
-      console.error('Error fetching payment metrics:', error);
+      logger.error('Error fetching payment metrics:', error);
       throw error;
     }
   }
@@ -381,7 +382,7 @@ class FinancialAnalyticsService {
         growthProjection
       };
     } catch (error) {
-      console.error('Error generating revenue forecast:', error);
+      logger.error('Error generating revenue forecast:', error);
       throw error;
     }
   }
@@ -422,7 +423,7 @@ class FinancialAnalyticsService {
         discountEffectiveness: effectiveness
       };
     } catch (error) {
-      console.error('Error analyzing discounts:', error);
+      logger.error('Error analyzing discounts:', error);
       throw error;
     }
   }
@@ -695,7 +696,7 @@ class FinancialAnalyticsService {
         }
       };
     } catch (error) {
-      console.error('Error analyzing discount effectiveness:', error);
+      logger.error('Error analyzing discount effectiveness:', error);
       return {
         withDiscount: { retention: 0, averagePurchase: 0 },
         withoutDiscount: { retention: 0, averagePurchase: 0 }

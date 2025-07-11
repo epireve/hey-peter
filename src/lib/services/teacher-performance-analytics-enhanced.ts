@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Enhanced Teacher Performance Analytics Service
  * 
@@ -59,7 +60,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       this.cache.set(cacheKey, { data: enhancedMetrics, timestamp: Date.now() });
       return enhancedMetrics;
     } catch (error) {
-      console.error(`Error getting teacher performance metrics for ${teacherId}:`, error);
+      logger.error(`Error getting teacher performance metrics for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -78,7 +79,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       this.setCachedData(cacheKey, comparison);
       return comparison;
     } catch (error) {
-      console.error(`Error getting teacher peer comparison for ${teacherId}:`, error);
+      logger.error(`Error getting teacher peer comparison for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -101,7 +102,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       this.setCachedData(cacheKey, enhancedCohort);
       return enhancedCohort;
     } catch (error) {
-      console.error('Error getting teacher cohort analysis:', error);
+      logger.error('Error getting teacher cohort analysis:', error);
       throw error;
     }
   }
@@ -123,7 +124,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       
       return enhancedResult;
     } catch (error) {
-      console.error('Error searching teachers:', error);
+      logger.error('Error searching teachers:', error);
       throw error;
     }
   }
@@ -144,7 +145,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       this.setCachedData(cacheKey, dashboard);
       return dashboard;
     } catch (error) {
-      console.error('Error getting teacher performance dashboard:', error);
+      logger.error('Error getting teacher performance dashboard:', error);
       throw error;
     }
   }
@@ -166,7 +167,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       this.setCachedData(cacheKey, dashboard);
       return dashboard;
     } catch (error) {
-      console.error(`Error getting individual dashboard for ${teacherId}:`, error);
+      logger.error(`Error getting individual dashboard for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -179,7 +180,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       const analytics = await teacherPerformanceDbService.getTeacherHourAnalytics(teacherId, startDate, endDate);
       return { ...analytics, teacherId };
     } catch (error) {
-      console.error(`Error getting hour analytics for ${teacherId}:`, error);
+      logger.error(`Error getting hour analytics for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -192,7 +193,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       const analytics = await teacherPerformanceDbService.getStudentFeedbackAnalytics(teacherId, startDate, endDate);
       return { ...analytics, teacherId };
     } catch (error) {
-      console.error(`Error getting feedback analytics for ${teacherId}:`, error);
+      logger.error(`Error getting feedback analytics for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -205,7 +206,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       const analytics = await teacherPerformanceDbService.getAttendanceAnalytics(teacherId, startDate, endDate);
       return { ...analytics, teacherId };
     } catch (error) {
-      console.error(`Error getting attendance analytics for ${teacherId}:`, error);
+      logger.error(`Error getting attendance analytics for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -253,7 +254,7 @@ export class EnhancedTeacherPerformanceAnalytics {
 
       return report;
     } catch (error) {
-      console.error('Error generating teacher performance report:', error);
+      logger.error('Error generating teacher performance report:', error);
       throw error;
     }
   }
@@ -277,7 +278,7 @@ export class EnhancedTeacherPerformanceAnalytics {
 
       return this.calculatePerformanceTrends(historicalData || []);
     } catch (error) {
-      console.error(`Error getting performance trends for ${teacherId}:`, error);
+      logger.error(`Error getting performance trends for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -290,7 +291,7 @@ export class EnhancedTeacherPerformanceAnalytics {
       const metrics = await this.getTeacherPerformanceMetrics(teacherId);
       return this.generateRecommendations(metrics);
     } catch (error) {
-      console.error(`Error getting recommendations for ${teacherId}:`, error);
+      logger.error(`Error getting recommendations for ${teacherId}:`, error);
       throw error;
     }
   }
@@ -304,9 +305,9 @@ export class EnhancedTeacherPerformanceAnalytics {
       this.clearCacheForTeacher(teacherId);
       
       // Update in database (would need actual implementation)
-      console.log(`Updating performance metrics for teacher ${teacherId}:`, metrics);
+      logger.info(`Updating performance metrics for teacher ${teacherId}:`, metrics);
     } catch (error) {
-      console.error(`Error updating performance metrics for ${teacherId}:`, error);
+      logger.error(`Error updating performance metrics for ${teacherId}:`, error);
       throw error;
     }
   }

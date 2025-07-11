@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Feedback Notification Service
  * Handles notification delivery for feedback-related events
@@ -384,14 +385,14 @@ export class FeedbackNotificationService {
 
       // In-app notifications are processed immediately
     } catch (error) {
-      console.error('Error processing notification queues:', error);
+      logger.error('Error processing notification queues:', error);
     }
   }
 
   private async processEmailNotification(notification: EmailNotification): Promise<void> {
     try {
       // In a real implementation, this would integrate with an email service like SendGrid, AWS SES, etc.
-      console.log('Sending email notification:', {
+      logger.info('Sending email notification:', {
         to: notification.to,
         subject: notification.subject,
         priority: notification.priority
@@ -410,7 +411,7 @@ export class FeedbackNotificationService {
         });
 
     } catch (error) {
-      console.error('Failed to send email notification:', error);
+      logger.error('Failed to send email notification:', error);
       
       // Store failed notification
       await this.supabase
@@ -430,7 +431,7 @@ export class FeedbackNotificationService {
   private async processSMSNotification(notification: SMSNotification): Promise<void> {
     try {
       // In a real implementation, this would integrate with an SMS service like Twilio
-      console.log('Sending SMS notification:', {
+      logger.info('Sending SMS notification:', {
         phone: notification.phone,
         message: notification.message.substring(0, 50) + '...',
         priority: notification.priority
@@ -447,7 +448,7 @@ export class FeedbackNotificationService {
         });
 
     } catch (error) {
-      console.error('Failed to send SMS notification:', error);
+      logger.error('Failed to send SMS notification:', error);
       
       await this.supabase
         .from('notification_logs')
@@ -476,7 +477,7 @@ export class FeedbackNotificationService {
         });
 
     } catch (error) {
-      console.error('Failed to create in-app notification:', error);
+      logger.error('Failed to create in-app notification:', error);
     }
   }
 

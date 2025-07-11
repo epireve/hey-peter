@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Performance monitoring utilities for code splitting and bundle analysis
  */
@@ -186,9 +187,9 @@ class PerformanceMonitor {
     const report = this.getPerformanceReport();
     
     console.group('🚀 Performance Metrics');
-    console.log('📊 Component Load Times:', report.componentMetrics);
-    console.log('📦 Bundle Metrics:', report.bundleMetrics);
-    console.log('📈 Summary:', report.summary);
+    logger.info('📊 Component Load Times:', report.componentMetrics);
+    logger.info('📦 Bundle Metrics:', report.bundleMetrics);
+    logger.info('📈 Summary:', report.summary);
     console.groupEnd();
   }
 
@@ -200,14 +201,14 @@ class PerformanceMonitor {
     new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       const lastEntry = entries[entries.length - 1];
-      console.log('LCP:', lastEntry.startTime);
+      logger.info('LCP:', lastEntry.startTime);
     }).observe({ entryTypes: ['largest-contentful-paint'] });
 
     // First Input Delay (FID)
     new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       entries.forEach(entry => {
-        console.log('FID:', entry.processingStart - entry.startTime);
+        logger.info('FID:', entry.processingStart - entry.startTime);
       });
     }).observe({ entryTypes: ['first-input'] });
 
@@ -220,7 +221,7 @@ class PerformanceMonitor {
           clsValue += (entry as any).value;
         }
       });
-      console.log('CLS:', clsValue);
+      logger.info('CLS:', clsValue);
     }).observe({ entryTypes: ['layout-shift'] });
   }
 
@@ -236,7 +237,7 @@ class PerformanceMonitor {
             const element = node as Element;
             if (element.tagName === 'SCRIPT' && element.getAttribute('src')?.includes('chunk')) {
               const chunkName = this.extractChunkName(element.getAttribute('src') || '');
-              console.log(`📦 Chunk loaded: ${chunkName}`);
+              logger.info(`📦 Chunk loaded: ${chunkName}`);
             }
           }
         });

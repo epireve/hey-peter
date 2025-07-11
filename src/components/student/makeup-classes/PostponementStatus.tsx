@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -70,7 +72,7 @@ export function PostponementStatus({ studentId, onMakeUpSelected }: Postponement
       setPostponements(enrichedPostponements);
       setMakeUpClasses(makeUpData);
     } catch (error) {
-      console.error('Error loading postponements:', error);
+      logger.error('Error loading postponements:', error);
       setError(error instanceof Error ? error.message : 'Failed to load postponements');
     } finally {
       setLoading(false);

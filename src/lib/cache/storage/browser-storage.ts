@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Browser storage adapters for caching user preferences and application data
  */
@@ -95,7 +96,7 @@ abstract class BaseBrowserStorage implements CacheStorage {
 
       return entry;
     } catch (error) {
-      console.error(`Error getting cache entry for key ${key}:`, error);
+      logger.error(`Error getting cache entry for key ${key}:`, error);
       return null;
     }
   }
@@ -122,10 +123,10 @@ abstract class BaseBrowserStorage implements CacheStorage {
           const compressed = await this.compress(serialized);
           storage.setItem(this.getKey(key), compressed);
         } catch {
-          console.warn(`Failed to cache ${key}: Storage quota exceeded`);
+          logger.warn(`Failed to cache ${key}: Storage quota exceeded`);
         }
       } else {
-        console.error(`Error setting cache entry for key ${key}:`, error);
+        logger.error(`Error setting cache entry for key ${key}:`, error);
       }
     }
   }
@@ -142,7 +143,7 @@ abstract class BaseBrowserStorage implements CacheStorage {
       storage.removeItem(fullKey);
       return existed;
     } catch (error) {
-      console.error(`Error deleting cache entry for key ${key}:`, error);
+      logger.error(`Error deleting cache entry for key ${key}:`, error);
       return false;
     }
   }
@@ -157,7 +158,7 @@ abstract class BaseBrowserStorage implements CacheStorage {
       const keys = await this.keys();
       keys.forEach(key => storage.removeItem(this.getKey(key)));
     } catch (error) {
-      console.error('Error clearing cache:', error);
+      logger.error('Error clearing cache:', error);
     }
   }
 
@@ -180,7 +181,7 @@ abstract class BaseBrowserStorage implements CacheStorage {
       }
       return keys;
     } catch (error) {
-      console.error('Error getting cache keys:', error);
+      logger.error('Error getting cache keys:', error);
       return [];
     }
   }
@@ -204,7 +205,7 @@ abstract class BaseBrowserStorage implements CacheStorage {
       
       return totalSize;
     } catch (error) {
-      console.error('Error calculating cache size:', error);
+      logger.error('Error calculating cache size:', error);
       return 0;
     }
   }
@@ -258,7 +259,7 @@ abstract class BaseBrowserStorage implements CacheStorage {
         await this.delete(entries[i].key);
       }
     } catch (error) {
-      console.error('Error during cache cleanup:', error);
+      logger.error('Error during cache cleanup:', error);
     }
   }
 }
@@ -340,7 +341,7 @@ export class MemoryStorageAdapter implements CacheStorage {
 
       return entry;
     } catch (error) {
-      console.error(`Error getting cache entry for key ${key}:`, error);
+      logger.error(`Error getting cache entry for key ${key}:`, error);
       return null;
     }
   }
@@ -358,7 +359,7 @@ export class MemoryStorageAdapter implements CacheStorage {
       const serialized = JSON.stringify(entry);
       this.cache.set(this.getKey(key), serialized);
     } catch (error) {
-      console.error(`Error setting cache entry for key ${key}:`, error);
+      logger.error(`Error setting cache entry for key ${key}:`, error);
     }
   }
 
@@ -450,7 +451,7 @@ export class UserPreferencesCache {
       const entry = await this.storage.get<T>(this.getUserKey(key));
       return entry?.data ?? defaultValue ?? null;
     } catch (error) {
-      console.error(`Error getting preference ${key}:`, error);
+      logger.error(`Error getting preference ${key}:`, error);
       return defaultValue ?? null;
     }
   }
@@ -466,7 +467,7 @@ export class UserPreferencesCache {
       
       await this.storage.set(this.getUserKey(key), entry);
     } catch (error) {
-      console.error(`Error setting preference ${key}:`, error);
+      logger.error(`Error setting preference ${key}:`, error);
     }
   }
 
@@ -474,7 +475,7 @@ export class UserPreferencesCache {
     try {
       return await this.storage.delete(this.getUserKey(key));
     } catch (error) {
-      console.error(`Error removing preference ${key}:`, error);
+      logger.error(`Error removing preference ${key}:`, error);
       return false;
     }
   }
@@ -486,7 +487,7 @@ export class UserPreferencesCache {
       const keys = await this.storage.keys(`user:${this.userId}:`);
       await Promise.all(keys.map(key => this.storage.delete(key)));
     } catch (error) {
-      console.error('Error clearing user preferences:', error);
+      logger.error('Error clearing user preferences:', error);
     }
   }
 
@@ -509,7 +510,7 @@ export class UserPreferencesCache {
 
       return preferences;
     } catch (error) {
-      console.error('Error getting all preferences:', error);
+      logger.error('Error getting all preferences:', error);
       return {};
     }
   }

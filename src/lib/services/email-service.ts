@@ -1,6 +1,7 @@
 import Mailgun from 'mailgun.js';
 import FormData from 'form-data';
 
+import { logger } from '@/lib/services';
 // Email service configuration
 interface EmailConfig {
   apiKey: string;
@@ -262,7 +263,7 @@ export class EmailService {
         timestamp: new Date()
       };
     } catch (error) {
-      console.error('Email sending failed:', error);
+      logger.error('Email sending failed:', error);
       return {
         id: crypto.randomUUID(),
         status: EmailStatus.FAILED,
@@ -414,7 +415,7 @@ export class EmailService {
         complaintRate: totalSent > 0 ? (totalComplaints / totalSent) * 100 : 0
       };
     } catch (error) {
-      console.error('Failed to get email metrics:', error);
+      logger.error('Failed to get email metrics:', error);
       return {
         totalSent: 0,
         totalDelivered: 0,

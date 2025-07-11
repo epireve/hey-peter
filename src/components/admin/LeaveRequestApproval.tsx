@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -96,7 +98,7 @@ export function LeaveRequestApproval({
       
     } catch (err) {
       setError('Failed to load leave requests');
-      console.error('Error loading requests:', err);
+      logger.error('Error loading requests:', err);
     } finally {
       setLoading(false);
     }
@@ -133,7 +135,7 @@ export function LeaveRequestApproval({
       }
     } catch (err) {
       setError('An unexpected error occurred');
-      console.error('Error processing request:', err);
+      logger.error('Error processing request:', err);
     } finally {
       setProcessing(false);
     }

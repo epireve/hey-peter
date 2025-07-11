@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState } from 'react';
 import { 
   Dialog, 
@@ -184,7 +186,7 @@ export function AttendanceExportDialog({ open, onOpenChange, filters }: Attendan
         }, {} as any);
 
         // TODO: Implement export without external dependencies
-        console.log('Export data:', combinedData);
+        logger.info('Export data:', combinedData);
         
         // Simple JSON download fallback
         const jsonString = JSON.stringify(combinedData, null, 2);
@@ -201,7 +203,7 @@ export function AttendanceExportDialog({ open, onOpenChange, filters }: Attendan
 
       onOpenChange(false);
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
     } finally {
       setLoading(false);
     }

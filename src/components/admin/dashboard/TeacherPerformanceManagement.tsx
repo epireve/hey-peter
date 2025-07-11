@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -117,7 +119,7 @@ export function TeacherPerformanceManagement({ className }: TeacherPerformanceMa
 
       setSearchResults(results);
     } catch (err) {
-      console.error('Failed to load teachers:', err);
+      logger.error('Failed to load teachers:', err);
       setError('Failed to load teachers. Please try again.');
     } finally {
       setLoading(false);
@@ -149,7 +151,7 @@ export function TeacherPerformanceManagement({ className }: TeacherPerformanceMa
     if (selectedTeachers.length === 0) return;
 
     try {
-      console.log(`Performing ${action} on teachers:`, selectedTeachers);
+      logger.info(`Performing ${action} on teachers:`, selectedTeachers);
       
       // In a real implementation, you'd call the appropriate service methods
       switch (action) {
@@ -170,7 +172,7 @@ export function TeacherPerformanceManagement({ className }: TeacherPerformanceMa
       setSelectedTeachers([]);
       setShowBulkActionsDialog(false);
     } catch (err) {
-      console.error(`Failed to perform ${action}:`, err);
+      logger.error(`Failed to perform ${action}:`, err);
     }
   };
 
@@ -188,10 +190,10 @@ export function TeacherPerformanceManagement({ className }: TeacherPerformanceMa
         'comprehensive'
       );
       
-      console.log('Generated report:', report);
+      logger.info('Generated report:', report);
       setShowExportDialog(false);
     } catch (err) {
-      console.error('Failed to generate report:', err);
+      logger.error('Failed to generate report:', err);
     }
   };
 

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 // Simplified email service for testing and development without Mailgun dependencies
 
 // Email template types
@@ -226,7 +227,7 @@ export class SimpleEmailService {
 
       // In test mode, just log the email
       if (this.config.testMode) {
-        console.log('Email would be sent:', {
+        logger.info('Email would be sent:', {
           to: message.to,
           subject: message.subject,
           html: htmlContent,
@@ -244,7 +245,7 @@ export class SimpleEmailService {
       this.sentEmails.push(result);
       return result;
     } catch (error) {
-      console.error('Email sending failed:', error);
+      logger.error('Email sending failed:', error);
       const result: EmailResult = {
         id: crypto.randomUUID(),
         status: EmailStatus.FAILED,

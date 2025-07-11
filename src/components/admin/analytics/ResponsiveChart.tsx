@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -48,7 +50,7 @@ export function ResponsiveChart({
 
   const handleDownload = () => {
     // In a real implementation, this would trigger chart download
-    console.log("Download chart:", title);
+    logger.info("Download chart:", title);
   };
 
   const chartHeight = isFullscreen ? 600 : 300;

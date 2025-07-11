@@ -1,6 +1,7 @@
 import { loggingService, LogCategory } from './logging-service';
 import { errorTrackingService } from './error-tracking-service';
 
+import { logger } from '@/lib/services';
 export interface UserAction {
   id: string;
   sessionId: string;
@@ -492,12 +493,12 @@ class UserActionTrackingService {
         .insert(actionsToFlush);
 
       if (error) {
-        console.error('Failed to flush user actions:', error);
+        logger.error('Failed to flush user actions:', error);
         // Re-add actions to buffer if flush failed
         this.actions.unshift(...actionsToFlush);
       }
     } catch (error) {
-      console.error('Error flushing user actions:', error);
+      logger.error('Error flushing user actions:', error);
       // Re-add actions to buffer if flush failed
       this.actions.unshift(...actionsToFlush);
     }
@@ -532,7 +533,7 @@ class UserActionTrackingService {
         .from('user_sessions')
         .insert(session);
     } catch (error) {
-      console.error('Failed to store user session:', error);
+      logger.error('Failed to store user session:', error);
     }
   }
 
@@ -607,7 +608,7 @@ class UserActionTrackingService {
         dropOffPoint: this.identifyDropOffPoint(steps)
       };
     } catch (error) {
-      console.error('Failed to get user journey:', error);
+      logger.error('Failed to get user journey:', error);
       return null;
     }
   }

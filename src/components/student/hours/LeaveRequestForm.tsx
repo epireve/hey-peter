@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
@@ -160,7 +162,7 @@ export function LeaveRequestForm({
         setShowValidation(true);
       }
     } catch (error) {
-      console.error('Validation error:', error);
+      logger.error('Validation error:', error);
     }
   };
 

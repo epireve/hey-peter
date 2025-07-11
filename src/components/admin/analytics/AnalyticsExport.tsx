@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,7 +93,7 @@ export function AnalyticsExport({
       await onExport(settings);
       setIsOpen(false);
     } catch (error) {
-      console.error("Export failed:", error);
+      logger.error("Export failed:", error);
     } finally {
       setIsExporting(false);
     }

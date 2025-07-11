@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -137,7 +139,7 @@ export function WeeklyTimetable({ teacher, weeklyBookings, availability, availab
         description: 'Failed to reschedule booking. Please try again.',
         variant: 'destructive',
       });
-      console.error('Error rescheduling booking:', error);
+      logger.error('Error rescheduling booking:', error);
     }
     
     setDraggedBooking(null);
@@ -174,7 +176,7 @@ export function WeeklyTimetable({ teacher, weeklyBookings, availability, availab
         description: 'Failed to update booking. Please try again.',
         variant: 'destructive',
       });
-      console.error('Error updating booking:', error);
+      logger.error('Error updating booking:', error);
     }
   };
 
@@ -204,7 +206,7 @@ export function WeeklyTimetable({ teacher, weeklyBookings, availability, availab
         description: 'Failed to cancel booking. Please try again.',
         variant: 'destructive',
       });
-      console.error('Error cancelling booking:', error);
+      logger.error('Error cancelling booking:', error);
     }
   };
 

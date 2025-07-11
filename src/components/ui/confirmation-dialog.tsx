@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import * as React from "react";
 import {
   AlertDialog,
@@ -43,7 +45,7 @@ export function ConfirmationDialog({
       await onConfirm();
       onOpenChange(false);
     } catch (error) {
-      console.error("Confirmation action failed:", error);
+      logger.error("Confirmation action failed:", error);
     } finally {
       setIsLoading(false);
     }

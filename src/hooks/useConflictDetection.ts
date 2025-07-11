@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { logger } from '@/lib/services';
 // Conflict detection service has been removed - using placeholder types
 export interface ConflictError {
   type: 'teacher_time_conflict' | 'student_time_conflict' | 'class_capacity_conflict' | 'schedule_overlap';
@@ -180,7 +181,7 @@ export function useConflictDetection(options: UseConflictDetectionOptions = {}) 
       updateState(conflicts, duplicates);
       return { conflicts, duplicates };
     } catch (error) {
-      console.error('Error checking booking conflicts:', error);
+      logger.error('Error checking booking conflicts:', error);
       setState(prev => ({ ...prev, isChecking: false }));
       throw error;
     }
@@ -200,7 +201,7 @@ export function useConflictDetection(options: UseConflictDetectionOptions = {}) 
       updateState([], duplicates);
       return { conflicts: [], duplicates };
     } catch (error) {
-      console.error('Error checking enrollment conflicts:', error);
+      logger.error('Error checking enrollment conflicts:', error);
       setState(prev => ({ ...prev, isChecking: false }));
       throw error;
     }
@@ -225,7 +226,7 @@ export function useConflictDetection(options: UseConflictDetectionOptions = {}) 
       updateState(conflicts, duplicates);
       return { conflicts, duplicates };
     } catch (error) {
-      console.error('Error checking class conflicts:', error);
+      logger.error('Error checking class conflicts:', error);
       setState(prev => ({ ...prev, isChecking: false }));
       throw error;
     }
@@ -460,7 +461,7 @@ export function useRealTimeValidation<T>(
           }
         });
       } catch (error) {
-        console.error('Validation error:', error);
+        logger.error('Validation error:', error);
         setValidationState(prev => ({ ...prev, isChecking: false }));
       }
     }, debounceMs);

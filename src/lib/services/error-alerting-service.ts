@@ -1,6 +1,7 @@
 import { loggingService, LogCategory, LogLevel } from './logging-service';
 import { errorTrackingService } from './error-tracking-service';
 
+import { logger } from '@/lib/services';
 export interface AlertRule {
   id: string;
   name: string;
@@ -649,7 +650,7 @@ ${JSON.stringify(alert.details, null, 2)}
           actions: alert.actions
         });
     } catch (error) {
-      console.error('Failed to store alert:', error);
+      logger.error('Failed to store alert:', error);
     }
   }
 
@@ -716,7 +717,7 @@ ${JSON.stringify(alert.details, null, 2)}
           })
           .eq('id', alertId);
       } catch (error) {
-        console.error('Failed to update alert status:', error);
+        logger.error('Failed to update alert status:', error);
       }
 
       loggingService.info(
@@ -781,7 +782,7 @@ ${JSON.stringify(alert.details, null, 2)}
         alertTrends
       };
     } catch (error) {
-      console.error('Failed to get alerting summary:', error);
+      logger.error('Failed to get alerting summary:', error);
       return this.getEmptyAlertingSummary();
     }
   }

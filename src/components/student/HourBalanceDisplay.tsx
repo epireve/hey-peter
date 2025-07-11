@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -53,7 +55,7 @@ export function HourBalanceDisplay({
       }
     } catch (err) {
       setError('An unexpected error occurred');
-      console.error('Error loading hour summary:', err);
+      logger.error('Error loading hour summary:', err);
     } finally {
       setLoading(false);
     }

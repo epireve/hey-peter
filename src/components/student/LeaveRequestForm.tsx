@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -73,7 +75,7 @@ export function LeaveRequestForm({
         setRecentRequests(filtered);
       }
     } catch (err) {
-      console.error('Error loading recent requests:', err);
+      logger.error('Error loading recent requests:', err);
     }
   };
 
@@ -91,7 +93,7 @@ export function LeaveRequestForm({
         setEligibilityCheck(response.data);
       }
     } catch (err) {
-      console.error('Error checking eligibility:', err);
+      logger.error('Error checking eligibility:', err);
     }
   };
 
@@ -160,7 +162,7 @@ export function LeaveRequestForm({
       }
     } catch (err) {
       setError('An unexpected error occurred');
-      console.error('Error submitting leave request:', err);
+      logger.error('Error submitting leave request:', err);
     } finally {
       setLoading(false);
     }

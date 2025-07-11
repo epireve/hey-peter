@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
@@ -198,7 +200,7 @@ export function HourPurchaseDialog({
       }
     } catch (err) {
       setError('An unexpected error occurred');
-      console.error('Error purchasing hours:', err);
+      logger.error('Error purchasing hours:', err);
     } finally {
       setLoading(false);
     }

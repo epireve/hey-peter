@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Stale-while-revalidate (SWR) pattern implementation
  * Provides fresh data experience while maintaining performance through background updates
@@ -293,7 +294,7 @@ export class SWRManager {
   ): Promise<void> {
     // Check revalidation limits
     if (this.revalidationQueue.size >= this.config.maxConcurrentRevalidations) {
-      console.warn('SWR: Maximum concurrent revalidations reached, skipping');
+      logger.warn('SWR: Maximum concurrent revalidations reached, skipping');
       return;
     }
 

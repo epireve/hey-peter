@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from '@/lib/auth';
 import { ErrorBoundary } from '@/components/error-boundary';
@@ -84,7 +86,7 @@ export function ErrorTrackingProvider({ children }: ErrorTrackingProviderProps) 
 
       setInitialized(true);
     } catch (error) {
-      console.error('Failed to initialize error tracking:', error);
+      logger.error('Failed to initialize error tracking:', error);
     }
   };
 

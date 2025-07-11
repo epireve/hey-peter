@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Make-up Class Suggestion Service
  * 
@@ -494,7 +495,7 @@ export class MakeUpClassSuggestionService {
 
       return suggestion;
     } catch (error) {
-      console.error('Error scoring candidate:', error);
+      logger.error('Error scoring candidate:', error);
       return null;
     }
   }
@@ -516,7 +517,7 @@ export class MakeUpClassSuggestionService {
       );
       return similarity?.overallSimilarity || 0.5;
     } catch (error) {
-      console.error('Content similarity calculation failed:', error);
+      logger.error('Content similarity calculation failed:', error);
       return 0.5; // Default moderate compatibility
     }
   }

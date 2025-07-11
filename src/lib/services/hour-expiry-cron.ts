@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Hour Expiry Cron Job
  * 
@@ -44,11 +45,11 @@ export class HourExpiryCronService {
       // Send notifications for critical alerts
       await this.sendExpiryNotifications();
 
-      console.log(`Hour expiry process completed: ${results.expired} expired, ${results.alerts} alerts created`);
+      logger.info(`Hour expiry process completed: ${results.expired} expired, ${results.alerts} alerts created`);
     } catch (error) {
       results.success = false;
       results.errors.push(error instanceof Error ? error.message : 'Unknown error');
-      console.error('Hour expiry process failed:', error);
+      logger.error('Hour expiry process failed:', error);
     }
 
     return results;
@@ -83,7 +84,7 @@ export class HourExpiryCronService {
           .gte('valid_until', new Date().toISOString());
 
         if (error) {
-          console.error(`Error fetching expiring purchases for ${frame.days} days:`, error);
+          logger.error(`Error fetching expiring purchases for ${frame.days} days:`, error);
           continue;
         }
 
@@ -119,7 +120,7 @@ export class HourExpiryCronService {
 
       return totalAlerts;
     } catch (error) {
-      console.error('Error creating expiry alerts:', error);
+      logger.error('Error creating expiry alerts:', error);
       return 0;
     }
   }
@@ -149,7 +150,7 @@ export class HourExpiryCronService {
             new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
 
       if (error) {
-        console.error('Error fetching critical alerts:', error);
+        logger.error('Error fetching critical alerts:', error);
         return;
       }
 
@@ -167,13 +168,13 @@ export class HourExpiryCronService {
             })
             .eq('id', alert.id);
 
-          console.log(`Notification sent for alert ${alert.id} to student ${alert.profiles.full_name}`);
+          logger.info(`Notification sent for alert ${alert.id} to student ${alert.profiles.full_name}`);
         } catch (notifError) {
-          console.error(`Error sending notification for alert ${alert.id}:`, notifError);
+          logger.error(`Error sending notification for alert ${alert.id}:`, notifError);
         }
       }
     } catch (error) {
-      console.error('Error sending expiry notifications:', error);
+      logger.error('Error sending expiry notifications:', error);
     }
   }
 
@@ -194,13 +195,13 @@ export class HourExpiryCronService {
         .select();
 
       if (error) {
-        console.error('Error cleaning up old alerts:', error);
+        logger.error('Error cleaning up old alerts:', error);
         return 0;
       }
 
       return data?.length || 0;
     } catch (error) {
-      console.error('Error in cleanup process:', error);
+      logger.error('Error in cleanup process:', error);
       return 0;
     }
   }
@@ -211,14 +212,14 @@ export const hourExpiryCronService = new HourExpiryCronService();
 
 // Function to be called by cron job
 export async function runHourExpiryJob() {
-  console.log('Starting hour expiry job at', new Date().toISOString());
+  logger.info('Starting hour expiry job at', new Date().toISOString());
   
   const service = new HourExpiryCronService();
   const results = await service.runExpiryProcess();
   
   // Also clean up old alerts
   const cleaned = await service.cleanupOldAlerts();
-  console.log(`Cleaned up ${cleaned} old alerts`);
+  logger.info(`Cleaned up ${cleaned} old alerts`);
   
   return results;
 }

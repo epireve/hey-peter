@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * HeyPeter Academy - Teacher Performance Analytics Service
  * 
@@ -605,7 +606,7 @@ export class TeacherPerformanceAnalytics {
       .order('recorded_at', { ascending: true });
 
     if (error) {
-      console.error('Failed to fetch historical data:', error);
+      logger.error('Failed to fetch historical data:', error);
       return trends;
     }
 
@@ -1155,7 +1156,7 @@ export class TeacherPerformanceAnalytics {
           const metrics = await this.getTeacherPerformanceMetrics(teacher.id);
           return { teacherId: teacher.id, name: teacher.users.full_name, metrics };
         } catch (error) {
-          console.error(`Error getting metrics for teacher ${teacher.id}:`, error);
+          logger.error(`Error getting metrics for teacher ${teacher.id}:`, error);
           return null;
         }
       })

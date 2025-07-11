@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Teacher Hour Tracking Service
  * Service for managing teacher hours, compensation, and performance tracking
@@ -79,7 +80,7 @@ class TeacherHourTrackingService {
         data: summary
       };
     } catch (error) {
-      console.error('Error getting teacher hour summary:', error);
+      logger.error('Error getting teacher hour summary:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get teacher summary'
@@ -144,7 +145,7 @@ class TeacherHourTrackingService {
         }
       };
     } catch (error) {
-      console.error('Error getting teacher hours:', error);
+      logger.error('Error getting teacher hours:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get teacher hours'
@@ -216,7 +217,7 @@ class TeacherHourTrackingService {
         data: hourEntry
       };
     } catch (error) {
-      console.error('Error creating teacher hour entry:', error);
+      logger.error('Error creating teacher hour entry:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to create hour entry'
@@ -252,7 +253,7 @@ class TeacherHourTrackingService {
         data
       };
     } catch (error) {
-      console.error('Error updating teacher hour status:', error);
+      logger.error('Error updating teacher hour status:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update status'
@@ -299,7 +300,7 @@ class TeacherHourTrackingService {
         data
       };
     } catch (error) {
-      console.error('Error adding bonus to teacher hour:', error);
+      logger.error('Error adding bonus to teacher hour:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to add bonus'
@@ -326,7 +327,7 @@ class TeacherHourTrackingService {
         data: data || []
       };
     } catch (error) {
-      console.error('Error getting compensation rules:', error);
+      logger.error('Error getting compensation rules:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get compensation rules'
@@ -374,7 +375,7 @@ class TeacherHourTrackingService {
         data: newRule
       };
     } catch (error) {
-      console.error('Error setting compensation rule:', error);
+      logger.error('Error setting compensation rule:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to set compensation rule'
@@ -409,7 +410,7 @@ class TeacherHourTrackingService {
         data: data || 0
       };
     } catch (error) {
-      console.error('Error calculating compensation:', error);
+      logger.error('Error calculating compensation:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to calculate compensation'
@@ -491,7 +492,7 @@ class TeacherHourTrackingService {
         data: analytics
       };
     } catch (error) {
-      console.error('Error getting performance analytics:', error);
+      logger.error('Error getting performance analytics:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get analytics'
@@ -523,7 +524,7 @@ class TeacherHourTrackingService {
         data: data || []
       };
     } catch (error) {
-      console.error('Error getting pending compensation:', error);
+      logger.error('Error getting pending compensation:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get pending compensation'
@@ -548,7 +549,7 @@ class TeacherHourTrackingService {
         data: count || 0
       };
     } catch (error) {
-      console.error('Error bulk approving teacher hours:', error);
+      logger.error('Error bulk approving teacher hours:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to approve hours'
@@ -608,7 +609,7 @@ class TeacherHourTrackingService {
         data: payrollData
       };
     } catch (error) {
-      console.error('Error exporting teacher hours for payroll:', error);
+      logger.error('Error exporting teacher hours for payroll:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to export payroll data'

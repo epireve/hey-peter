@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 // ========================================
 // Popup Manager Component
 // Main component that handles A/B testing, trigger evaluation, and popup display
@@ -100,7 +102,7 @@ export function PopupManager({
           setGeoInfo(geoInfo);
         }
       } catch (error) {
-        console.warn('Could not fetch geo information:', error);
+        logger.warn('Could not fetch geo information:', error);
       }
 
       // Check visitor consent
@@ -124,7 +126,7 @@ export function PopupManager({
       }
 
     } catch (error) {
-      console.error('Error initializing popup manager:', error);
+      logger.error('Error initializing popup manager:', error);
     }
   };
 
@@ -177,7 +179,7 @@ export function PopupManager({
       }
 
     } catch (error) {
-      console.error('Error evaluating popups:', error);
+      logger.error('Error evaluating popups:', error);
     }
   };
 
@@ -270,13 +272,13 @@ export function PopupManager({
       }
 
     } catch (error) {
-      console.error('Error setting up campaign display:', error);
+      logger.error('Error setting up campaign display:', error);
     }
   };
 
   const handleDisplay = (data: TrackDisplayRequest) => {
     // Display tracking is already handled in setupCampaignDisplay
-    console.log('Popup displayed:', data);
+    logger.info('Popup displayed:', data);
   };
 
   const handleInteraction = async (data: TrackInteractionRequest) => {
@@ -288,7 +290,7 @@ export function PopupManager({
         display_id: activePopup.displayId
       });
     } catch (error) {
-      console.error('Error tracking interaction:', error);
+      logger.error('Error tracking interaction:', error);
     }
   };
 
@@ -315,7 +317,7 @@ export function PopupManager({
       });
 
     } catch (error) {
-      console.error('Error submitting lead:', error);
+      logger.error('Error submitting lead:', error);
     }
   };
 
@@ -346,7 +348,7 @@ export function PopupManager({
       }
 
     } catch (error) {
-      console.error('Error granting consent:', error);
+      logger.error('Error granting consent:', error);
     }
   };
 

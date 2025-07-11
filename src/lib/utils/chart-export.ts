@@ -1,5 +1,6 @@
 import { ChartDataPoint, ChartExportOptions } from '@/types/charts';
 
+import { logger } from '@/lib/services';
 /**
  * Enhanced chart export utilities with multiple format support
  */
@@ -38,7 +39,7 @@ export class ChartExportService {
         }
       }, `image/${options.format}`, options.quality || 1);
     } catch (error) {
-      console.error('Failed to export chart as image:', error);
+      logger.error('Failed to export chart as image:', error);
       throw new Error('Image export failed');
     }
   }
@@ -94,7 +95,7 @@ export class ChartExportService {
       // Save PDF
       pdf.save(`${options.filename || 'chart'}.pdf`);
     } catch (error) {
-      console.error('Failed to export chart as PDF:', error);
+      logger.error('Failed to export chart as PDF:', error);
       throw new Error('PDF export failed');
     }
   }
@@ -144,7 +145,7 @@ export class ChartExportService {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export chart as SVG:', error);
+      logger.error('Failed to export chart as SVG:', error);
       throw new Error('SVG export failed');
     }
   }
@@ -192,7 +193,7 @@ export class ChartExportService {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export as CSV:', error);
+      logger.error('Failed to export as CSV:', error);
       throw new Error('CSV export failed');
     }
   }
@@ -236,16 +237,16 @@ export class ChartExportService {
           const imgData = canvas.toDataURL('image/png');
           // Note: Adding images to Excel requires additional libraries
           // This is a placeholder for the image functionality
-          console.log('Chart image generated but not added to Excel (requires additional libraries)');
+          logger.info('Chart image generated but not added to Excel (requires additional libraries)');
         } catch (error) {
-          console.warn('Failed to add chart image to Excel:', error);
+          logger.warn('Failed to add chart image to Excel:', error);
         }
       }
 
       // Save file
       XLSX.writeFile(wb, `${filename}.xlsx`);
     } catch (error) {
-      console.error('Failed to export as Excel:', error);
+      logger.error('Failed to export as Excel:', error);
       throw new Error('Excel export failed');
     }
   }
@@ -278,7 +279,7 @@ export class ChartExportService {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export as JSON:', error);
+      logger.error('Failed to export as JSON:', error);
       throw new Error('JSON export failed');
     }
   }
@@ -317,7 +318,7 @@ export class ChartExportService {
         throw new Error(`Unsupported format: ${format}`);
       }
     } catch (error) {
-      console.error('Failed to export dashboard report:', error);
+      logger.error('Failed to export dashboard report:', error);
       throw new Error('Dashboard report export failed');
     }
   }
@@ -391,7 +392,7 @@ export class ChartExportService {
           pdf.addImage(imgData, 'PNG', margin, yPosition, imgWidth, Math.min(imgHeight, 80));
           yPosition += Math.min(imgHeight, 80) + 10;
         } catch (error) {
-          console.warn(`Failed to add chart ${chart.title} to PDF:`, error);
+          logger.warn(`Failed to add chart ${chart.title} to PDF:`, error);
           yPosition += 10;
         }
       }
@@ -399,7 +400,7 @@ export class ChartExportService {
       // Save PDF
       pdf.save(`${options.filename}.pdf`);
     } catch (error) {
-      console.error('Failed to export dashboard as PDF:', error);
+      logger.error('Failed to export dashboard as PDF:', error);
       throw error;
     }
   }
@@ -442,7 +443,7 @@ export class ChartExportService {
       // Save file
       XLSX.writeFile(wb, `${options.filename}.xlsx`);
     } catch (error) {
-      console.error('Failed to export dashboard as Excel:', error);
+      logger.error('Failed to export dashboard as Excel:', error);
       throw error;
     }
   }
@@ -538,7 +539,7 @@ export class ChartExportService {
           throw new Error(`Unsupported export format: ${format}`);
       }
     } catch (error) {
-      console.error('Failed to export chart:', error);
+      logger.error('Failed to export chart:', error);
       throw error;
     }
   }

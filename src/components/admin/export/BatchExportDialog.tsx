@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -185,7 +187,7 @@ export function BatchExportDialog({
       }, 500);
 
     } catch (error) {
-      console.error('Batch export failed:', error);
+      logger.error('Batch export failed:', error);
       
       // Mark failed items
       const failedStatus: { [key: string]: 'pending' | 'processing' | 'completed' | 'failed' } = {};

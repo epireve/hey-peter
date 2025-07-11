@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { autoPostponementService } from '@/lib/services/auto-postponement-service';
 
+import { logger } from '@/lib/services';
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -42,7 +43,7 @@ export async function GET(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    console.error('Error fetching make-up classes:', error);
+    logger.error('Error fetching make-up classes:', error);
     return NextResponse.json(
       { error: 'Failed to fetch make-up classes', success: false },
       { status: 500 }
@@ -84,7 +85,7 @@ export async function PUT(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Error updating make-up class:', error);
+    logger.error('Error updating make-up class:', error);
     return NextResponse.json(
       { error: 'Failed to update make-up class', success: false },
       { status: 500 }

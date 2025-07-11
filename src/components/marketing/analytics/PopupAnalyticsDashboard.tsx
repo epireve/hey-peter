@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 // ========================================
 // Popup Analytics Dashboard
 // Comprehensive analytics tracking for popup performance
@@ -189,7 +191,7 @@ export function PopupAnalyticsDashboard() {
       setABTestResults(abTestData.flat());
 
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      logger.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -201,7 +203,7 @@ export function PopupAnalyticsDashboard() {
 
   const handleExport = () => {
     // TODO: Implement export functionality
-    console.log('Exporting analytics data...');
+    logger.info('Exporting analytics data...');
   };
 
   // Prepare chart data

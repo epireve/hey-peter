@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,7 +59,7 @@ export function AutoSchedulingDashboard({ className }: AutoSchedulingDashboardPr
         setLastOptimization(new Date(parsed.timestamp));
       }
     } catch (error) {
-      console.error('Failed to load last optimization data:', error);
+      logger.error('Failed to load last optimization data:', error);
     }
   };
 
@@ -105,7 +107,7 @@ export function AutoSchedulingDashboard({ className }: AutoSchedulingDashboardPr
         throw new Error(response.error || 'Scheduling failed');
       }
     } catch (error) {
-      console.error('Auto-scheduling failed:', error);
+      logger.error('Auto-scheduling failed:', error);
       setOptimizationProgress(0);
     } finally {
       setIsRunning(false);

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 "use server";
 
 import { createClient } from '@supabase/supabase-js';
@@ -20,7 +21,7 @@ export async function getUsers() {
     .select("*")
     .order("created_at", { ascending: false });
 
-  console.log("getUsers result:", { data, error });
+  logger.info("getUsers result:", { data, error });
 
   if (error) {
     return {
@@ -47,7 +48,7 @@ export async function getUsers() {
     last_sign_in_at: null,
   })) || [];
 
-  console.log("Mapped users count:", mappedUsers.length);
+  logger.info("Mapped users count:", mappedUsers.length);
 
   return {
     data: mappedUsers,

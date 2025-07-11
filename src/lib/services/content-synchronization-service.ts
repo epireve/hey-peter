@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { withRetry } from "./crud-service";
+import { logger } from '@/lib/services';
 import { 
   ContentSyncConfig, 
   ContentSyncStatus, 
@@ -706,7 +707,7 @@ export class ContentSynchronizationService {
         break;
       default:
         // Log for manual review
-        console.warn(`Unhandled conflict type: ${conflict.conflictType}`);
+        logger.warn(`Unhandled conflict type: ${conflict.conflictType}`);
     }
   }
 
@@ -740,7 +741,7 @@ export class ContentSynchronizationService {
     );
 
     // Log resolution actions
-    console.log(`Progression gap resolution actions:`, alignmentActions);
+    logger.info(`Progression gap resolution actions:`, alignmentActions);
   }
 
   private async generateProgressionAlignment(
@@ -865,12 +866,12 @@ export class ContentSynchronizationService {
   private async performMerge(operation: ContentSyncOperation): Promise<void> {
     // Implement merge logic
     // This would involve sophisticated content merging algorithms
-    console.log(`Performing merge for operation ${operation.id}`);
+    logger.info(`Performing merge for operation ${operation.id}`);
   }
 
   private async performUpdate(operation: ContentSyncOperation): Promise<void> {
     // Implement update logic
-    console.log(`Performing update for operation ${operation.id}`);
+    logger.info(`Performing update for operation ${operation.id}`);
   }
 
   private async updateGroupContent(groupId: string, content: any): Promise<void> {

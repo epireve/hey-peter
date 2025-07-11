@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 // ========================================
 // Popup Campaign Manager
 // Admin dashboard for managing popup campaigns and variations
@@ -103,7 +105,7 @@ export function PopupCampaignManager() {
       }));
 
     } catch (error) {
-      console.error('Error loading campaigns:', error);
+      logger.error('Error loading campaigns:', error);
       setState(prev => ({ ...prev, loading: false }));
     }
   };
@@ -113,7 +115,7 @@ export function PopupCampaignManager() {
       const variations = await popupMarketingService.getCampaignVariations(campaignId);
       setState(prev => ({ ...prev, variations }));
     } catch (error) {
-      console.error('Error loading variations:', error);
+      logger.error('Error loading variations:', error);
     }
   };
 
@@ -163,7 +165,7 @@ export function PopupCampaignManager() {
       await popupMarketingService.updateCampaign(campaign.id, { status: newStatus });
       loadCampaigns();
     } catch (error) {
-      console.error('Error toggling campaign status:', error);
+      logger.error('Error toggling campaign status:', error);
     }
   };
 
@@ -176,7 +178,7 @@ export function PopupCampaignManager() {
       }));
       loadCampaigns();
     } catch (error) {
-      console.error('Error deleting campaign:', error);
+      logger.error('Error deleting campaign:', error);
     }
   };
 
@@ -194,7 +196,7 @@ export function PopupCampaignManager() {
       await popupMarketingService.createCampaign(duplicateData);
       loadCampaigns();
     } catch (error) {
-      console.error('Error duplicating campaign:', error);
+      logger.error('Error duplicating campaign:', error);
     }
   };
 

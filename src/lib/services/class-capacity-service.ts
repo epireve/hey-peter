@@ -1,6 +1,7 @@
 import { CRUDService, withRetry } from "./crud-service";
 import { supabase } from "@/lib/supabase";
 import { z } from "zod";
+import { logger } from '@/lib/services';
 import { 
   CLASS_CAPACITY, 
   COURSE_TYPE_CAPACITY, 
@@ -123,7 +124,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
         capacity_utilization: Math.round(capacityUtilization),
       };
     } catch (error) {
-      console.error('Error getting class capacity:', error);
+      logger.error('Error getting class capacity:', error);
       return null;
     }
   }
@@ -210,7 +211,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
 
       return { success: false, error: 'Class is full and waiting list is at capacity' };
     } catch (error) {
-      console.error('Error enrolling student:', error);
+      logger.error('Error enrolling student:', error);
       return { success: false, error: 'Failed to enroll student' };
     }
   }
@@ -243,7 +244,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
 
       return { success: true, promoted_from_waitlist: promoted };
     } catch (error) {
-      console.error('Error dropping student:', error);
+      logger.error('Error dropping student:', error);
       return { success: false, error: 'Failed to drop student' };
     }
   }
@@ -291,7 +292,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
 
       return true;
     } catch (error) {
-      console.error('Error promoting from waitlist:', error);
+      logger.error('Error promoting from waitlist:', error);
       return false;
     }
   }
@@ -355,7 +356,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
         student_email: entry.student.email,
       }));
     } catch (error) {
-      console.error('Error getting waiting list:', error);
+      logger.error('Error getting waiting list:', error);
       return [];
     }
   }
@@ -422,7 +423,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
 
       return recommendations;
     } catch (error) {
-      console.error('Error getting classes that need attention:', error);
+      logger.error('Error getting classes that need attention:', error);
       return [];
     }
   }
@@ -475,7 +476,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
 
       return { success: true, new_class_id: newClass.id };
     } catch (error) {
-      console.error('Error creating overflow class:', error);
+      logger.error('Error creating overflow class:', error);
       return { success: false, error: 'Failed to create overflow class' };
     }
   }
@@ -542,7 +543,7 @@ export class ClassCapacityService extends CRUDService<Enrollment> {
 
       return stats;
     } catch (error) {
-      console.error('Error getting enrollment stats:', error);
+      logger.error('Error getting enrollment stats:', error);
       return {
         total_enrolled: 0,
         total_waitlisted: 0,

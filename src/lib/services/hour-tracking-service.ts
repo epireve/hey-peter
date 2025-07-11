@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Hour Tracking Service
  * Comprehensive service for managing student hours, purchases, and deductions
@@ -35,7 +36,7 @@ class HourTrackingService {
         data: data || 0
       };
     } catch (error) {
-      console.error('Error getting student hour balance:', error);
+      logger.error('Error getting student hour balance:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get hour balance'
@@ -118,7 +119,7 @@ class HourTrackingService {
         data: summary
       };
     } catch (error) {
-      console.error('Error getting student hour summary:', error);
+      logger.error('Error getting student hour summary:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get hour summary'
@@ -172,7 +173,7 @@ class HourTrackingService {
           });
 
         if (expirationError) {
-          console.warn('Failed to create expiration record:', expirationError);
+          logger.warn('Failed to create expiration record:', expirationError);
         }
       }
 
@@ -181,7 +182,7 @@ class HourTrackingService {
         data: purchase
       };
     } catch (error) {
-      console.error('Error purchasing hours:', error);
+      logger.error('Error purchasing hours:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to purchase hours'
@@ -220,7 +221,7 @@ class HourTrackingService {
         data: result
       };
     } catch (error) {
-      console.error('Error deducting hours:', error);
+      logger.error('Error deducting hours:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to deduct hours'
@@ -282,7 +283,7 @@ class HourTrackingService {
         data: transaction
       };
     } catch (error) {
-      console.error('Error adjusting hours:', error);
+      logger.error('Error adjusting hours:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to adjust hours'
@@ -348,7 +349,7 @@ class HourTrackingService {
         }
       };
     } catch (error) {
-      console.error('Error getting hour transactions:', error);
+      logger.error('Error getting hour transactions:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get transactions'
@@ -374,7 +375,7 @@ class HourTrackingService {
         data: data || []
       };
     } catch (error) {
-      console.error('Error getting hour purchases:', error);
+      logger.error('Error getting hour purchases:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get purchases'
@@ -399,7 +400,7 @@ class HourTrackingService {
         data: data || []
       };
     } catch (error) {
-      console.error('Error getting hour policies:', error);
+      logger.error('Error getting hour policies:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get policies'
@@ -426,7 +427,7 @@ class HourTrackingService {
         data
       };
     } catch (error) {
-      console.error('Error updating hour policy:', error);
+      logger.error('Error updating hour policy:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update policy'
@@ -449,7 +450,7 @@ class HourTrackingService {
         data: data || 1.0
       };
     } catch (error) {
-      console.error('Error getting deduction rate:', error);
+      logger.error('Error getting deduction rate:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get deduction rate'
@@ -476,7 +477,7 @@ class HourTrackingService {
         data: data || []
       };
     } catch (error) {
-      console.error('Error getting hour expirations:', error);
+      logger.error('Error getting hour expirations:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get expirations'
@@ -544,7 +545,7 @@ class HourTrackingService {
         data: analytics
       };
     } catch (error) {
-      console.error('Error getting hour analytics:', error);
+      logger.error('Error getting hour analytics:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get analytics'
@@ -591,7 +592,7 @@ class HourTrackingService {
         data: expiringHours.length
       };
     } catch (error) {
-      console.error('Error processing expiration warnings:', error);
+      logger.error('Error processing expiration warnings:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to process warnings'

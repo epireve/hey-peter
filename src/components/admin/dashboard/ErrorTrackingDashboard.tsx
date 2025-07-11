@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -105,7 +107,7 @@ export default function ErrorTrackingDashboard() {
 
       setData({ logs, errors, performance, alerts });
     } catch (error) {
-      console.error('Failed to load dashboard data:', error);
+      logger.error('Failed to load dashboard data:', error);
     } finally {
       setLoading(false);
     }
@@ -146,7 +148,7 @@ export default function ErrorTrackingDashboard() {
         URL.revokeObjectURL(url);
       }
     } catch (error) {
-      console.error('Failed to export data:', error);
+      logger.error('Failed to export data:', error);
     }
   };
 

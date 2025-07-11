@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { ExportDashboard } from '@/components/admin/export';
 import { analyticsAggregationService } from '@/lib/services/analytics-aggregation-service';
@@ -116,7 +118,7 @@ export default function ExportPage() {
       });
 
     } catch (error) {
-      console.error('Failed to load analytics data:', error);
+      logger.error('Failed to load analytics data:', error);
     } finally {
       setLoading(false);
     }

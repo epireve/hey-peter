@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Teacher Performance Database Service
  * 
@@ -444,7 +445,7 @@ export class TeacherPerformanceDbService {
         try {
           return await this.getTeacherPerformanceMetrics(teacher.id);
         } catch (error) {
-          console.error(`Error getting metrics for teacher ${teacher.id}:`, error);
+          logger.error(`Error getting metrics for teacher ${teacher.id}:`, error);
           return null;
         }
       })

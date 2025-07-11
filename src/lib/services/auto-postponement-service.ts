@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Auto-Postponement Service
  * 
@@ -288,7 +289,7 @@ export class AutoPostponementService {
         .single();
 
       if (classError) {
-        console.error('Error fetching class data:', classError);
+        logger.error('Error fetching class data:', classError);
         continue;
       }
 

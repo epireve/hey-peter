@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 import { 
   getEmailNotificationService, 
   NotificationTrigger,
@@ -48,7 +49,7 @@ export class SchedulingEmailIntegration {
         notificationData
       );
     } catch (error) {
-      console.error('Failed to send booking creation notification:', error);
+      logger.error('Failed to send booking creation notification:', error);
     }
   }
 
@@ -85,7 +86,7 @@ export class SchedulingEmailIntegration {
         notificationData
       );
     } catch (error) {
-      console.error('Failed to send booking cancellation notification:', error);
+      logger.error('Failed to send booking cancellation notification:', error);
     }
   }
 
@@ -119,7 +120,7 @@ export class SchedulingEmailIntegration {
         notificationData
       );
     } catch (error) {
-      console.error('Failed to send schedule change notification:', error);
+      logger.error('Failed to send schedule change notification:', error);
     }
   }
 
@@ -172,7 +173,7 @@ export class SchedulingEmailIntegration {
         notificationData
       );
     } catch (error) {
-      console.error('Failed to send conflict notification:', error);
+      logger.error('Failed to send conflict notification:', error);
     }
   }
 
@@ -222,7 +223,7 @@ export class SchedulingEmailIntegration {
         affectedBookings
       });
     } catch (error) {
-      console.error('Failed to send teacher availability change notification:', error);
+      logger.error('Failed to send teacher availability change notification:', error);
     }
   }
 
@@ -263,7 +264,7 @@ export class SchedulingEmailIntegration {
         }
       }
     } catch (error) {
-      console.error('Failed to schedule class reminders:', error);
+      logger.error('Failed to schedule class reminders:', error);
     }
   }
 

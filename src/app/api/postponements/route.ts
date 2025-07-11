@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { autoPostponementService } from '@/lib/services/auto-postponement-service';
 import { makeUpClassSuggestionService } from '@/lib/services/makeup-class-suggestion-service';
 
+import { logger } from '@/lib/services';
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -34,7 +35,7 @@ export async function GET(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    console.error('Error fetching postponements:', error);
+    logger.error('Error fetching postponements:', error);
     return NextResponse.json(
       { error: 'Failed to fetch postponements', success: false },
       { status: 500 }
@@ -79,7 +80,7 @@ export async function POST(request: NextRequest) {
         );
     }
   } catch (error) {
-    console.error('Error processing postponement action:', error);
+    logger.error('Error processing postponement action:', error);
     return NextResponse.json(
       { error: 'Failed to process action', success: false },
       { status: 500 }

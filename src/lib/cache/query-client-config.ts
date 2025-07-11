@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * React Query/TanStack Query configuration with optimal defaults
  * Provides production-ready query client setup with advanced caching strategies
@@ -86,7 +87,7 @@ export function createOptimizedQueryClient(config: OptimizedQueryClientConfig = 
   // Query cache with monitoring and optimization
   const queryCache = new QueryCache({
     onError: (error, query) => {
-      console.error(`Query error for key ${JSON.stringify(query.queryKey)}:`, error);
+      logger.error(`Query error for key ${JSON.stringify(query.queryKey)}:`, error);
       
       if (monitor) {
         monitor.recordOperation({
@@ -116,7 +117,7 @@ export function createOptimizedQueryClient(config: OptimizedQueryClientConfig = 
       // Check for slow queries
       const duration = Date.now() - (query.state.fetchedAt || Date.now());
       if (duration > thresholds.slowQueryMs) {
-        console.warn(
+        logger.warn(
           `Slow query detected: ${JSON.stringify(query.queryKey)} took ${duration}ms`
         );
       }
@@ -125,7 +126,7 @@ export function createOptimizedQueryClient(config: OptimizedQueryClientConfig = 
       if (monitor) {
         monitor.getMetrics().then(metrics => {
           if (metrics.totalSize > limits.maxMemoryUsage) {
-            console.warn('Cache memory usage exceeds limit, consider cleanup');
+            logger.warn('Cache memory usage exceeds limit, consider cleanup');
           }
         });
       }
@@ -135,7 +136,7 @@ export function createOptimizedQueryClient(config: OptimizedQueryClientConfig = 
   // Mutation cache with monitoring
   const mutationCache = new MutationCache({
     onError: (error, variables, context, mutation) => {
-      console.error('Mutation error:', error);
+      logger.error('Mutation error:', error);
       
       if (monitor) {
         monitor.recordOperation({
@@ -310,12 +311,12 @@ export function createOptimizedQueryClient(config: OptimizedQueryClientConfig = 
           queryClient.removeQueries({ queryKey: query.queryKey });
         });
 
-        console.log(`Removed ${queriesToRemove} old queries to manage cache size`);
+        logger.info(`Removed ${queriesToRemove} old queries to manage cache size`);
       }
 
       if (limits.maxMutations && mutationCount > limits.maxMutations) {
         queryClient.getMutationCache().clear();
-        console.log('Cleared mutation cache to manage size');
+        logger.info('Cleared mutation cache to manage size');
       }
     };
 

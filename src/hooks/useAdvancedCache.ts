@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Advanced caching hook that integrates all caching strategies
  * Built on top of the existing useOptimizedQuery hook
@@ -335,7 +336,7 @@ export function useAdvancedCache<T>(options: AdvancedCacheOptions<T>): AdvancedC
         options.warmingPriority || 'medium'
       );
     } catch (error) {
-      console.error('Cache warming failed:', error);
+      logger.error('Cache warming failed:', error);
     }
   }, [cacheKeyString, queryFn, options.warmingPriority]);
 
@@ -352,7 +353,7 @@ export function useAdvancedCache<T>(options: AdvancedCacheOptions<T>): AdvancedC
         )
       );
     } catch (error) {
-      console.error('Related query prefetching failed:', error);
+      logger.error('Related query prefetching failed:', error);
     }
   }, [prefetchRelated, queryClient, queryFn, options.staleTime]);
 

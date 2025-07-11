@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { lazy, ComponentType, LazyExoticComponent } from 'react';
 import { LoadingBoundary, DashboardLoader, AnalyticsLoader, TableLoader, FormLoader, SettingsLoader } from '@/components/ui/loading-boundary';
 import { ErrorBoundary, DashboardErrorBoundary, AnalyticsErrorBoundary, FormErrorBoundary, TableErrorBoundary } from '@/components/ui/error-boundary';
@@ -54,7 +56,7 @@ const createRetryableImport = <T>(
         if (i < retry) {
           // Wait before retrying
           await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
-          console.warn(`Import failed, retrying (${i + 1}/${retry})...`, error);
+          logger.warn(`Import failed, retrying (${i + 1}/${retry})...`, error);
         }
       }
     }
@@ -123,7 +125,7 @@ export function createLazyComponent<T extends ComponentType<any>>(
     // Preload after a short delay to not block initial render
     setTimeout(() => {
       retryableImport().catch(error => {
-        console.warn('Preload failed for component:', error);
+        logger.warn('Preload failed for component:', error);
       });
     }, 100);
   }
@@ -225,7 +227,7 @@ export const preloadComponent = (
 
   setTimeout(() => {
     importFn().catch(error => {
-      console.warn('Component preload failed:', error);
+      logger.warn('Component preload failed:', error);
     });
   }, delay);
 };
@@ -248,7 +250,7 @@ export const useIntersectionPreload = (
         if (entry.isIntersecting && !hasPreloaded) {
           setHasPreloaded(true);
           importFn().catch(error => {
-            console.warn('Intersection preload failed:', error);
+            logger.warn('Intersection preload failed:', error);
           });
         }
       },
@@ -273,7 +275,7 @@ export const useHoverPreload = (importFn: () => Promise<any>) => {
     if (!hasPreloaded) {
       setHasPreloaded(true);
       importFn().catch(error => {
-        console.warn('Hover preload failed:', error);
+        logger.warn('Hover preload failed:', error);
       });
     }
   }, [importFn, hasPreloaded]);
@@ -284,7 +286,7 @@ export const useHoverPreload = (importFn: () => Promise<any>) => {
 // Bundle analyzer helper for development
 export const logChunkInfo = (componentName: string) => {
   if (process.env.NODE_ENV === 'development') {
-    console.log(`Loading chunk for: ${componentName}`);
+    logger.info(`Loading chunk for: ${componentName}`);
   }
 };
 

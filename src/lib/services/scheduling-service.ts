@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * HeyPeter Academy - Core Scheduling Service
  * 
@@ -546,7 +547,7 @@ export class SchedulingService {
 
       return recommendations.slice(0, 10); // Return top 10 recommendations
     } catch (error) {
-      console.error('Error generating recommendations:', error);
+      logger.error('Error generating recommendations:', error);
       
       // Fallback to basic recommendations
       return this.generateBasicRecommendations(conflicts);
@@ -607,7 +608,7 @@ export class SchedulingService {
         }
       }
     } catch (error) {
-      console.error('Error generating alternative class recommendations:', error);
+      logger.error('Error generating alternative class recommendations:', error);
     }
   }
 
@@ -660,7 +661,7 @@ export class SchedulingService {
         }
       }
     } catch (error) {
-      console.error('Error generating time slot alternatives:', error);
+      logger.error('Error generating time slot alternatives:', error);
     }
   }
 
@@ -717,7 +718,7 @@ export class SchedulingService {
         }
       }
     } catch (error) {
-      console.error('Error generating content-based alternatives:', error);
+      logger.error('Error generating content-based alternatives:', error);
     }
   }
 
@@ -757,7 +758,7 @@ export class SchedulingService {
 
       return baseRecommendation;
     } catch (error) {
-      console.error('Error generating conflict resolution recommendation:', error);
+      logger.error('Error generating conflict resolution recommendation:', error);
       return null;
     }
   }
@@ -945,7 +946,7 @@ export class SchedulingService {
     };
 
     // In a real implementation, this would publish to an event system
-    console.log('[SchedulingService Event]', event);
+    logger.info('[SchedulingService Event]', event);
   }
 
   /**

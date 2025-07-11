@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -88,7 +90,7 @@ export function TeacherPerformanceDashboard({ className }: TeacherPerformanceDas
       setCohortAnalysis(cohort);
       setTeacherMetrics(searchResults.teachers);
     } catch (err) {
-      console.error('Failed to load dashboard data:', err);
+      logger.error('Failed to load dashboard data:', err);
       setError('Failed to load teacher performance data. Please try again.');
     } finally {
       setLoading(false);
@@ -111,9 +113,9 @@ export function TeacherPerformanceDashboard({ className }: TeacherPerformanceDas
       );
       
       // In a real app, this would trigger a download
-      console.log('Generated report:', report);
+      logger.info('Generated report:', report);
     } catch (err) {
-      console.error('Failed to generate report:', err);
+      logger.error('Failed to generate report:', err);
     }
   };
 

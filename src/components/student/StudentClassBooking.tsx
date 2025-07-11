@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useMemo } from 'react';
 import {
   Calendar,
@@ -320,7 +322,7 @@ export function StudentClassBooking({
         resetBookingForm();
       }
     } catch (error) {
-      console.error('Failed to book class:', error);
+      logger.error('Failed to book class:', error);
     } finally {
       setProcessing(false);
     }
@@ -339,7 +341,7 @@ export function StudentClassBooking({
         setSelectedBooking(null);
       }
     } catch (error) {
-      console.error('Failed to cancel booking:', error);
+      logger.error('Failed to cancel booking:', error);
     } finally {
       setProcessing(false);
     }

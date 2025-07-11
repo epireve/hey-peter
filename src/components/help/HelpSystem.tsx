@@ -1,5 +1,7 @@
 'use client'
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { 
@@ -139,7 +141,7 @@ const SmartHelpSearch: React.FC = () => {
         setSuggestions(data.suggestions || [])
       }
     } catch (error) {
-      console.error('Help search error:', error)
+      logger.error('Help search error:', error)
     } finally {
       setLoading(false)
     }
@@ -259,7 +261,7 @@ const HelpAssistant: React.FC = () => {
         setMessages(prev => [...prev, assistantMessage])
       }
     } catch (error) {
-      console.error('Help assistant error:', error)
+      logger.error('Help assistant error:', error)
       const errorMessage: ChatMessage = {
         role: 'assistant',
         content: 'Sorry, I\'m having trouble right now. Please try contacting support directly.',

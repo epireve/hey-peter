@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { autoPostponementService } from '@/lib/services/auto-postponement-service';
 
+import { logger } from '@/lib/services';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    console.error('Error fetching postponement analytics:', error);
+    logger.error('Error fetching postponement analytics:', error);
     return NextResponse.json(
       { error: 'Failed to fetch analytics', success: false },
       { status: 500 }

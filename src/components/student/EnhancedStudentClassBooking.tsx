@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, Users, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -89,10 +91,10 @@ export function EnhancedStudentClassBooking({
     autoCheck: true,
     debounceMs: 500,
     onConflictsDetected: (conflicts, duplicates) => {
-      console.log('Conflicts detected:', { conflicts, duplicates });
+      logger.info('Conflicts detected:', { conflicts, duplicates });
     },
     onErrorsChanged: (hasErrors) => {
-      console.log('Error state changed:', hasErrors);
+      logger.info('Error state changed:', hasErrors);
     },
   });
 
@@ -163,7 +165,7 @@ export function EnhancedStudentClassBooking({
         resetForm();
       }
     } catch (error) {
-      console.error('Booking failed:', error);
+      logger.error('Booking failed:', error);
     } finally {
       setIsProcessing(false);
     }

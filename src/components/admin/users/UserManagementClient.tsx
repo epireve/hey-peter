@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState } from 'react';
 import { DataTable } from '@/components/ui/data-table';
 import { columns } from '@/app/admin/users/columns';
@@ -26,8 +28,8 @@ export function UserManagementClient({ initialUsers }: UserManagementClientProps
   
   // Debug logging
   React.useEffect(() => {
-    console.log("UserManagementClient - initialUsers:", initialUsers);
-    console.log("UserManagementClient - users count:", users.length);
+    logger.info("UserManagementClient - initialUsers:", initialUsers);
+    logger.info("UserManagementClient - users count:", users.length);
   }, [initialUsers, users]);
 
   const handleRefresh = () => {
@@ -101,7 +103,7 @@ export function UserManagementClient({ initialUsers }: UserManagementClientProps
           successCount++;
         } catch (error) {
           errorCount++;
-          console.error('Error importing user:', error);
+          logger.error('Error importing user:', error);
         }
       }
 

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * HeyPeter Academy - Class Attendance Analytics Service
  * 
@@ -777,7 +778,7 @@ export class ClassAttendanceAnalyticsService {
           });
         }
       } catch (error) {
-        console.warn(`Failed to compare with class ${similarClass.id}:`, error);
+        logger.warn(`Failed to compare with class ${similarClass.id}:`, error);
       }
     }
 

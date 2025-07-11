@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import { useState, useEffect } from 'react';
 import { StudentInformationManager } from './StudentInformationManager';
 // import { studentManagementService } from '@/lib/services/student-management-service';
@@ -67,7 +69,7 @@ export function StudentInformationManagerClient() {
       await new Promise(resolve => setTimeout(resolve, 1000));
       setStudents(mockData);
     } catch (error) {
-      console.error('Failed to load students:', error);
+      logger.error('Failed to load students:', error);
       toast({
         title: 'Error loading students',
         description: 'An unexpected error occurred while loading students.',
@@ -81,7 +83,7 @@ export function StudentInformationManagerClient() {
   const handleCreateStudent = async (studentData: Partial<StudentInfo>) => {
     try {
       // Mock implementation - will be replaced with real database integration
-      console.log('Creating student:', studentData);
+      logger.info('Creating student:', studentData);
       
       toast({
         title: 'Student created successfully',
@@ -92,7 +94,7 @@ export function StudentInformationManagerClient() {
       await loadStudents();
       return true;
     } catch (error) {
-      console.error('Failed to create student:', error);
+      logger.error('Failed to create student:', error);
       toast({
         title: 'Error creating student',
         description: 'An unexpected error occurred while creating the student.',
@@ -105,7 +107,7 @@ export function StudentInformationManagerClient() {
   const handleUpdateStudent = async (studentId: string, studentData: Partial<StudentInfo>) => {
     try {
       // Mock implementation - will be replaced with real database integration
-      console.log('Updating student:', studentId, studentData);
+      logger.info('Updating student:', studentId, studentData);
       
       toast({
         title: 'Student updated successfully',
@@ -116,7 +118,7 @@ export function StudentInformationManagerClient() {
       await loadStudents();
       return true;
     } catch (error) {
-      console.error('Failed to update student:', error);
+      logger.error('Failed to update student:', error);
       toast({
         title: 'Error updating student',
         description: 'An unexpected error occurred while updating the student.',
@@ -129,7 +131,7 @@ export function StudentInformationManagerClient() {
   const handleDeleteStudent = async (studentId: string) => {
     try {
       // Mock implementation - will be replaced with real database integration
-      console.log('Deleting student:', studentId);
+      logger.info('Deleting student:', studentId);
       
       toast({
         title: 'Student deleted successfully',
@@ -140,7 +142,7 @@ export function StudentInformationManagerClient() {
       await loadStudents();
       return true;
     } catch (error) {
-      console.error('Failed to delete student:', error);
+      logger.error('Failed to delete student:', error);
       toast({
         title: 'Error deleting student',
         description: 'An unexpected error occurred while deleting the student.',
@@ -153,7 +155,7 @@ export function StudentInformationManagerClient() {
   const handleExportStudents = async (format: 'csv' | 'excel' | 'pdf') => {
     try {
       // Mock implementation - will be replaced with real database integration
-      console.log('Exporting students in format:', format);
+      logger.info('Exporting students in format:', format);
       
       // Create mock CSV data
       const csvContent = [
@@ -177,7 +179,7 @@ export function StudentInformationManagerClient() {
         description: `Students data exported in ${format.toUpperCase()} format.`,
       });
     } catch (error) {
-      console.error('Failed to export students:', error);
+      logger.error('Failed to export students:', error);
       toast({
         title: 'Error exporting students',
         description: 'An unexpected error occurred while exporting students.',
@@ -189,7 +191,7 @@ export function StudentInformationManagerClient() {
   const handleImportStudents = async (file: File) => {
     try {
       // Mock implementation - will be replaced with real database integration
-      console.log('Importing students from file:', file.name);
+      logger.info('Importing students from file:', file.name);
       
       // Simulate processing delay
       await new Promise(resolve => setTimeout(resolve, 2000));
@@ -203,7 +205,7 @@ export function StudentInformationManagerClient() {
       await loadStudents();
       return true;
     } catch (error) {
-      console.error('Failed to import students:', error);
+      logger.error('Failed to import students:', error);
       toast({
         title: 'Error importing students',
         description: 'An unexpected error occurred while importing students.',

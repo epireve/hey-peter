@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { CRUDService, withRetry } from "./crud-service";
 import { contentAnalysisService } from "./content-analysis-service";
+import { logger } from '@/lib/services';
 import {
   StudentProgress,
   LearningAnalytics,
@@ -121,7 +122,7 @@ export class StudentProgressService {
           .single();
 
         if (feedbackError && !feedbackError.message.includes('duplicate')) {
-          console.warn('Could not create feedback record:', feedbackError.message);
+          logger.warn('Could not create feedback record:', feedbackError.message);
         }
       }
 

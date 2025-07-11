@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 // ========================================
 // Popup Email Integration Service
 // Email integration for lead nurturing and automation
@@ -539,7 +540,7 @@ export class PopupEmailIntegrationService {
       await this.updateSyncStatus(integration.id, true);
 
     } catch (error) {
-      console.error('Error processing lead with email integration:', error);
+      logger.error('Error processing lead with email integration:', error);
       await this.updateSyncStatus(integration.id, false, error.message);
       throw error;
     }
@@ -588,7 +589,7 @@ export class PopupEmailIntegrationService {
             templateId: followUp.templateId
           });
         } catch (error) {
-          console.error(`Error sending follow-up email ${index + 1}:`, error);
+          logger.error(`Error sending follow-up email ${index + 1}:`, error);
         }
       }, followUp.delay * 60 * 60 * 1000); // Convert hours to milliseconds
     }
@@ -604,7 +605,7 @@ export class PopupEmailIntegrationService {
   ): Promise<void> {
     // Update database record
     // This would typically use your database service
-    console.log(`Email sync ${success ? 'successful' : 'failed'} for integration ${integrationId}`, error);
+    logger.info(`Email sync ${success ? 'successful' : 'failed'} for integration ${integrationId}`, error);
   }
 
   /**
@@ -635,7 +636,7 @@ export class PopupEmailIntegrationService {
       return true;
 
     } catch (error) {
-      console.error('Email integration test failed:', error);
+      logger.error('Email integration test failed:', error);
       return false;
     }
   }

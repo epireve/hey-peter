@@ -1,5 +1,6 @@
 import { EmailMessage, EmailResult, EmailStatus, EmailPriority, getEmailService } from './email-service';
 
+import { logger } from '@/lib/services';
 // Queue job interface
 export interface EmailQueueJob {
   id: string;
@@ -164,11 +165,11 @@ export class EmailQueueService {
 
       if (job.attempts >= job.maxAttempts) {
         job.status = 'failed';
-        console.error(`Email job ${job.id} failed after ${job.attempts} attempts:`, errorMessage);
+        logger.error(`Email job ${job.id} failed after ${job.attempts} attempts:`, errorMessage);
       } else {
         job.status = 'pending';
         job.scheduledAt = new Date(Date.now() + job.retryDelay * job.attempts);
-        console.warn(`Email job ${job.id} failed, retrying in ${job.retryDelay * job.attempts}ms:`, errorMessage);
+        logger.warn(`Email job ${job.id} failed, retrying in ${job.retryDelay * job.attempts}ms:`, errorMessage);
       }
     } finally {
       this.processing.delete(job.id);

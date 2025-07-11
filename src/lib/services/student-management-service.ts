@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { logger } from '@/lib/services';
 import type {
   StudentInfo,
   CreateStudentData,
@@ -22,13 +23,13 @@ class StudentManagementServiceImpl implements StudentManagementService {
       const { data, error } = await operation();
       
       if (error) {
-        console.error('Database operation failed:', error);
+        logger.error('Database operation failed:', error);
         return { data: null, error: new Error(error.message || 'Database operation failed') };
       }
       
       return { data, error: null };
     } catch (error) {
-      console.error('Unexpected error in database operation:', error);
+      logger.error('Unexpected error in database operation:', error);
       return { 
         data: null, 
         error: error instanceof Error ? error : new Error('Unexpected error occurred') 
@@ -209,7 +210,7 @@ class StudentManagementServiceImpl implements StudentManagementService {
           .eq('id', updatedStudent.user_id);
 
         if (userError) {
-          console.warn('Failed to update user record:', userError);
+          logger.warn('Failed to update user record:', userError);
         }
       }
 

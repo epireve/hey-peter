@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { Database } from '@/types/database';
 
+import { logger } from '@/lib/services';
 export type DuplicateType = 
   | 'duplicate_enrollment'
   | 'duplicate_class_same_time'
@@ -121,7 +122,7 @@ export class DuplicatePreventionService {
       }
 
     } catch (error) {
-      console.error('Error checking enrollment duplicates:', error);
+      logger.error('Error checking enrollment duplicates:', error);
     }
 
     return duplicates;
@@ -182,7 +183,7 @@ export class DuplicatePreventionService {
       }
 
     } catch (error) {
-      console.error('Error checking booking duplicates:', error);
+      logger.error('Error checking booking duplicates:', error);
     }
 
     return duplicates;
@@ -246,7 +247,7 @@ export class DuplicatePreventionService {
       }
 
     } catch (error) {
-      console.error('Error checking class creation duplicates:', error);
+      logger.error('Error checking class creation duplicates:', error);
     }
 
     return duplicates;
@@ -293,7 +294,7 @@ export class DuplicatePreventionService {
         });
       }
     } catch (error) {
-      console.error('Error checking course duplicates:', error);
+      logger.error('Error checking course duplicates:', error);
     }
 
     return duplicates;
@@ -363,7 +364,7 @@ export class DuplicatePreventionService {
         }
       }
     } catch (error) {
-      console.error('Error checking similar class duplicates:', error);
+      logger.error('Error checking similar class duplicates:', error);
     }
 
     return duplicates;
@@ -414,7 +415,7 @@ export class DuplicatePreventionService {
         }
       }
     } catch (error) {
-      console.error('Error checking near-duplicate bookings:', error);
+      logger.error('Error checking near-duplicate bookings:', error);
     }
 
     return duplicates;
@@ -462,7 +463,7 @@ export class DuplicatePreventionService {
         }
       }
     } catch (error) {
-      console.error('Error checking recurring booking duplicates:', error);
+      logger.error('Error checking recurring booking duplicates:', error);
     }
 
     return duplicates;
@@ -521,7 +522,7 @@ export class DuplicatePreventionService {
         }
       }
     } catch (error) {
-      console.error('Error checking similar class content:', error);
+      logger.error('Error checking similar class content:', error);
     }
 
     return duplicates;
@@ -575,7 +576,7 @@ export class DuplicatePreventionService {
         }
       }
     } catch (error) {
-      console.error('Error checking schedule duplicates:', error);
+      logger.error('Error checking schedule duplicates:', error);
     }
 
     return duplicates;

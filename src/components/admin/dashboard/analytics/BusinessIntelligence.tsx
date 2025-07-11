@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -156,7 +158,7 @@ export function BusinessIntelligence({ className }: BusinessIntelligenceProps) {
 
       setMetrics(mockMetrics);
     } catch (error) {
-      console.error('Failed to load business metrics:', error);
+      logger.error('Failed to load business metrics:', error);
     } finally {
       setLoading(false);
     }

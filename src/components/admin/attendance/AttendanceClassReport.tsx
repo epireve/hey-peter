@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -54,7 +56,7 @@ export function AttendanceClassReport({ filters }: AttendanceClassReportProps) {
       const reports = await attendanceAnalyticsService.getAttendanceByClass(filters);
       setClassReports(reports);
     } catch (error) {
-      console.error('Error loading class reports:', error);
+      logger.error('Error loading class reports:', error);
     } finally {
       setLoading(false);
     }

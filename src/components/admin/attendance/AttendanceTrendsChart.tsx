@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -47,7 +49,7 @@ export function AttendanceTrendsChart({ filters }: AttendanceTrendsChartProps) {
       const trends = await attendanceAnalyticsService.getAttendanceTrends(filters);
       setTrendsData(trends);
     } catch (error) {
-      console.error('Error loading trends data:', error);
+      logger.error('Error loading trends data:', error);
     } finally {
       setLoading(false);
     }

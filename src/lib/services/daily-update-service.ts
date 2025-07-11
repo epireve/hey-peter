@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * HeyPeter Academy - Daily Data Update Service
  * 
@@ -62,7 +63,7 @@ export class DailyUpdateService {
     
     this.scheduledTimeouts.set('daily', timeout);
     
-    console.log(`Daily update scheduled for ${scheduledTime.toISOString()}`);
+    logger.info(`Daily update scheduled for ${scheduledTime.toISOString()}`);
   }
 
   /**
@@ -308,7 +309,7 @@ export class DailyUpdateService {
 
         processed++;
       } catch (error) {
-        console.error(`Error processing student ${student.id}:`, error);
+        logger.error(`Error processing student ${student.id}:`, error);
       }
     }
 
@@ -372,7 +373,7 @@ export class DailyUpdateService {
 
         processed++;
       } catch (error) {
-        console.error(`Error processing teacher ${teacher.id}:`, error);
+        logger.error(`Error processing teacher ${teacher.id}:`, error);
       }
     }
 
@@ -440,7 +441,7 @@ export class DailyUpdateService {
 
         processed++;
       } catch (error) {
-        console.error(`Error processing class ${classItem.id}:`, error);
+        logger.error(`Error processing class ${classItem.id}:`, error);
       }
     }
 
@@ -494,7 +495,7 @@ export class DailyUpdateService {
         synced++;
         processed++;
       } catch (error) {
-        console.error(`Error syncing content ${content.id}:`, error);
+        logger.error(`Error syncing content ${content.id}:`, error);
         processed++;
       }
     }
@@ -610,7 +611,7 @@ export class DailyUpdateService {
   private async syncContent(content: any): Promise<void> {
     // Placeholder for content synchronization logic
     // This would integrate with external content management systems
-    console.log(`Syncing content: ${content.id}`);
+    logger.info(`Syncing content: ${content.id}`);
   }
 
   /**
@@ -685,7 +686,7 @@ export class DailyUpdateService {
       });
 
     if (error) {
-      console.error('Failed to store update status:', error);
+      logger.error('Failed to store update status:', error);
     }
   }
 
@@ -720,7 +721,7 @@ export class DailyUpdateService {
    */
   private async sendNotification(notification: any, updateStatus: DailyUpdateStatus): Promise<void> {
     // Placeholder for notification sending logic
-    console.log(`Sending ${notification.type} notification for update ${updateStatus.id}`);
+    logger.info(`Sending ${notification.type} notification for update ${updateStatus.id}`);
   }
 
   /**
@@ -739,7 +740,7 @@ export class DailyUpdateService {
       });
 
     if (error) {
-      console.error('Failed to log event:', error);
+      logger.error('Failed to log event:', error);
     }
   }
 

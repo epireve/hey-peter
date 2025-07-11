@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { autoPostponementService } from '@/lib/services/auto-postponement-service';
 
+import { logger } from '@/lib/services';
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -20,7 +21,7 @@ export async function GET(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    console.error('Error fetching student preferences:', error);
+    logger.error('Error fetching student preferences:', error);
     return NextResponse.json(
       { error: 'Failed to fetch preferences', success: false },
       { status: 500 }
@@ -50,7 +51,7 @@ export async function PUT(request: NextRequest) {
       success: true 
     });
   } catch (error) {
-    console.error('Error updating student preferences:', error);
+    logger.error('Error updating student preferences:', error);
     return NextResponse.json(
       { error: 'Failed to update preferences', success: false },
       { status: 500 }

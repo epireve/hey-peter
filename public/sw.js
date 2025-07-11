@@ -57,20 +57,24 @@ const NETWORK_FIRST_PATTERNS = [
  * Install event - cache critical resources
  */
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker...');
+  // Replace with logger.info when available
+console.log('[SW] Installing service worker...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE)
       .then((cache) => {
-        console.log('[SW] Caching critical resources');
+        // Replace with logger.info when available
+console.log('[SW] Caching critical resources');
         return cache.addAll(CRITICAL_RESOURCES);
       })
       .then(() => {
-        console.log('[SW] Critical resources cached');
+        // Replace with logger.info when available
+console.log('[SW] Critical resources cached');
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('[SW] Failed to cache critical resources:', error);
+        // Replace with logger.error when available
+console.error('[SW] Failed to cache critical resources:', error);
       })
   );
 });
@@ -79,7 +83,8 @@ self.addEventListener('install', (event) => {
  * Activate event - clean up old caches
  */
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker...');
+  // Replace with logger.info when available
+console.log('[SW] Activating service worker...');
   
   event.waitUntil(
     Promise.all([
@@ -88,7 +93,8 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (!Object.values(CACHE_STRATEGIES).some(strategy => strategy.name === cacheName)) {
-              console.log('[SW] Deleting old cache:', cacheName);
+              // Replace with logger.info when available
+console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
@@ -134,7 +140,8 @@ self.addEventListener('fetch', (event) => {
  * Background sync for offline actions
  */
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync triggered:', event.tag);
+  // Replace with logger.info when available
+console.log('[SW] Background sync triggered:', event.tag);
   
   if (event.tag === 'background-sync-attendance') {
     event.waitUntil(syncAttendanceData());
@@ -147,7 +154,8 @@ self.addEventListener('sync', (event) => {
  * Push notification handler
  */
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push notification received');
+  // Replace with logger.info when available
+console.log('[SW] Push notification received');
   
   const options = {
     body: 'You have new updates in Hey Peter Academy',
@@ -166,7 +174,8 @@ self.addEventListener('push', (event) => {
       options.body = payload.body || options.body;
       options.data = payload.data || {};
     } catch (error) {
-      console.error('[SW] Error parsing push payload:', error);
+      // Replace with logger.error when available
+console.error('[SW] Error parsing push payload:', error);
     }
   }
 
@@ -179,7 +188,8 @@ self.addEventListener('push', (event) => {
  * Notification click handler
  */
 self.addEventListener('notificationclick', (event) => {
-  console.log('[SW] Notification clicked:', event.action);
+  // Replace with logger.info when available
+console.log('[SW] Notification clicked:', event.action);
   
   event.notification.close();
   
@@ -214,11 +224,13 @@ async function cacheFirst(request, strategy) {
     const cachedResponse = await cache.match(request);
     
     if (cachedResponse && !isExpired(cachedResponse, strategy.maxAge)) {
-      console.log('[SW] Cache hit:', request.url);
+      // Replace with logger.info when available
+console.log('[SW] Cache hit:', request.url);
       return cachedResponse;
     }
     
-    console.log('[SW] Cache miss, fetching from network:', request.url);
+    // Replace with logger.info when available
+console.log('[SW] Cache miss, fetching from network:', request.url);
     const networkResponse = await fetch(request);
     
     if (networkResponse.ok) {
@@ -229,13 +241,15 @@ async function cacheFirst(request, strategy) {
     
     return networkResponse;
   } catch (error) {
-    console.error('[SW] Cache first error:', error);
+    // Replace with logger.error when available
+console.error('[SW] Cache first error:', error);
     
     // Try to return stale cache as fallback
     const cache = await caches.open(strategy.name);
     const staleResponse = await cache.match(request);
     if (staleResponse) {
-      console.log('[SW] Returning stale cache due to error:', request.url);
+      // Replace with logger.info when available
+console.log('[SW] Returning stale cache due to error:', request.url);
       return staleResponse;
     }
     
@@ -248,7 +262,8 @@ async function cacheFirst(request, strategy) {
  */
 async function networkFirst(request, strategy) {
   try {
-    console.log('[SW] Network first for:', request.url);
+    // Replace with logger.info when available
+console.log('[SW] Network first for:', request.url);
     const networkResponse = await fetch(request);
     
     if (networkResponse.ok) {
@@ -260,17 +275,20 @@ async function networkFirst(request, strategy) {
     
     return networkResponse;
   } catch (error) {
-    console.log('[SW] Network failed, trying cache:', request.url);
+    // Replace with logger.info when available
+console.log('[SW] Network failed, trying cache:', request.url);
     
     const cache = await caches.open(strategy.name);
     const cachedResponse = await cache.match(request);
     
     if (cachedResponse) {
-      console.log('[SW] Cache fallback hit:', request.url);
+      // Replace with logger.info when available
+console.log('[SW] Cache fallback hit:', request.url);
       return cachedResponse;
     }
     
-    console.error('[SW] Network first complete failure:', error);
+    // Replace with logger.error when available
+console.error('[SW] Network first complete failure:', error);
     throw error;
   }
 }
@@ -291,17 +309,20 @@ async function staleWhileRevalidate(request, strategy) {
     }
     return networkResponse;
   }).catch((error) => {
-    console.error('[SW] Background revalidation failed:', error);
+    // Replace with logger.error when available
+console.error('[SW] Background revalidation failed:', error);
   });
   
   // Return cached response immediately if available
   if (cachedResponse && !isExpired(cachedResponse, strategy.maxAge)) {
-    console.log('[SW] Stale while revalidate cache hit:', request.url);
+    // Replace with logger.info when available
+console.log('[SW] Stale while revalidate cache hit:', request.url);
     return cachedResponse;
   }
   
   // No cache or expired, wait for network
-  console.log('[SW] No cache, waiting for network:', request.url);
+  // Replace with logger.info when available
+console.log('[SW] No cache, waiting for network:', request.url);
   return networkPromise;
 }
 
@@ -309,7 +330,8 @@ async function staleWhileRevalidate(request, strategy) {
  * Network Only strategy - always use network
  */
 async function networkOnly(request) {
-  console.log('[SW] Network only for:', request.url);
+  // Replace with logger.info when available
+console.log('[SW] Network only for:', request.url);
   return fetch(request);
 }
 
@@ -384,7 +406,8 @@ async function cleanupCache(cache, maxEntries) {
   const keysToDelete = keys.slice(0, keys.length - maxEntries);
   await Promise.all(keysToDelete.map(key => cache.delete(key)));
   
-  console.log(`[SW] Cleaned up ${keysToDelete.length} cache entries`);
+  // Replace with logger.info when available
+console.log(`[SW] Cleaned up ${keysToDelete.length} cache entries`);
 }
 
 /**
@@ -393,15 +416,18 @@ async function cleanupCache(cache, maxEntries) {
 async function syncAttendanceData() {
   try {
     // This would integrate with IndexedDB to sync offline attendance data
-    console.log('[SW] Syncing attendance data...');
+    // Replace with logger.info when available
+console.log('[SW] Syncing attendance data...');
     
     // Implementation would depend on your offline storage strategy
     // const offlineData = await getOfflineAttendanceData();
     // await uploadAttendanceData(offlineData);
     
-    console.log('[SW] Attendance data synced');
+    // Replace with logger.info when available
+console.log('[SW] Attendance data synced');
   } catch (error) {
-    console.error('[SW] Failed to sync attendance data:', error);
+    // Replace with logger.error when available
+console.error('[SW] Failed to sync attendance data:', error);
     throw error;
   }
 }
@@ -411,15 +437,18 @@ async function syncAttendanceData() {
  */
 async function syncUserPreferences() {
   try {
-    console.log('[SW] Syncing user preferences...');
+    // Replace with logger.info when available
+console.log('[SW] Syncing user preferences...');
     
     // Implementation would sync cached preferences with server
     // const preferences = await getOfflinePreferences();
     // await uploadPreferences(preferences);
     
-    console.log('[SW] User preferences synced');
+    // Replace with logger.info when available
+console.log('[SW] User preferences synced');
   } catch (error) {
-    console.error('[SW] Failed to sync user preferences:', error);
+    // Replace with logger.error when available
+console.error('[SW] Failed to sync user preferences:', error);
     throw error;
   }
 }
@@ -447,7 +476,8 @@ self.addEventListener('message', (event) => {
       });
       break;
     default:
-      console.log('[SW] Unknown message type:', type);
+      // Replace with logger.info when available
+console.log('[SW] Unknown message type:', type);
   }
 });
 
@@ -465,12 +495,14 @@ async function handleCacheInvalidation(pattern) {
       for (const key of keys) {
         if (key.url.includes(pattern)) {
           await cache.delete(key);
-          console.log('[SW] Invalidated cache entry:', key.url);
+          // Replace with logger.info when available
+console.log('[SW] Invalidated cache entry:', key.url);
         }
       }
     }
   } catch (error) {
-    console.error('[SW] Cache invalidation error:', error);
+    // Replace with logger.error when available
+console.error('[SW] Cache invalidation error:', error);
   }
 }
 
@@ -479,7 +511,8 @@ async function handleCacheInvalidation(pattern) {
  */
 async function handleCacheWarming(urls) {
   try {
-    console.log('[SW] Warming cache for URLs:', urls);
+    // Replace with logger.info when available
+console.log('[SW] Warming cache for URLs:', urls);
     
     for (const url of urls) {
       try {
@@ -497,13 +530,16 @@ async function handleCacheWarming(urls) {
           await cache.put(url, response);
         }
       } catch (error) {
-        console.error('[SW] Failed to warm cache for:', url, error);
+        // Replace with logger.error when available
+console.error('[SW] Failed to warm cache for:', url, error);
       }
     }
     
-    console.log('[SW] Cache warming completed');
+    // Replace with logger.info when available
+console.log('[SW] Cache warming completed');
   } catch (error) {
-    console.error('[SW] Cache warming error:', error);
+    // Replace with logger.error when available
+console.error('[SW] Cache warming error:', error);
   }
 }
 
@@ -534,7 +570,8 @@ async function handleCacheStats() {
     
     return stats;
   } catch (error) {
-    console.error('[SW] Error getting cache stats:', error);
+    // Replace with logger.error when available
+console.error('[SW] Error getting cache stats:', error);
     return { error: error.message };
   }
 }

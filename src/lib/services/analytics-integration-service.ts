@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * HeyPeter Academy - Analytics Integration Service
  * 
@@ -227,7 +228,7 @@ export class AnalyticsIntegrationService {
       };
 
     } catch (error) {
-      console.error('Failed to calculate comprehensive analytics:', error);
+      logger.error('Failed to calculate comprehensive analytics:', error);
       throw new Error('Failed to load analytics data');
     }
   }

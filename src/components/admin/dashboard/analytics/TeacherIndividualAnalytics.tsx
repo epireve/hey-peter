@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -110,7 +112,7 @@ export function TeacherIndividualAnalytics({ teacherId, className }: TeacherIndi
       setAttendanceAnalytics(attendance);
       setPeerComparison(comparison);
     } catch (err) {
-      console.error('Failed to load teacher data:', err);
+      logger.error('Failed to load teacher data:', err);
       setError('Failed to load teacher data. Please try again.');
     } finally {
       setLoading(false);
@@ -795,8 +797,8 @@ export function TeacherIndividualAnalytics({ teacherId, className }: TeacherIndi
               <RecommendationCard
                 key={index}
                 recommendation={recommendation}
-                onViewDetails={() => console.log('View details:', recommendation)}
-                onImplement={() => console.log('Implement:', recommendation)}
+                onViewDetails={() => logger.info('View details:', recommendation)}
+                onImplement={() => logger.info('Implement:', recommendation)}
               />
             ))}
           </div>

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Comprehensive caching system for Hey Peter Academy LMS
  * Centralizes all caching strategies and utilities
@@ -138,69 +139,69 @@ export class CacheSystem {
    */
   async initialize(): Promise<void> {
     if (this.isInitialized) {
-      console.warn('Cache system already initialized');
+      logger.warn('Cache system already initialized');
       return;
     }
 
     try {
-      console.log('Initializing comprehensive cache system...');
+      logger.info('Initializing comprehensive cache system...');
 
       // Initialize browser storage
       if (this.config.browserStorage) {
         this.browserStorage = createBrowserStorage(this.config.browserStorage);
         this.userPreferences = new UserPreferencesCache(this.browserStorage);
-        console.log('✓ Browser storage initialized');
+        logger.info('✓ Browser storage initialized');
       }
 
       // Initialize Redis cache (if configured)
       if (this.config.redisCache) {
         this.redisCache = createRedisCache(this.config.redisCache);
-        console.log('✓ Redis cache initialized');
+        logger.info('✓ Redis cache initialized');
       }
 
       // Initialize monitoring
       if (this.config.monitoring?.enabled) {
         this.monitor = new CacheMonitor(this.config.monitoring);
-        console.log('✓ Cache monitoring initialized');
+        logger.info('✓ Cache monitoring initialized');
       }
 
       // Initialize SWR manager
       const primaryStorage = this.browserStorage || this.redisCache;
       if (primaryStorage) {
         this.swrManager = new SWRManager(primaryStorage);
-        console.log('✓ SWR manager initialized');
+        logger.info('✓ SWR manager initialized');
       }
 
       // Initialize invalidation manager
       if (this.config.invalidation?.enabled && primaryStorage && this.monitor) {
         const mockCacheManager = this.createCacheManagerAdapter(primaryStorage);
         this.invalidationManager = new CacheInvalidationManager(mockCacheManager);
-        console.log('✓ Cache invalidation initialized');
+        logger.info('✓ Cache invalidation initialized');
       }
 
       // Initialize warming manager
       if (this.config.warming?.enabled && primaryStorage) {
         this.warmingManager = new CacheWarmingManager(primaryStorage, this.config.warming);
-        console.log('✓ Cache warming initialized');
+        logger.info('✓ Cache warming initialized');
       }
 
       // Initialize service worker
       if (this.config.serviceWorker?.enabled) {
         await this.initializeServiceWorker();
-        console.log('✓ Service worker initialized');
+        logger.info('✓ Service worker initialized');
       }
 
       this.isInitialized = true;
-      console.log('🚀 Cache system fully initialized');
+      logger.info('🚀 Cache system fully initialized');
 
       // Warm critical data on startup
       if (this.config.warming?.warmOnStartup && this.warmingManager) {
         await this.warmingManager.executeWarming('startup');
-        console.log('✓ Critical data warmed');
+        logger.info('✓ Critical data warmed');
       }
 
     } catch (error) {
-      console.error('Failed to initialize cache system:', error);
+      logger.error('Failed to initialize cache system:', error);
       throw error;
     }
   }
@@ -282,7 +283,7 @@ export class CacheSystem {
    */
   async invalidateByPattern(pattern: string | RegExp): Promise<string[]> {
     if (!this.invalidationManager) {
-      console.warn('Invalidation manager not initialized');
+      logger.warn('Invalidation manager not initialized');
       return [];
     }
 
@@ -294,7 +295,7 @@ export class CacheSystem {
    */
   async invalidateByTags(tags: string[]): Promise<string[]> {
     if (!this.invalidationManager) {
-      console.warn('Invalidation manager not initialized');
+      logger.warn('Invalidation manager not initialized');
       return [];
     }
 
@@ -366,7 +367,7 @@ export class CacheSystem {
     }
 
     await Promise.all(promises);
-    console.log('All caches cleared');
+    logger.info('All caches cleared');
   }
 
   /**
@@ -377,7 +378,7 @@ export class CacheSystem {
       this.monitor.stop();
     }
 
-    console.log('Cache system shut down');
+    logger.info('Cache system shut down');
   }
 
   private async initializeServiceWorker(): Promise<void> {
@@ -388,7 +389,7 @@ export class CacheSystem {
     try {
       await serviceWorkerManager.register();
     } catch (error) {
-      console.error('Service worker registration failed:', error);
+      logger.error('Service worker registration failed:', error);
     }
   }
 
@@ -466,7 +467,7 @@ export function useCacheSystem() {
         
         return () => clearInterval(interval);
       } catch (error) {
-        console.error('Failed to initialize cache system:', error);
+        logger.error('Failed to initialize cache system:', error);
       }
     };
 

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -98,7 +100,7 @@ export function StudentAnalytics({ className }: StudentAnalyticsProps) {
 
       setMetrics(mockMetrics);
     } catch (error) {
-      console.error('Failed to load student metrics:', error);
+      logger.error('Failed to load student metrics:', error);
     } finally {
       setLoading(false);
     }

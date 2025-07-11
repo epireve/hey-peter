@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import {
@@ -94,7 +96,7 @@ const FeedbackAnalyticsDashboard: React.FC = () => {
       setCoursePerformance(coursesData);
 
     } catch (error) {
-      console.error('Error loading analytics:', error);
+      logger.error('Error loading analytics:', error);
       toast({
         title: "Error",
         description: "Failed to load analytics data.",

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Feedback-Based Recommendation Engine
  * Generates intelligent recommendations based on feedback patterns and analytics
@@ -143,7 +144,7 @@ export class FeedbackRecommendationEngine {
       return sortedRecommendations;
 
     } catch (error) {
-      console.error('Error generating teacher recommendations:', error);
+      logger.error('Error generating teacher recommendations:', error);
       throw error;
     }
   }
@@ -202,7 +203,7 @@ export class FeedbackRecommendationEngine {
       return sortedRecommendations;
 
     } catch (error) {
-      console.error('Error generating course recommendations:', error);
+      logger.error('Error generating course recommendations:', error);
       throw error;
     }
   }
@@ -230,7 +231,7 @@ export class FeedbackRecommendationEngine {
       return improvements;
 
     } catch (error) {
-      console.error('Error generating improvement recommendations:', error);
+      logger.error('Error generating improvement recommendations:', error);
       throw error;
     }
   }

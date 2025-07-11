@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Scheduling Integration Service
  * 
@@ -117,7 +118,7 @@ export class SchedulingIntegrationService {
       
       // Check if leave status changed to approved
       if (oldRecord.status !== 'approved' && newRecord.status === 'approved') {
-        console.log('Leave approved, triggering auto-postponement:', newRecord.id);
+        logger.info('Leave approved, triggering auto-postponement:', newRecord.id);
         
         // Wait for auto-postponement to complete
         await this.waitForPostponementCreation(newRecord.id);
@@ -126,7 +127,7 @@ export class SchedulingIntegrationService {
         await this.generateMakeUpSuggestionsForLeave(newRecord);
       }
     } catch (error) {
-      console.error('Error handling leave approval event:', error);
+      logger.error('Error handling leave approval event:', error);
       await this.logIntegrationError('leave_approval_handling', error);
     }
   }
@@ -139,7 +140,7 @@ export class SchedulingIntegrationService {
       const postponement = payload.new;
       
       if (postponement.postponement_type === 'automatic') {
-        console.log('Auto-postponement created, generating suggestions:', postponement.id);
+        logger.info('Auto-postponement created, generating suggestions:', postponement.id);
         
         // Generate make-up class suggestions
         await this.generateMakeUpSuggestionsForPostponement(postponement);
@@ -150,7 +151,7 @@ export class SchedulingIntegrationService {
         }
       }
     } catch (error) {
-      console.error('Error handling postponement created event:', error);
+      logger.error('Error handling postponement created event:', error);
       await this.logIntegrationError('postponement_creation_handling', error);
     }
   }
@@ -164,7 +165,7 @@ export class SchedulingIntegrationService {
       
       // Check if student selected a make-up class
       if (!oldRecord.student_selected && newRecord.student_selected) {
-        console.log('Student selected make-up class:', newRecord.id);
+        logger.info('Student selected make-up class:', newRecord.id);
         
         // Send notification to admin for approval
         if (this.config.notification_enabled) {
@@ -174,13 +175,13 @@ export class SchedulingIntegrationService {
       
       // Check if admin approved the make-up class
       if (!oldRecord.admin_approved && newRecord.admin_approved) {
-        console.log('Admin approved make-up class:', newRecord.id);
+        logger.info('Admin approved make-up class:', newRecord.id);
         
         // Schedule the make-up class
         await this.scheduleMakeUpClass(newRecord);
       }
     } catch (error) {
-      console.error('Error handling make-up class selection event:', error);
+      logger.error('Error handling make-up class selection event:', error);
       await this.logIntegrationError('makeup_selection_handling', error);
     }
   }
@@ -203,14 +204,14 @@ export class SchedulingIntegrationService {
         if (error) throw error;
 
         if (postponements && postponements.length > 0) {
-          console.log(`Found ${postponements.length} postponements for leave request ${leaveRequestId}`);
+          logger.info(`Found ${postponements.length} postponements for leave request ${leaveRequestId}`);
           return;
         }
 
         await new Promise(resolve => setTimeout(resolve, delayMs));
         attempts++;
       } catch (error) {
-        console.error(`Attempt ${attempts + 1} failed:`, error);
+        logger.error(`Attempt ${attempts + 1} failed:`, error);
         attempts++;
       }
     }
@@ -232,7 +233,7 @@ export class SchedulingIntegrationService {
       if (error) throw error;
 
       if (!postponements || postponements.length === 0) {
-        console.log('No postponements found for leave request:', leaveRequest.id);
+        logger.info('No postponements found for leave request:', leaveRequest.id);
         return;
       }
 
@@ -241,7 +242,7 @@ export class SchedulingIntegrationService {
         await this.generateMakeUpSuggestionsForPostponement(postponement);
       }
     } catch (error) {
-      console.error('Error generating make-up suggestions for leave:', error);
+      logger.error('Error generating make-up suggestions for leave:', error);
       throw error;
     }
   }
@@ -252,7 +253,7 @@ export class SchedulingIntegrationService {
   private async generateMakeUpSuggestionsForPostponement(postponement: any): Promise<void> {
     return withRetry(async () => {
       try {
-        console.log('Generating make-up suggestions for postponement:', postponement.id);
+        logger.info('Generating make-up suggestions for postponement:', postponement.id);
         
         // Generate suggestions using the make-up class suggestion service
         const suggestions = await makeUpClassSuggestionService.generateSuggestions({
@@ -262,7 +263,7 @@ export class SchedulingIntegrationService {
           max_suggestions: this.config.max_suggestions_per_postponement,
         });
 
-        console.log(`Generated ${suggestions.length} suggestions for postponement ${postponement.id}`);
+        logger.info(`Generated ${suggestions.length} suggestions for postponement ${postponement.id}`);
 
         // Update postponement status
         await supabase
@@ -275,13 +276,13 @@ export class SchedulingIntegrationService {
 
         return suggestions;
       } catch (error) {
-        console.error('Error generating make-up suggestions for postponement:', error);
+        logger.error('Error generating make-up suggestions for postponement:', error);
         throw error;
       }
     }, {
       maxRetries: this.config.retry_attempts,
       onRetry: (error, attempt) => {
-        console.log(`Retry attempt ${attempt} for postponement ${postponement.id}:`, error);
+        logger.info(`Retry attempt ${attempt} for postponement ${postponement.id}:`, error);
       },
     });
   }
@@ -292,7 +293,7 @@ export class SchedulingIntegrationService {
   private async scheduleMakeUpClass(makeUpClass: any): Promise<PostponementSchedulingResult> {
     return withRetry(async () => {
       try {
-        console.log('Scheduling make-up class:', makeUpClass.id);
+        logger.info('Scheduling make-up class:', makeUpClass.id);
 
         // Get the selected suggestion
         const selectedSuggestion = makeUpClass.alternative_suggestions.find(
@@ -354,7 +355,7 @@ export class SchedulingIntegrationService {
             .single();
 
           if (bookingError) {
-            console.error('Error creating booking:', bookingError);
+            logger.error('Error creating booking:', bookingError);
           } else {
             bookingId = booking.id;
             bookingCreated = true;
@@ -392,16 +393,16 @@ export class SchedulingIntegrationService {
           notifications_sent: notificationsSent,
         };
 
-        console.log('Make-up class scheduled successfully:', result);
+        logger.info('Make-up class scheduled successfully:', result);
         return result;
       } catch (error) {
-        console.error('Error scheduling make-up class:', error);
+        logger.error('Error scheduling make-up class:', error);
         throw error;
       }
     }, {
       maxRetries: this.config.retry_attempts,
       onRetry: (error, attempt) => {
-        console.log(`Retry attempt ${attempt} for make-up class ${makeUpClass.id}:`, error);
+        logger.info(`Retry attempt ${attempt} for make-up class ${makeUpClass.id}:`, error);
       },
     });
   }
@@ -419,7 +420,7 @@ export class SchedulingIntegrationService {
         .single();
 
       if (studentError || !student) {
-        console.error('Error fetching student for notification:', studentError);
+        logger.error('Error fetching student for notification:', studentError);
         return false;
       }
 
@@ -435,13 +436,13 @@ export class SchedulingIntegrationService {
         });
 
       if (notificationError) {
-        console.error('Error creating notification:', notificationError);
+        logger.error('Error creating notification:', notificationError);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error sending postponement notifications:', error);
+      logger.error('Error sending postponement notifications:', error);
       return false;
     }
   }
@@ -458,7 +459,7 @@ export class SchedulingIntegrationService {
         .eq('role', 'admin');
 
       if (adminError || !admins || admins.length === 0) {
-        console.error('Error fetching admins for notification:', adminError);
+        logger.error('Error fetching admins for notification:', adminError);
         return false;
       }
 
@@ -476,13 +477,13 @@ export class SchedulingIntegrationService {
         .insert(notifications);
 
       if (notificationError) {
-        console.error('Error creating admin notifications:', notificationError);
+        logger.error('Error creating admin notifications:', notificationError);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error sending make-up selection notifications:', error);
+      logger.error('Error sending make-up selection notifications:', error);
       return false;
     }
   }
@@ -500,7 +501,7 @@ export class SchedulingIntegrationService {
         .single();
 
       if (studentError || !student) {
-        console.error('Error fetching student for notification:', studentError);
+        logger.error('Error fetching student for notification:', studentError);
         return false;
       }
 
@@ -516,13 +517,13 @@ export class SchedulingIntegrationService {
         });
 
       if (notificationError) {
-        console.error('Error creating notification:', notificationError);
+        logger.error('Error creating notification:', notificationError);
         return false;
       }
 
       return true;
     } catch (error) {
-      console.error('Error sending make-up scheduled notifications:', error);
+      logger.error('Error sending make-up scheduled notifications:', error);
       return false;
     }
   }
@@ -546,7 +547,7 @@ export class SchedulingIntegrationService {
           severity: 'error',
         });
     } catch (logError) {
-      console.error('Error logging integration error:', logError);
+      logger.error('Error logging integration error:', logError);
     }
   }
 
@@ -605,7 +606,7 @@ export class SchedulingIntegrationService {
         last_check: new Date().toISOString(),
       };
     } catch (error) {
-      console.error('Error checking health status:', error);
+      logger.error('Error checking health status:', error);
       return {
         status: 'unhealthy',
         services,

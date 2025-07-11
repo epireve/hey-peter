@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Redis-compatible caching service for server-side operations
  * Supports both Redis and in-memory fallback for development
@@ -225,7 +226,7 @@ export class RedisCacheStorage implements CacheStorage {
 
       return entry;
     } catch (error) {
-      console.error(`Error getting cache entry for key ${key}:`, error);
+      logger.error(`Error getting cache entry for key ${key}:`, error);
       return null;
     }
   }
@@ -236,7 +237,7 @@ export class RedisCacheStorage implements CacheStorage {
       const ttlSeconds = Math.ceil(entry.ttl / 1000);
       await this.client.set(this.getKey(key), data, ttlSeconds);
     } catch (error) {
-      console.error(`Error setting cache entry for key ${key}:`, error);
+      logger.error(`Error setting cache entry for key ${key}:`, error);
     }
   }
 
@@ -245,7 +246,7 @@ export class RedisCacheStorage implements CacheStorage {
       const result = await this.client.del(this.getKey(key));
       return result > 0;
     } catch (error) {
-      console.error(`Error deleting cache entry for key ${key}:`, error);
+      logger.error(`Error deleting cache entry for key ${key}:`, error);
       return false;
     }
   }
@@ -257,7 +258,7 @@ export class RedisCacheStorage implements CacheStorage {
         await Promise.all(keys.map(key => this.client.del(this.getKey(key))));
       }
     } catch (error) {
-      console.error('Error clearing cache:', error);
+      logger.error('Error clearing cache:', error);
     }
   }
 
@@ -270,7 +271,7 @@ export class RedisCacheStorage implements CacheStorage {
       const keys = await this.client.keys(searchPattern);
       return keys.map(key => key.substring(this.prefix.length));
     } catch (error) {
-      console.error('Error getting cache keys:', error);
+      logger.error('Error getting cache keys:', error);
       return [];
     }
   }
@@ -286,7 +287,7 @@ export class RedisCacheStorage implements CacheStorage {
         return total + (value ? value.length * 2 : 0); // UTF-16 encoding
       }, 0);
     } catch (error) {
-      console.error('Error calculating cache size:', error);
+      logger.error('Error calculating cache size:', error);
       return 0;
     }
   }
@@ -296,7 +297,7 @@ export class RedisCacheStorage implements CacheStorage {
       const result = await this.client.exists(this.getKey(key));
       return result > 0;
     } catch (error) {
-      console.error(`Error checking cache key existence for ${key}:`, error);
+      logger.error(`Error checking cache key existence for ${key}:`, error);
       return false;
     }
   }
@@ -372,7 +373,7 @@ export class AdvancedRedisCache extends RedisCacheStorage {
         }
       });
     } catch (error) {
-      console.error('Error in batch get operation:', error);
+      logger.error('Error in batch get operation:', error);
       return keys.map(() => null);
     }
   }
@@ -396,7 +397,7 @@ export class AdvancedRedisCache extends RedisCacheStorage {
         })
       );
     } catch (error) {
-      console.error('Error in batch set operation:', error);
+      logger.error('Error in batch set operation:', error);
     }
   }
 
@@ -427,7 +428,7 @@ export class AdvancedRedisCache extends RedisCacheStorage {
               await this.set(key, entry);
             }
           } catch (error) {
-            console.error(`Failed to warm cache for key ${key}:`, error);
+            logger.error(`Failed to warm cache for key ${key}:`, error);
           }
         })
       );
@@ -454,7 +455,7 @@ export class AdvancedRedisCache extends RedisCacheStorage {
         // Memory usage would require Redis INFO command
       };
     } catch (error) {
-      console.error('Error getting cache stats:', error);
+      logger.error('Error getting cache stats:', error);
       return {
         totalKeys: 0,
         totalSize: 0
@@ -472,7 +473,7 @@ export function createRedisCache(config: CacheStorageConfig): AdvancedRedisCache
   if (config.options?.redis) {
     // In a real implementation, you would create an actual Redis client here
     // For now, we'll use the memory implementation as fallback
-    console.warn('Redis configuration provided but using memory fallback. Implement actual Redis client integration.');
+    logger.warn('Redis configuration provided but using memory fallback. Implement actual Redis client integration.');
     client = new MemoryRedisClient();
   } else {
     // Use in-memory implementation for development
@@ -513,16 +514,16 @@ export class RedisConnectionManager {
         // const Redis = require('ioredis');
         // this.client = new Redis(config.redis);
         
-        console.log('Redis connection would be established here in production');
+        logger.info('Redis connection would be established here in production');
         this.client = new MemoryRedisClient(); // Fallback for now
       } else {
         this.client = new MemoryRedisClient();
       }
 
-      console.log('Cache client connected successfully');
+      logger.info('Cache client connected successfully');
       return this.client;
     } catch (error) {
-      console.error('Failed to connect to cache:', error);
+      logger.error('Failed to connect to cache:', error);
       this.client = new MemoryRedisClient(); // Always fallback to memory
       return this.client;
     }
@@ -532,7 +533,7 @@ export class RedisConnectionManager {
     if (this.client) {
       // In production: await this.client.quit();
       this.client = null;
-      console.log('Cache client disconnected');
+      logger.info('Cache client disconnected');
     }
   }
 

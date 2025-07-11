@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Bell, Mail, MessageSquare, Smartphone, Clock, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,7 +54,7 @@ const FeedbackNotificationSettings: React.FC<FeedbackNotificationSettingsProps> 
       const userSettings = await feedbackNotificationService.getUserNotificationSettings(userId);
       setSettings(userSettings);
     } catch (error) {
-      console.error('Error loading notification settings:', error);
+      logger.error('Error loading notification settings:', error);
       toast({
         title: "Error",
         description: "Failed to load notification settings.",
@@ -78,7 +80,7 @@ const FeedbackNotificationSettings: React.FC<FeedbackNotificationSettingsProps> 
         description: "Your notification preferences have been updated successfully.",
       });
     } catch (error) {
-      console.error('Error saving notification settings:', error);
+      logger.error('Error saving notification settings:', error);
       toast({
         title: "Error",
         description: "Failed to save notification settings. Please try again.",

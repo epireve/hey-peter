@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -54,7 +56,7 @@ export function AttendanceTeacherReport({ filters }: AttendanceTeacherReportProp
       const reports = await attendanceAnalyticsService.getAttendanceByTeacher(filters);
       setTeacherReports(reports);
     } catch (error) {
-      console.error('Error loading teacher reports:', error);
+      logger.error('Error loading teacher reports:', error);
     } finally {
       setLoading(false);
     }

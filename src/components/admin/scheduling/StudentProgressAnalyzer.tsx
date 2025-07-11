@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -67,7 +69,7 @@ export function StudentProgressAnalyzer({
       setAnalytics(studentAnalytics);
       setProgressReport(report);
     } catch (error) {
-      console.error('Failed to load student data:', error);
+      logger.error('Failed to load student data:', error);
     } finally {
       setLoading(false);
     }

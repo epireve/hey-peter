@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -87,7 +89,7 @@ export function TeacherHourDashboard({
       
     } catch (err) {
       setError('Failed to load dashboard data');
-      console.error('Error loading dashboard:', err);
+      logger.error('Error loading dashboard:', err);
     } finally {
       setLoading(false);
     }

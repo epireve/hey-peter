@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Cache warming strategies for critical data
  * Proactively loads important data to improve user experience
@@ -122,14 +123,14 @@ export class CacheWarmingManager {
     context: Partial<WarmingContext> = {}
   ): Promise<WarmingResult[]> {
     if (this.isWarming) {
-      console.log('Cache warming already in progress, skipping');
+      logger.info('Cache warming already in progress, skipping');
       return [];
     }
 
     // Check minimum interval
     const now = Date.now();
     if (now - this.lastWarmingTime < this.config.minWarmingInterval) {
-      console.log('Cache warming interval not met, skipping');
+      logger.info('Cache warming interval not met, skipping');
       return [];
     }
 
@@ -175,11 +176,11 @@ export class CacheWarmingManager {
       // Execute strategies with concurrency control
       const results = await this.executeStrategiesWithConcurrency(sortedStrategies, fullContext);
 
-      console.log(`Cache warming completed: ${results.length} strategies executed`);
+      logger.info(`Cache warming completed: ${results.length} strategies executed`);
       return results;
 
     } catch (error) {
-      console.error('Cache warming failed:', error);
+      logger.error('Cache warming failed:', error);
       return [];
     } finally {
       this.isWarming = false;

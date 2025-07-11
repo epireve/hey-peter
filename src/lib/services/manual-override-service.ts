@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Manual Override Service for HeyPeter Academy
  * 
@@ -364,7 +365,7 @@ export class ManualOverrideService {
       return filtered;
 
     } catch (error) {
-      console.error('Error getting override history:', error);
+      logger.error('Error getting override history:', error);
       return [];
     }
   }

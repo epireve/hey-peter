@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -71,7 +73,7 @@ export function PostponementManagement({ userId }: PostponementManagementProps) 
       setPendingMakeUps(pendingData);
       setAnalytics(analyticsData);
     } catch (error) {
-      console.error('Error loading data:', error);
+      logger.error('Error loading data:', error);
       setError(error instanceof Error ? error.message : 'Failed to load data');
     } finally {
       setLoading(false);
@@ -114,7 +116,7 @@ export function PostponementManagement({ userId }: PostponementManagementProps) 
         loadData();
       }
     } catch (error) {
-      console.error('Error approving make-up class:', error);
+      logger.error('Error approving make-up class:', error);
       toast({
         title: "Approval Failed",
         description: error instanceof Error ? error.message : "Please try again.",

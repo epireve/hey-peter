@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 
+import { logger } from '@/lib/services';
 export type AttendanceStatus = 'present' | 'absent' | 'late' | 'excused';
 export type AttendanceReportPeriod = 'daily' | 'weekly' | 'monthly' | 'custom';
 
@@ -224,7 +225,7 @@ class AttendanceAnalyticsService {
         }
       })) || [];
     } catch (error) {
-      console.error('Error fetching attendance records:', error);
+      logger.error('Error fetching attendance records:', error);
       throw error;
     }
   }
@@ -302,7 +303,7 @@ class AttendanceAnalyticsService {
 
       return classSummaries.sort((a, b) => b.attendanceRate - a.attendanceRate);
     } catch (error) {
-      console.error('Error generating class attendance summary:', error);
+      logger.error('Error generating class attendance summary:', error);
       throw error;
     }
   }
@@ -380,7 +381,7 @@ class AttendanceAnalyticsService {
 
       return teacherSummaries.sort((a, b) => b.overallAttendanceRate - a.overallAttendanceRate);
     } catch (error) {
-      console.error('Error generating teacher attendance summary:', error);
+      logger.error('Error generating teacher attendance summary:', error);
       throw error;
     }
   }
@@ -476,7 +477,7 @@ class AttendanceAnalyticsService {
 
       return periodSummaries.sort((a, b) => a.period.localeCompare(b.period));
     } catch (error) {
-      console.error('Error generating period attendance summary:', error);
+      logger.error('Error generating period attendance summary:', error);
       throw error;
     }
   }
@@ -536,7 +537,7 @@ class AttendanceAnalyticsService {
 
       return trendData.sort((a, b) => a.date.localeCompare(b.date));
     } catch (error) {
-      console.error('Error generating attendance trends:', error);
+      logger.error('Error generating attendance trends:', error);
       throw error;
     }
   }
@@ -597,7 +598,7 @@ class AttendanceAnalyticsService {
         }
       };
     } catch (error) {
-      console.error('Error generating attendance statistics:', error);
+      logger.error('Error generating attendance statistics:', error);
       throw error;
     }
   }

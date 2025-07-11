@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -79,7 +81,7 @@ export function HourTransactionHistory({
       }
     } catch (err) {
       setError('An unexpected error occurred');
-      console.error('Error loading transactions:', err);
+      logger.error('Error loading transactions:', err);
     } finally {
       setLoading(false);
     }

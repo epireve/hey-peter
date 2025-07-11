@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * HeyPeter Academy - Class Efficiency and Utilization Analytics Service
  * 
@@ -616,7 +617,7 @@ export class ClassEfficiencyAnalytics {
       .order('date', { ascending: true });
 
     if (error) {
-      console.error('Failed to fetch historical efficiency data:', error);
+      logger.error('Failed to fetch historical efficiency data:', error);
       return trends;
     }
 

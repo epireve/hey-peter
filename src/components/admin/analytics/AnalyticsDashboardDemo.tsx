@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -163,7 +165,7 @@ export function AnalyticsDashboardDemo() {
               badge={kpi.badge}
               progress={kpi.progress}
               actions={[
-                { label: "View Details", onClick: () => console.log("View details") }
+                { label: "View Details", onClick: () => logger.info("View details") }
               ]}
             />
           ))}

@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +74,7 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
         retentionAnalytics
       });
     } catch (error) {
-      console.error('Failed to load student metrics:', error);
+      logger.error('Failed to load student metrics:', error);
     } finally {
       setLoading(false);
     }
@@ -162,7 +164,7 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
         fileName: `student-analytics-${format(new Date(), 'yyyy-MM-dd')}`
       });
     } catch (error) {
-      console.error('Export failed:', error);
+      logger.error('Export failed:', error);
     } finally {
       setExportLoading(false);
     }
@@ -228,9 +230,9 @@ export function EnhancedStudentAnalytics({ className }: EnhancedStudentAnalytics
             ]}
             onExportComplete={(success, message) => {
               if (success) {
-                console.log('Export completed successfully:', message);
+                logger.info('Export completed successfully:', message);
               } else {
-                console.error('Export failed:', message);
+                logger.error('Export failed:', message);
               }
             }}
           />

@@ -1,3 +1,4 @@
+import { logger } from '@/lib/services';
 /**
  * Cache monitoring and metrics system
  * Provides comprehensive insights into cache performance and usage patterns
@@ -409,7 +410,7 @@ export class CacheMonitor {
       try {
         listener(event);
       } catch (error) {
-        console.error('Error in cache event listener:', error);
+        logger.error('Error in cache event listener:', error);
       }
     });
   }

@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -78,7 +80,7 @@ export function MakeUpClassSelector({
 
       setSuggestions(suggestionResults);
     } catch (error) {
-      console.error('Error loading suggestions:', error);
+      logger.error('Error loading suggestions:', error);
       setError(error instanceof Error ? error.message : 'Failed to load suggestions');
     } finally {
       setLoading(false);
@@ -121,7 +123,7 @@ export function MakeUpClassSelector({
         throw new Error('Failed to confirm selection');
       }
     } catch (error) {
-      console.error('Error confirming selection:', error);
+      logger.error('Error confirming selection:', error);
       toast({
         title: "Selection Failed",
         description: error instanceof Error ? error.message : "Please try again.",

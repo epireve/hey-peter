@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -85,7 +87,7 @@ function LeaveRequestDetails({ request, onClose, onApprove, onReject }: LeaveReq
         setViolations(result.data || []);
       }
     } catch (error) {
-      console.error('Failed to load violations:', error);
+      logger.error('Failed to load violations:', error);
     }
   };
 

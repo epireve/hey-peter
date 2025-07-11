@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { 
@@ -90,7 +92,7 @@ const FeedbackManagementDashboard: React.FC = () => {
         loadDashboardStats()
       ]);
     } catch (error) {
-      console.error('Error loading dashboard data:', error);
+      logger.error('Error loading dashboard data:', error);
       toast({
         title: "Error",
         description: "Failed to load feedback dashboard data.",
@@ -231,7 +233,7 @@ const FeedbackManagementDashboard: React.FC = () => {
       setShowFeedbackDialog(false);
       loadDashboardData(); // Refresh data
     } catch (error) {
-      console.error('Error sending response:', error);
+      logger.error('Error sending response:', error);
       toast({
         title: "Error",
         description: "Failed to send response. Please try again.",
@@ -251,7 +253,7 @@ const FeedbackManagementDashboard: React.FC = () => {
       });
       loadAlerts();
     } catch (error) {
-      console.error('Error acknowledging alert:', error);
+      logger.error('Error acknowledging alert:', error);
       toast({
         title: "Error",
         description: "Failed to acknowledge alert.",

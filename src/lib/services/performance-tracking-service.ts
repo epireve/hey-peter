@@ -1,6 +1,7 @@
 import { loggingService, LogCategory } from './logging-service';
 import { errorTrackingService } from './error-tracking-service';
 
+import { logger } from '@/lib/services';
 export interface PerformanceMetric {
   id: string;
   name: string;
@@ -385,7 +386,7 @@ class PerformanceTrackingService {
           timestamp: metric.timestamp
         });
     } catch (error) {
-      console.error('Failed to store performance metric:', error);
+      logger.error('Failed to store performance metric:', error);
     }
   }
 
@@ -505,7 +506,7 @@ class PerformanceTrackingService {
         trends
       };
     } catch (error) {
-      console.error('Failed to generate performance report:', error);
+      logger.error('Failed to generate performance report:', error);
       return this.getEmptyReport(start, end);
     }
   }

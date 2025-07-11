@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 // ========================================
 // Popup Renderer Component
 // Mobile-responsive popup component with multiple template types
@@ -201,7 +203,7 @@ export function PopupRenderer({
       onSubmit(leadData as SubmitLeadRequest);
       
     } catch (error) {
-      console.error('Error submitting form:', error);
+      logger.error('Error submitting form:', error);
     } finally {
       setIsSubmitting(false);
     }

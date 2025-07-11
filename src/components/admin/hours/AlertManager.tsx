@@ -1,5 +1,7 @@
 'use client';
 
+import { logger } from '@/lib/services';
+
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -105,7 +107,7 @@ export function AlertManager({ studentId, className }: AlertManagerProps) {
       // In a real implementation, this would make an API call
       // await hourUsageAnalyticsService.acknowledgeAlert(alertId);
     } catch (err) {
-      console.error('Failed to acknowledge alert:', err);
+      logger.error('Failed to acknowledge alert:', err);
     }
   };
 
@@ -119,10 +121,10 @@ export function AlertManager({ studentId, className }: AlertManagerProps) {
       
       if (report.success) {
         // Handle report generation
-        console.log('Report generated:', report.data);
+        logger.info('Report generated:', report.data);
       }
     } catch (err) {
-      console.error('Failed to generate report:', err);
+      logger.error('Failed to generate report:', err);
     }
   };
 
