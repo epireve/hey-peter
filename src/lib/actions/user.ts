@@ -1,5 +1,8 @@
-import { logger } from '@/lib/services';
 "use server";
+
+import { logger } from '@/lib/services';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { cookies } from 'next/headers';
 
 import { createClient } from '@supabase/supabase-js';
 
@@ -53,4 +56,44 @@ export async function getUsers() {
   return {
     data: mappedUsers,
   };
+}
+
+export async function getUser(id: string) {
+  const supabase = createServerComponentClient({ cookies });
+  
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", id)
+    .single();
+  
+  if (error) {
+    return { error: { message: error.message } };
+  }
+  
+  return { data };
+}
+
+export async function updateUser(id: string, data: { email: string; full_name: string; role: string }) {
+  const supabase = createServerComponentClient({ cookies });
+  
+  try {
+    const { error } = await supabase
+      .from("users")
+      .update({
+        email: data.email,
+        full_name: data.full_name,
+        role: data.role,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    
+    if (error) {
+      return { error: error.message };
+    }
+    
+    return { data: { success: true } };
+  } catch (error) {
+    return { error: "An unexpected error occurred" };
+  }
 }
