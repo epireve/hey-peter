@@ -7,7 +7,7 @@ export const teacherFormSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
   
   // Teacher specific information
-  coach_code: z.string().min(1, "Coach code is required").max(100),
+  coach_code: z.string().min(1, "Coach code is required").max(100).optional(),
   
   // Availability - storing as JSON for flexibility
   availability: z.object({
@@ -57,7 +57,7 @@ export const teacherFormSchema = z.object({
 export type TeacherFormData = z.infer<typeof teacherFormSchema>;
 
 // Schema for updating teacher (password is optional)
-export const teacherUpdateSchema = teacherFormSchema.extend({
+export const teacherUpdateSchema = teacherFormSchema.omit({ password: true }).extend({
   password: z.string().min(8, "Password must be at least 8 characters").optional(),
 });
 

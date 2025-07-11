@@ -2,9 +2,8 @@
 
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
-import { teacherFormSchema, type TeacherFormData } from "@/lib/schemas/teacher";
+import { teacherFormSchema, teacherUpdateSchema, type TeacherFormData, type TeacherUpdateData } from "@/lib/schemas/teacher";
 import { z } from "zod";
-import bcrypt from "bcryptjs";
 
 export async function createTeacher(data: TeacherFormData) {
   const supabase = createServerComponentClient({ cookies });
@@ -24,26 +23,15 @@ export async function createTeacher(data: TeacherFormData) {
       return { error: "A user with this email already exists" };
     }
     
-    // Check if coach code already exists
-    const { data: existingTeacher } = await supabase
-      .from("teachers")
-      .select("id")
-      .eq("coach_code", validatedData.coach_code)
-      .single();
-    
-    if (existingTeacher) {
-      return { error: "A teacher with this coach code already exists" };
-    }
-    
-    // Hash the password
-    const hashedPassword = await bcrypt.hash(validatedData.password, 10);
+    // Note: coach_code is not a column in the teachers table
+    // It might be used for student internal_code reference
     
     // Start a transaction by creating user first
+    // Note: Password should be handled through Supabase Auth, not stored in the users table
     const { data: newUser, error: userError } = await supabase
       .from("users")
       .insert({
         email: validatedData.email,
-        password_hash: hashedPassword,
         full_name: validatedData.full_name,
         role: "teacher",
       })
@@ -59,9 +47,10 @@ export async function createTeacher(data: TeacherFormData) {
       .from("teachers")
       .insert({
         user_id: newUser.id,
-        coach_code: validatedData.coach_code,
+        email: validatedData.email,
+        full_name: validatedData.full_name,
         availability: validatedData.availability,
-        compensation: validatedData.compensation,
+        hourly_rate: validatedData.compensation?.hourly_rate || 0,
       })
       .select()
       .single();
@@ -131,18 +120,21 @@ export async function getTeacher(id: string) {
   return { data };
 }
 
-export async function updateTeacher(id: string, data: Partial<TeacherFormData>) {
+export async function updateTeacher(id: string, data: TeacherUpdateData) {
   const supabase = createServerComponentClient({ cookies });
   
   try {
+    // Validate the data
+    const validatedData = teacherUpdateSchema.parse(data);
+    
     // Update teacher record
+    const updateData: any = {};
+    if (validatedData.availability) updateData.availability = validatedData.availability;
+    if (validatedData.compensation?.hourly_rate !== undefined) updateData.hourly_rate = validatedData.compensation.hourly_rate;
+    
     const { error: teacherError } = await supabase
       .from("teachers")
-      .update({
-        coach_code: data.coach_code,
-        availability: data.availability,
-        compensation: data.compensation,
-      })
+      .update(updateData)
       .eq("id", id);
     
     if (teacherError) {
@@ -150,7 +142,7 @@ export async function updateTeacher(id: string, data: Partial<TeacherFormData>) 
     }
     
     // If user data needs updating
-    if (data.email || data.full_name || data.password) {
+    if (validatedData.email || validatedData.full_name) {
       const { data: teacher } = await supabase
         .from("teachers")
         .select("user_id")
@@ -160,11 +152,9 @@ export async function updateTeacher(id: string, data: Partial<TeacherFormData>) 
       if (teacher) {
         const userUpdate: any = {};
         
-        if (data.email) userUpdate.email = data.email;
-        if (data.full_name) userUpdate.full_name = data.full_name;
-        if (data.password) {
-          userUpdate.password_hash = await bcrypt.hash(data.password, 10);
-        }
+        if (validatedData.email) userUpdate.email = validatedData.email;
+        if (validatedData.full_name) userUpdate.full_name = validatedData.full_name;
+        // Note: Password updates should be handled through Supabase Auth
         
         const { error: userError } = await supabase
           .from("users")
@@ -179,6 +169,9 @@ export async function updateTeacher(id: string, data: Partial<TeacherFormData>) 
     
     return { data: { success: true } };
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: "Invalid form data: " + error.errors.map(e => e.message).join(", ") };
+    }
     return { error: "An unexpected error occurred" };
   }
 }
