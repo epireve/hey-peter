@@ -5,7 +5,7 @@
  * validation, approval, and refund processing with 48-hour rule enforcement.
  */
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase';
 import { leaveRulesService } from './leave-rules-service';
 import type {
   LeaveRequest,

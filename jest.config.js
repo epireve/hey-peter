@@ -12,6 +12,7 @@ const customJestConfig = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '@supabase/auth-helpers-nextjs': '<rootDir>/src/__mocks__/supabase.js',
+    '^@/lib/supabase$': '<rootDir>/src/__mocks__/supabase.js',
   },
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],

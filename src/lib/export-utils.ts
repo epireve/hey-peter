@@ -1,4 +1,5 @@
 import { format } from 'date-fns';
+import { escapeHtml, sanitizeFilename } from './utils/security';
 
 interface ExportOptions {
   format: string;
@@ -49,7 +50,7 @@ export async function exportToCSV(
   const url = URL.createObjectURL(blob);
   
   link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
+  link.setAttribute('download', `${sanitizeFilename(filename)}-${format(new Date(), 'yyyy-MM-dd')}.csv`);
   link.style.visibility = 'hidden';
   
   document.body.appendChild(link);
@@ -81,7 +82,7 @@ export async function exportToExcel(
   const url = URL.createObjectURL(blob);
   
   link.setAttribute('href', url);
-  link.setAttribute('download', `${filename}-${format(new Date(), 'yyyy-MM-dd')}.xls`);
+  link.setAttribute('download', `${sanitizeFilename(filename)}-${format(new Date(), 'yyyy-MM-dd')}.xls`);
   link.style.visibility = 'hidden';
   
   document.body.appendChild(link);
@@ -100,7 +101,7 @@ export async function exportToPDF(
   let htmlContent = `
     <html>
       <head>
-        <title>${filename}</title>
+        <title>${escapeHtml(filename)}</title>
         <style>
           body { font-family: Arial, sans-serif; }
           table { border-collapse: collapse; width: 100%; }
@@ -112,7 +113,7 @@ export async function exportToPDF(
         </style>
       </head>
       <body>
-        <h1>${filename}</h1>
+        <h1>${escapeHtml(filename)}</h1>
         <p>Generated on: ${format(new Date(), 'PPP')}</p>
   `;
   
@@ -126,7 +127,7 @@ export async function exportToPDF(
     htmlContent += '<table>';
     htmlContent += '<thead><tr>';
     headers.forEach((header) => {
-      htmlContent += `<th>${header}</th>`;
+      htmlContent += `<th>${escapeHtml(header)}</th>`;
     });
     htmlContent += '</tr></thead>';
     
@@ -134,7 +135,7 @@ export async function exportToPDF(
     data.forEach((row) => {
       htmlContent += '<tr>';
       headers.forEach((header) => {
-        htmlContent += `<td>${row[header] || ''}</td>`;
+        htmlContent += `<td>${escapeHtml(String(row[header] || ''))}</td>`;
       });
       htmlContent += '</tr>';
     });

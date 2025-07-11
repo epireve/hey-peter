@@ -6,10 +6,10 @@
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { HourUsageAnalyticsService } from '../hour-usage-analytics-service';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase';
 
 // Mock Supabase client
-jest.mock('@/lib/supabase/client', () => ({
+jest.mock('@/lib/supabase', () => ({
   createClient: jest.fn(() => ({
     from: jest.fn(() => ({
       select: jest.fn(() => ({

@@ -1,6 +1,7 @@
 import { format } from 'date-fns';
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
+import { escapeHtml, sanitizeFilename } from '../utils/security';
 
 export type ExportFormat = 'csv' | 'excel' | 'json' | 'pdf';
 
@@ -149,7 +150,7 @@ class AnalyticsExportService {
     }
   ): Promise<void> {
     try {
-      const fileName = options.fileName || `analytics-export-${format(new Date(), 'yyyy-MM-dd-HHmmss')}`;
+      const fileName = sanitizeFilename(options.fileName || `analytics-export-${format(new Date(), 'yyyy-MM-dd-HHmmss')}`);
 
       switch (options.format) {
         case 'csv':
@@ -454,9 +455,9 @@ class AnalyticsExportService {
     const metadataHTML = metadata ? `
       <div class="metadata">
         <h2>Report Information</h2>
-        <p><strong>Title:</strong> ${metadata.title || 'Analytics Report'}</p>
-        <p><strong>Generated:</strong> ${format(new Date(), 'yyyy-MM-dd HH:mm:ss')}</p>
-        ${metadata.dateRange ? `<p><strong>Date Range:</strong> ${format(metadata.dateRange.start, 'yyyy-MM-dd')} to ${format(metadata.dateRange.end, 'yyyy-MM-dd')}</p>` : ''}
+        <p><strong>Title:</strong> ${escapeHtml(metadata.title || 'Analytics Report')}</p>
+        <p><strong>Generated:</strong> ${escapeHtml(format(new Date(), 'yyyy-MM-dd HH:mm:ss'))}</p>
+        ${metadata.dateRange ? `<p><strong>Date Range:</strong> ${escapeHtml(format(metadata.dateRange.start, 'yyyy-MM-dd'))} to ${escapeHtml(format(metadata.dateRange.end, 'yyyy-MM-dd'))}</p>` : ''}
       </div>
     ` : '';
 
@@ -464,13 +465,13 @@ class AnalyticsExportService {
       <table>
         <thead>
           <tr>
-            ${Object.keys(data[0]).map(key => `<th>${key}</th>`).join('')}
+            ${Object.keys(data[0]).map(key => `<th>${escapeHtml(key)}</th>`).join('')}
           </tr>
         </thead>
         <tbody>
           ${data.map(row => `
             <tr>
-              ${Object.values(row).map(value => `<td>${value}</td>`).join('')}
+              ${Object.values(row).map(value => `<td>${escapeHtml(String(value || ''))}</td>`).join('')}
             </tr>
           `).join('')}
         </tbody>
@@ -481,11 +482,11 @@ class AnalyticsExportService {
       <!DOCTYPE html>
       <html>
         <head>
-          <title>${metadata?.title || 'Analytics Report'}</title>
+          <title>${escapeHtml(metadata?.title || 'Analytics Report')}</title>
           ${styles}
         </head>
         <body>
-          <h1>${metadata?.title || 'Analytics Report'}</h1>
+          <h1>${escapeHtml(metadata?.title || 'Analytics Report')}</h1>
           ${metadataHTML}
           ${tableHTML}
         </body>
@@ -539,7 +540,7 @@ class AnalyticsExportService {
           <tbody>
             ${chart.data.map(row => `
               <tr>
-                ${Object.values(row).map(value => `<td>${value}</td>`).join('')}
+                ${Object.values(row).map(value => `<td>${escapeHtml(String(value || ''))}</td>`).join('')}
               </tr>
             `).join('')}
           </tbody>

@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase';
 import { HourManagementService } from '../hour-management-service';
 import type { 
   HourPackage, 
@@ -8,7 +8,7 @@ import type {
 } from '@/types/hours';
 
 // Mock Supabase client
-jest.mock('@/lib/supabase/client', () => ({
+jest.mock('@/lib/supabase', () => ({
   createClient: jest.fn(() => ({
     from: jest.fn().mockReturnThis(),
     select: jest.fn().mockReturnThis(),

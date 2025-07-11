@@ -6,7 +6,7 @@
  * consumption patterns, trend analysis, and predictive alerts.
  */
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase';
 import { hourManagementService } from './hour-management-service';
 import type {
   HourTransaction,

@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { performanceMonitor } from "@/lib/utils/performance-monitor";
+import { validateColumnName, validateOperator, sanitizeInput } from "@/lib/utils/security";
 
 export interface CRUDOptions {
   table: string;
@@ -12,6 +13,8 @@ export interface CRUDOptions {
     ttl?: number; // Time to live in milliseconds
   };
   supabaseClient?: SupabaseClient; // Optional custom client
+  allowedColumns?: string[]; // Security: whitelist of allowed columns
+  allowedOrderColumns?: string[]; // Security: whitelist of columns that can be used for ordering
 }
 
 export interface PaginationOptions {
@@ -37,13 +40,17 @@ export class CRUDService<T = any> {
   private cacheEnabled: boolean;
   private cacheTTL: number;
   private supabaseClient: SupabaseClient;
+  private allowedColumns: string[];
+  private allowedOrderColumns: string[];
 
   constructor(options: CRUDOptions) {
-    this.table = options.table;
+    this.table = sanitizeInput(options.table);
     this.defaultSelect = options.select || "*";
     this.cacheEnabled = options.cache?.enabled || false;
     this.cacheTTL = options.cache?.ttl || 5 * 60 * 1000; // 5 minutes default
     this.supabaseClient = options.supabaseClient || supabase;
+    this.allowedColumns = options.allowedColumns || [];
+    this.allowedOrderColumns = options.allowedOrderColumns || this.allowedColumns;
   }
 
   private getCacheKey(method: string, params?: any): string {
@@ -96,15 +103,43 @@ export class CRUDService<T = any> {
         try {
           let query = this.supabaseClient.from(this.table).select(this.defaultSelect, { count: "exact" });
 
-      // Apply filters
+      // Apply filters with security validation
       if (options?.filters) {
-        options.filters.forEach(filter => {
+        for (const filter of options.filters) {
+          // Validate operator
+          if (!validateOperator(filter.operator)) {
+            throw new Error(`Invalid operator: ${filter.operator}`);
+          }
+          
+          // Validate column name if allowedColumns is configured
+          if (this.allowedColumns.length > 0) {
+            const validColumn = validateColumnName(filter.column, this.allowedColumns);
+            if (!validColumn) {
+              throw new Error(`Invalid or unauthorized column: ${filter.column}`);
+            }
+            filter.column = validColumn;
+          }
+          
+          // Sanitize filter value
+          if (typeof filter.value === 'string') {
+            filter.value = sanitizeInput(filter.value);
+          }
+          
           query = query[filter.operator](filter.column, filter.value);
-        });
+        }
       }
 
-      // Apply ordering
+      // Apply ordering with security validation
       if (options?.orderBy) {
+        // Validate order column if allowedOrderColumns is configured
+        if (this.allowedOrderColumns.length > 0) {
+          const validColumn = validateColumnName(options.orderBy.column, this.allowedOrderColumns);
+          if (!validColumn) {
+            throw new Error(`Invalid or unauthorized order column: ${options.orderBy.column}`);
+          }
+          options.orderBy.column = validColumn;
+        }
+        
         query = query.order(options.orderBy.column, { 
           ascending: options.orderBy.ascending ?? true 
         });

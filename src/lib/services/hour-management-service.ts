@@ -5,7 +5,7 @@
  * deductions, transfers, and balance calculations.
  */
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase';
 import type {
   HourPackage,
   HourPurchase,

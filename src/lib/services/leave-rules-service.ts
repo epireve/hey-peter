@@ -5,7 +5,7 @@
  * validation, and leave request processing.
  */
 
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '@/lib/supabase';
 import type {
   LeaveRule,
   LeaveRequest,
