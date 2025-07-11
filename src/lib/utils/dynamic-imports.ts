@@ -116,28 +116,29 @@ export const dynamicDateFns = {
 };
 
 // React Table - Heavy table library
+// Temporarily disabled due to ESM export field conflicts
 export const dynamicReactTable = {
-  useReactTable: createLazyLibraryImport(() => 
-    import('@tanstack/react-table').then(mod => mod.useReactTable)
-  ),
-  getCoreRowModel: createLazyLibraryImport(() => 
-    import('@tanstack/react-table').then(mod => mod.getCoreRowModel)
-  ),
-  getPaginationRowModel: createLazyLibraryImport(() => 
-    import('@tanstack/react-table').then(mod => mod.getPaginationRowModel)
-  ),
-  getSortedRowModel: createLazyLibraryImport(() => 
-    import('@tanstack/react-table').then(mod => mod.getSortedRowModel)
-  ),
-  getFilteredRowModel: createLazyLibraryImport(() => 
-    import('@tanstack/react-table').then(mod => mod.getFilteredRowModel)
-  ),
-  createColumnHelper: createLazyLibraryImport(() => 
-    import('@tanstack/react-table').then(mod => mod.createColumnHelper)
-  ),
-  flexRender: createLazyLibraryImport(() => 
-    import('@tanstack/react-table').then(mod => mod.flexRender)
-  ),
+  useReactTable: () => {
+    throw new Error('@tanstack/react-table dynamic import temporarily disabled');
+  },
+  getCoreRowModel: () => {
+    throw new Error('@tanstack/react-table dynamic import temporarily disabled');
+  },
+  getPaginationRowModel: () => {
+    throw new Error('@tanstack/react-table dynamic import temporarily disabled');
+  },
+  getSortedRowModel: () => {
+    throw new Error('@tanstack/react-table dynamic import temporarily disabled');
+  },
+  getFilteredRowModel: () => {
+    throw new Error('@tanstack/react-table dynamic import temporarily disabled');
+  },
+  createColumnHelper: () => {
+    throw new Error('@tanstack/react-table dynamic import temporarily disabled');
+  },
+  flexRender: () => {
+    throw new Error('@tanstack/react-table dynamic import temporarily disabled');
+  },
 };
 
 // CSV Parse - CSV manipulation

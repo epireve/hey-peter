@@ -3,9 +3,9 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { Toaster } from "sonner";
-import PerformanceProvider from "@/components/providers/PerformanceProvider";
-import { AppErrorBoundary, ErrorRecoveryProvider } from "@/components/error-boundary";
-import { error, info } from "@/lib/services";
+// import PerformanceProvider from "@/components/providers/PerformanceProvider";
+// import { AppErrorBoundary, ErrorRecoveryProvider } from "@/components/error-boundary";
+// import { error, info } from "@/lib/services";
 
 export const metadata: Metadata = {
   title: "HeyPeter Academy",
@@ -20,20 +20,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${GeistSans.variable} ${GeistMono.variable}`}>
       <body className="antialiased">
-        <ErrorRecoveryProvider>
-          <AppErrorBoundary
-            onError={(error, errorInfo) => {
-              error('Root error boundary caught error:', { error, errorInfo });
-            }}
-            onReset={() => {
-              info('Root error boundary reset');
-            }}
-          >
-            <PerformanceProvider>
-              {children}
-            </PerformanceProvider>
-          </AppErrorBoundary>
-        </ErrorRecoveryProvider>
+        {children}
         <Toaster />
       </body>
     </html>

@@ -402,8 +402,7 @@ export class EnhancedPerformanceMonitorCompatibility {
 // Create singleton instance for backward compatibility
 export const enhancedPerformanceMonitor = new EnhancedPerformanceMonitorCompatibility();
 
-// Export the class for direct instantiation
-export { EnhancedPerformanceMonitorCompatibility };
+// Class is already exported in the declaration above
 
 // Export the modular service for advanced usage
 export { performanceMonitoringService } from '../modules/performance/performance-monitoring-service';

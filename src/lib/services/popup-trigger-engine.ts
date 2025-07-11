@@ -93,7 +93,7 @@ export class PopupTriggerEngine {
     // Start session timer
     this.intervalId = setInterval(() => {
       this.session.timeOnPage += 1000;
-      this.checkTimeBased Triggers();
+      this.checkTimeBasedTriggers();
     }, 1000);
 
     // Initialize idle timer
@@ -340,7 +340,7 @@ export class PopupTriggerEngine {
   // Event Handlers
   // ========================================
 
-  private checkTimeBased Triggers(): void {
+  private checkTimeBasedTriggers(): void {
     this.notifyObservers();
   }
 

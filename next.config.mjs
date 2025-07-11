@@ -35,7 +35,7 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
+            value: "default-src 'self'; script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https://*.supabase.co wss://*.supabase.co http://127.0.0.1:54321 ws://127.0.0.1:54321; frame-ancestors 'none'; base-uri 'self'; form-action 'self';"
           }
         ],
       },
@@ -50,6 +50,19 @@ const nextConfig = {
   // Skip ESLint during build
   eslint: {
     ignoreDuringBuilds: true,
+  },
+  
+  // Transpile ESM packages that need to be compiled
+  transpilePackages: [
+    '@tanstack/react-table',
+    '@tanstack/table-core'
+  ],
+
+  // Module federation for ESM compatibility
+  modularizeImports: {
+    '@tanstack/react-table': {
+      transform: '@tanstack/react-table/{{member}}',
+    },
   },
   
   // Allow external images from Supabase storage
@@ -103,6 +116,33 @@ const nextConfig = {
         child_process: false,
       };
     }
+
+    // Handle ESM modules properly
+    config.module.rules.push({
+      test: /\.m?js$/,
+      type: 'javascript/auto',
+      resolve: {
+        fullySpecified: false,
+      },
+    });
+
+    // Add webpack rule to handle @tanstack/react-table ESM issue
+    config.module.rules.push({
+      test: /node_modules\/@tanstack\/react-table\/.*\.js$/,
+      type: 'javascript/auto',
+    });
+
+    // Fix @tanstack/react-table dynamic import resolution
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@tanstack/react-table$': '@tanstack/react-table/build/lib/index.js',
+    };
+
+    // Handle specific package resolution issues
+    config.resolve.fallback = {
+      ...config.resolve.fallback,
+      '@tanstack/react-table': '@tanstack/react-table/build/lib/index.js',
+    };
 
     // Optimize bundle splitting for production
     if (!dev && !isServer) {

@@ -43,7 +43,11 @@
       "Bash(git branch:*)",
       "Bash(git gc:*)",
       "Bash(npm run test:*)",
-      "Bash(npm run lint:*)"
+      "Bash(npm run lint:*)",
+      "Bash(npm run dev:*)",
+      "Bash(pkill:*)",
+      "Bash(curl:*)",
+      "Bash(supabase status:*)"
     ],
     "deny": []
   }

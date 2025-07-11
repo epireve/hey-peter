@@ -94,11 +94,15 @@ class Logger {
       setInterval(() => this.flushRemoteLogs(), 5000);
     }
 
-    // Handle process termination
-    if (typeof process !== 'undefined') {
-      process.on('exit', () => this.flush());
-      process.on('SIGINT', () => this.flush());
-      process.on('SIGTERM', () => this.flush());
+    // Handle process termination (only in Node.js environment)
+    if (typeof process !== 'undefined' && process.on && typeof process.on === 'function') {
+      try {
+        process.on('exit', () => this.flush());
+        process.on('SIGINT', () => this.flush());
+        process.on('SIGTERM', () => this.flush());
+      } catch (error) {
+        // Ignore errors in edge runtime environments
+      }
     }
   }
 

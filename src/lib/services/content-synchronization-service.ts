@@ -140,7 +140,10 @@ export class ContentSynchronizationService {
       ...config
     };
 
-    this.initializeRealtimeSubscriptions();
+    // Initialize realtime subscriptions for local Supabase
+    if (typeof window !== 'undefined') {
+      this.initializeRealtimeSubscriptions();
+    }
   }
 
   /**
