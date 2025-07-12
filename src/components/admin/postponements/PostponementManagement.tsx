@@ -34,7 +34,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { autoPostponementService, type PostponementSummary } from '@/lib/services/auto-postponement-service';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 interface PostponementManagementProps {
   userId: string;

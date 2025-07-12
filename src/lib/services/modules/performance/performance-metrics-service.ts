@@ -136,6 +136,11 @@ export class PerformanceMetricsService implements IPerformanceMetricsService {
       const { data, error } = await query;
 
       if (error) {
+        // Check if it's a table not found error
+        if (error.code === '42P01') {
+          this.logger.warn('Performance metrics table does not exist. Returning empty results.');
+          return [];
+        }
         throw this.createServiceError('FETCH_METRICS_ERROR', 'Failed to fetch metrics', error);
       }
 

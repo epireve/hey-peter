@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useRenderTracking } from "@/lib/utils/performance-monitor";
+// import { useRenderTracking } from "@/lib/utils/performance-monitor"; // Disabled for simplification
 import {
   ColumnDef,
   flexRender,
@@ -40,8 +40,8 @@ export const DataTable = React.memo(<TData, TValue>({
   filterColumn = "email",
   filterPlaceholder = "Filter emails...",
 }: DataTableProps<TData, TValue>) => {
-  // Track render performance
-  useRenderTracking("DataTable");
+  // Track render performance - disabled for simplification
+  // useRenderTracking("DataTable");
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []

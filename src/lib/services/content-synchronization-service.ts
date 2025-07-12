@@ -128,8 +128,8 @@ export class ContentSynchronizationService {
 
   constructor(config?: Partial<ContentSyncConfig>) {
     this.config = {
-      enabled: true,
-      syncFrequency: 'real-time',
+      enabled: false, // Disabled to prevent errors
+      syncFrequency: 'manual',
       maxBatchSize: 50,
       priorities: [
         { contentType: 'lesson', priority: 1, strategy: 'immediate' },
@@ -140,36 +140,37 @@ export class ContentSynchronizationService {
       ...config
     };
 
-    // Initialize realtime subscriptions for local Supabase
-    if (typeof window !== 'undefined') {
-      this.initializeRealtimeSubscriptions();
-    }
+    // Real-time subscriptions disabled for development
+    // if (typeof window !== 'undefined') {
+    //   this.initializeRealtimeSubscriptions();
+    // }
   }
 
   /**
    * Initialize real-time subscriptions for content changes
+   * DISABLED: Causing WebSocket errors in development
    */
   private initializeRealtimeSubscriptions() {
     if (!this.config.enabled) return;
 
-    // Subscribe to content changes
-    supabase
-      .channel('content-sync')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'contents'
-      }, (payload) => {
-        this.handleContentChange(payload);
-      })
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'class_groups'
-      }, (payload) => {
-        this.handleClassGroupChange(payload);
-      })
-      .subscribe();
+    // Real-time subscriptions disabled to prevent WebSocket errors
+    // supabase
+    //   .channel('content-sync')
+    //   .on('postgres_changes', {
+    //     event: '*',
+    //     schema: 'public',
+    //     table: 'contents'
+    //   }, (payload) => {
+    //     this.handleContentChange(payload);
+    //   })
+    //   .on('postgres_changes', {
+    //     event: '*',
+    //     schema: 'public',
+    //     table: 'class_groups'
+    //   }, (payload) => {
+    //     this.handleClassGroupChange(payload);
+    //   })
+    //   .subscribe();
   }
 
   /**

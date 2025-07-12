@@ -123,14 +123,24 @@ export async function getTeacher(id: string) {
 export async function updateTeacher(id: string, data: TeacherUpdateData) {
   const supabase = createServerComponentClient({ cookies });
   
+  console.log("updateTeacher called with:", { id, data });
+  
   try {
     // Validate the data
     const validatedData = teacherUpdateSchema.parse(data);
+    console.log("Validated data:", validatedData);
     
     // Update teacher record
     const updateData: any = {};
     if (validatedData.availability) updateData.availability = validatedData.availability;
     if (validatedData.compensation?.hourly_rate !== undefined) updateData.hourly_rate = validatedData.compensation.hourly_rate;
+    if (validatedData.email) updateData.email = validatedData.email;
+    if (validatedData.full_name) updateData.full_name = validatedData.full_name;
+    
+    // Always update updated_at timestamp
+    updateData.updated_at = new Date().toISOString();
+    
+    console.log("Updating teachers table with:", updateData);
     
     const { error: teacherError } = await supabase
       .from("teachers")
@@ -138,6 +148,7 @@ export async function updateTeacher(id: string, data: TeacherUpdateData) {
       .eq("id", id);
     
     if (teacherError) {
+      console.error("Teacher update error:", teacherError);
       return { error: teacherError.message };
     }
     

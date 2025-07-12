@@ -58,12 +58,12 @@ const nextConfig = {
     '@tanstack/table-core'
   ],
 
-  // Module federation for ESM compatibility
-  modularizeImports: {
-    '@tanstack/react-table': {
-      transform: '@tanstack/react-table/{{member}}',
-    },
-  },
+  // Module federation for ESM compatibility - disabled to fix import issues
+  // modularizeImports: {
+  //   '@tanstack/react-table': {
+  //     transform: '@tanstack/react-table/{{member}}',
+  //   },
+  // },
   
   // Allow external images from Supabase storage
   images: {
@@ -132,17 +132,17 @@ const nextConfig = {
       type: 'javascript/auto',
     });
 
-    // Fix @tanstack/react-table dynamic import resolution
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      '@tanstack/react-table$': '@tanstack/react-table/build/lib/index.js',
-    };
+    // Fix @tanstack/react-table dynamic import resolution - disabled to fix import issues
+    // config.resolve.alias = {
+    //   ...config.resolve.alias,
+    //   '@tanstack/react-table$': '@tanstack/react-table/build/lib/index.js',
+    // };
 
-    // Handle specific package resolution issues
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      '@tanstack/react-table': '@tanstack/react-table/build/lib/index.js',
-    };
+    // Handle specific package resolution issues - disabled to fix import issues
+    // config.resolve.fallback = {
+    //   ...config.resolve.fallback,
+    //   '@tanstack/react-table': '@tanstack/react-table/build/lib/index.js',
+    // };
 
     // Optimize bundle splitting for production
     if (!dev && !isServer) {

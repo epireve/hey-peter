@@ -1,7 +1,13 @@
-import { logger } from '@/lib/services';
 /**
  * Performance monitoring utilities for code splitting and bundle analysis
  */
+
+// Simple render tracking hook
+export function useRenderTracking(componentName: string): void {
+  if (process.env.NODE_ENV === 'development') {
+    console.debug(`Component rendered: ${componentName}`);
+  }
+}
 
 interface BundleMetrics {
   bundleSize: number;
@@ -187,9 +193,9 @@ class PerformanceMonitor {
     const report = this.getPerformanceReport();
     
     console.group('🚀 Performance Metrics');
-    logger.info('📊 Component Load Times:', report.componentMetrics);
-    logger.info('📦 Bundle Metrics:', report.bundleMetrics);
-    logger.info('📈 Summary:', report.summary);
+    console.info('📊 Component Load Times:', report.componentMetrics);
+    console.info('📦 Bundle Metrics:', report.bundleMetrics);
+    console.info('📈 Summary:', report.summary);
     console.groupEnd();
   }
 
@@ -201,14 +207,14 @@ class PerformanceMonitor {
     new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       const lastEntry = entries[entries.length - 1];
-      logger.info('LCP:', lastEntry.startTime);
+      console.info('LCP:', lastEntry.startTime);
     }).observe({ entryTypes: ['largest-contentful-paint'] });
 
     // First Input Delay (FID)
     new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries();
       entries.forEach(entry => {
-        logger.info('FID:', entry.processingStart - entry.startTime);
+        console.info('FID:', entry.processingStart - entry.startTime);
       });
     }).observe({ entryTypes: ['first-input'] });
 
@@ -221,7 +227,7 @@ class PerformanceMonitor {
           clsValue += (entry as any).value;
         }
       });
-      logger.info('CLS:', clsValue);
+      console.info('CLS:', clsValue);
     }).observe({ entryTypes: ['layout-shift'] });
   }
 
@@ -237,7 +243,7 @@ class PerformanceMonitor {
             const element = node as Element;
             if (element.tagName === 'SCRIPT' && element.getAttribute('src')?.includes('chunk')) {
               const chunkName = this.extractChunkName(element.getAttribute('src') || '');
-              logger.info(`📦 Chunk loaded: ${chunkName}`);
+              console.info(`📦 Chunk loaded: ${chunkName}`);
             }
           }
         });
@@ -251,6 +257,32 @@ class PerformanceMonitor {
   private extractChunkName(src: string): string {
     const match = src.match(/([^\/]+)\.chunk\.js$/);
     return match ? match[1] : 'unknown';
+  }
+
+  // Track database query performance
+  async trackQuery<T>(queryPromise: Promise<T>): Promise<T> {
+    const startTime = performance.now();
+    
+    try {
+      const result = await queryPromise;
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.debug(`Query executed in ${duration.toFixed(2)}ms`);
+      }
+      
+      return result;
+    } catch (error) {
+      const endTime = performance.now();
+      const duration = endTime - startTime;
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`Query failed after ${duration.toFixed(2)}ms:`, error);
+      }
+      
+      throw error;
+    }
   }
 
   // Clear metrics
