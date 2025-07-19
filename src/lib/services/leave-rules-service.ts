@@ -5,7 +5,6 @@
  * validation, and leave request processing.
  */
 
-import { createClient } from '@/lib/supabase';
 import type {
   LeaveRule,
   LeaveRequest,
@@ -17,8 +16,28 @@ import type {
   ApprovalStatus
 } from '@/types/hours';
 
+// Conditional import for testing
+let createClient: any;
+if (typeof window !== 'undefined' || process.env.NODE_ENV !== 'test') {
+  createClient = require('@/lib/supabase').createClient;
+} else {
+  // Mock for testing
+  createClient = () => ({
+    from: () => ({
+      select: () => ({ data: [], error: null }),
+      insert: () => ({ data: null, error: null }),
+      update: () => ({ data: null, error: null }),
+      delete: () => ({ data: null, error: null }),
+    }),
+  });
+}
+
 export class LeaveRulesService {
-  private supabase = createClient();
+  private supabase: any;
+  
+  constructor() {
+    this.supabase = createClient();
+  }
 
   /**
    * Get all leave rules
@@ -652,5 +671,14 @@ export class LeaveRulesService {
   }
 }
 
-// Export singleton instance
-export const leaveRulesService = new LeaveRulesService();
+// Export factory function for better testability
+export const createLeaveRulesService = () => new LeaveRulesService();
+
+// Export singleton instance (lazy-initialized)
+let _leaveRulesService: LeaveRulesService | null = null;
+export const leaveRulesService = () => {
+  if (!_leaveRulesService) {
+    _leaveRulesService = new LeaveRulesService();
+  }
+  return _leaveRulesService;
+};

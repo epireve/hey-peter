@@ -109,7 +109,8 @@ export {
 
 export { 
   leaveRequestService,
-  default as leaveRequestServiceDefault 
+  createLeaveRequestService,
+  LeaveRequestService
 } from './leave-request-service';
 
 export { 
@@ -161,6 +162,7 @@ export {
 
 export { 
   leaveRulesService,
+  createLeaveRulesService,
   LeaveRulesService
 } from './leave-rules-service';
 

@@ -5,8 +5,23 @@
  * validation, approval, and refund processing with 48-hour rule enforcement.
  */
 
-import { createClient } from '@/lib/supabase';
 import { leaveRulesService } from './leave-rules-service';
+
+// Conditional import for testing
+let createClient: any;
+if (typeof window !== 'undefined' || process.env.NODE_ENV !== 'test') {
+  createClient = require('@/lib/supabase').createClient;
+} else {
+  // Mock for testing
+  createClient = () => ({
+    from: () => ({
+      select: () => ({ data: [], error: null }),
+      insert: () => ({ data: null, error: null }),
+      update: () => ({ data: null, error: null }),
+      delete: () => ({ data: null, error: null }),
+    }),
+  });
+}
 import type {
   LeaveRequest,
   LeaveRequestSubmission,
@@ -19,7 +34,11 @@ import type {
 } from '@/types/hours';
 
 export class LeaveRequestService {
-  private supabase = createClient();
+  private supabase: any;
+  
+  constructor() {
+    this.supabase = createClient();
+  }
 
   /**
    * Validate a leave request before submission
@@ -55,7 +74,7 @@ export class LeaveRequestService {
       }
 
       // Use the new rules-based validation
-      const rulesValidation = await leaveRulesService.validateLeaveRequest(
+      const rulesValidation = await leaveRulesService().validateLeaveRequest(
         studentId,
         classDate,
         classDate, // Same date for single class
@@ -590,5 +609,14 @@ export class LeaveRequestService {
   }
 }
 
-// Export singleton instance
-export const leaveRequestService = new LeaveRequestService();
+// Export factory function for better testability
+export const createLeaveRequestService = () => new LeaveRequestService();
+
+// Export singleton instance (lazy-initialized)
+let _leaveRequestService: LeaveRequestService | null = null;
+export const leaveRequestService = () => {
+  if (!_leaveRequestService) {
+    _leaveRequestService = new LeaveRequestService();
+  }
+  return _leaveRequestService;
+};

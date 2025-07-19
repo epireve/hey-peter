@@ -1,4 +1,18 @@
-import { supabase } from "@/lib/supabase";
+// Conditional import for testing
+let supabase: any;
+if (typeof window !== 'undefined' || process.env.NODE_ENV !== 'test') {
+  supabase = require('@/lib/supabase').supabase;
+} else {
+  // Mock for testing
+  supabase = {
+    from: () => ({
+      select: () => ({ data: [], error: null }),
+      insert: () => ({ data: null, error: null }),
+      update: () => ({ data: null, error: null }),
+      delete: () => ({ data: null, error: null }),
+    }),
+  };
+}
 import { withRetry } from "./crud-service";
 import { contentAnalysisService } from "./content-analysis-service";
 import { logger } from '@/lib/services';
