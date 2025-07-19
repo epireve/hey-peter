@@ -5,7 +5,7 @@
  * deductions, transfers, and balance calculations.
  */
 
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import type {
   HourPackage,
   HourPurchase,
@@ -25,7 +25,7 @@ import type {
 } from '@/types/hours';
 
 export class HourManagementService {
-  private supabase = createClient();
+  private supabase = supabase;
 
   /**
    * Get available hour packages

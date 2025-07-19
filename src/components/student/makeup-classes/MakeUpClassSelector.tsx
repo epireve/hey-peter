@@ -31,7 +31,7 @@ import {
 import { cn } from '@/lib/utils';
 import { autoPostponementService } from '@/lib/services/auto-postponement-service';
 import { makeUpClassSuggestionService, type DetailedMakeUpSuggestion } from '@/lib/services/makeup-class-suggestion-service';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/components/ui/use-toast';
 
 interface MakeUpClassSelectorProps {
   studentId: string;

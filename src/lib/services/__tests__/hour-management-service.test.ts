@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { HourManagementService } from '../hour-management-service';
 import type { 
   HourPackage, 
@@ -7,27 +7,7 @@ import type {
   HourAdjustmentRequest
 } from '@/types/hours';
 
-// Mock Supabase client
-jest.mock('@/lib/supabase', () => ({
-  createClient: jest.fn(() => ({
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    gt: jest.fn().mockReturnThis(),
-    gte: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis(),
-    limit: jest.fn().mockReturnThis(),
-    single: jest.fn().mockReturnThis(),
-    auth: {
-      getUser: jest.fn().mockResolvedValue({
-        user: { id: 'test-user-123' }
-      })
-    },
-    rpc: jest.fn()
-  }))
-}));
+// Mock Supabase client is already handled by global mock
 
 describe('HourManagementService', () => {
   let service: HourManagementService;
@@ -36,7 +16,7 @@ describe('HourManagementService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     service = new HourManagementService();
-    mockSupabase = createClient();
+    mockSupabase = supabase;
   });
 
   describe('getHourPackages', () => {
@@ -57,16 +37,22 @@ describe('HourManagementService', () => {
         }
       ];
 
-      mockSupabase.from.mockReturnValue({
-        select: jest.fn().mockReturnValue({
-          order: jest.fn().mockReturnValue({
-            eq: jest.fn().mockResolvedValue({
-              data: mockPackages,
-              error: null
-            })
-          })
+      // Reset the mock and set up the response
+      jest.clearAllMocks();
+      
+      // Configure the query builder chain to return the mock data
+      const queryBuilder = {
+        select: jest.fn().mockReturnThis(),
+        order: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        then: jest.fn().mockImplementation((resolve) => {
+          const result = { data: mockPackages, error: null };
+          resolve(result);
+          return Promise.resolve(result);
         })
-      });
+      };
+      
+      mockSupabase.from.mockReturnValue(queryBuilder);
 
       const result = await service.getHourPackages({ isActive: true });
 

@@ -1,4 +1,4 @@
-// Mock for src/lib/supabase.ts
+// Mock for src/lib/supabase.ts and @supabase/supabase-js
 
 const createMockQueryBuilder = (defaultResponse = { data: [], error: null, count: 0 }) => {
   const builder = {
@@ -6,13 +6,13 @@ const createMockQueryBuilder = (defaultResponse = { data: [], error: null, count
     then: jest.fn().mockImplementation((resolve) => resolve(defaultResponse)),
     catch: jest.fn().mockReturnThis(),
     finally: jest.fn().mockReturnThis(),
-    
-    // Mock response methods for chaining
-    mockResolvedValue: jest.fn().mockReturnValue(builder),
-    mockResolvedValueOnce: jest.fn().mockReturnValue(builder),
-    mockRejectedValue: jest.fn().mockReturnValue(builder),
-    mockRejectedValueOnce: jest.fn().mockReturnValue(builder),
   };
+  
+  // Add mock response methods for chaining after builder is defined
+  builder.mockResolvedValue = jest.fn().mockReturnValue(builder);
+  builder.mockResolvedValueOnce = jest.fn().mockReturnValue(builder);
+  builder.mockRejectedValue = jest.fn().mockReturnValue(builder);
+  builder.mockRejectedValueOnce = jest.fn().mockReturnValue(builder);
   
   // All Supabase query methods that might be used
   const methods = [
@@ -36,6 +36,15 @@ const createMockQueryBuilder = (defaultResponse = { data: [], error: null, count
   // Override specific terminal methods to return promises directly
   builder.single.mockResolvedValue({ data: null, error: null });
   builder.maybeSingle.mockResolvedValue({ data: null, error: null });
+  
+  // Make terminal operations actually resolve with the default response
+  builder.then.mockImplementation((resolve) => {
+    // If this is already resolved, just call the resolver
+    if (resolve) {
+      setTimeout(() => resolve(defaultResponse), 0);
+    }
+    return Promise.resolve(defaultResponse);
+  });
   
   return builder;
 };
@@ -81,7 +90,7 @@ module.exports = {
   createClient,
   supabase,
   __esModule: true,
-  default: { createClient, supabase }
+  default: createClient // @supabase/supabase-js exports createClient as default
 };
 
 // Also support ES6 named exports

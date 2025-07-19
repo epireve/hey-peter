@@ -3,10 +3,10 @@
  */
 
 import { FeedbackService } from '../feedback-service';
+import { supabase } from '@/lib/supabase';
 import { StudentFeedback, TeacherFeedback, CourseFeedback } from '../../../types/feedback';
 
-// Mock Supabase client - this will be handled by the module name mapping
-jest.mock('@/lib/supabase');
+// Mock Supabase client is already handled by global mock
 
 let feedbackService: FeedbackService;
 let mockSupabase: any;
@@ -48,6 +48,8 @@ describe('FeedbackService', () => {
     
     // Create a fresh instance of the service
     feedbackService = new FeedbackService();
+    mockSupabase = supabase;
+    mockQuery = createMockQueryBuilder();
   });
 
   describe('Student Feedback', () => {

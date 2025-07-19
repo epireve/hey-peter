@@ -485,8 +485,7 @@ class UserActionTrackingService {
     this.actions = [];
 
     try {
-      const { createClient } = await import('@/lib/supabase');
-      const supabase = createClient();
+      const { supabase } = await import('@/lib/supabase');
 
       const { error } = await supabase
         .from('user_actions')
@@ -526,8 +525,7 @@ class UserActionTrackingService {
 
   private async storeSession(session: UserSession): Promise<void> {
     try {
-      const { createClient } = await import('@/lib/supabase');
-      const supabase = createClient();
+      const { supabase } = await import('@/lib/supabase');
 
       await supabase
         .from('user_sessions')
@@ -554,8 +552,7 @@ class UserActionTrackingService {
   // Get user journey
   async getUserJourney(sessionId: string): Promise<UserJourney | null> {
     try {
-      const { createClient } = await import('@/lib/supabase');
-      const supabase = createClient();
+      const { supabase } = await import('@/lib/supabase');
 
       const { data: actions } = await supabase
         .from('user_actions')

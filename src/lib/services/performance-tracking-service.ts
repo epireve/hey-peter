@@ -368,8 +368,7 @@ class PerformanceTrackingService {
 
   private async storeMetric(metric: PerformanceMetric): Promise<void> {
     try {
-      const { createClient } = await import('@/lib/supabase');
-      const supabase = createClient();
+      const { supabase } = await import('@/lib/supabase');
 
       await supabase
         .from('performance_metrics')
@@ -437,8 +436,7 @@ class PerformanceTrackingService {
     const end = endDate || new Date();
 
     try {
-      const { createClient } = await import('@/lib/supabase');
-      const supabase = createClient();
+      const { supabase } = await import('@/lib/supabase');
 
       const { data: metrics } = await supabase
         .from('performance_metrics')
