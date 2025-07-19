@@ -81,3 +81,45 @@ Element.prototype.getBoundingClientRect = jest.fn(() => ({
   y: 0,
   toJSON: jest.fn(),
 }));
+
+// Mock PerformanceObserver which is not available in jsdom
+global.PerformanceObserver = jest.fn().mockImplementation((callback) => ({
+  observe: jest.fn(),
+  unobserve: jest.fn(),
+  disconnect: jest.fn(),
+  supportedEntryTypes: ['paint', 'largest-contentful-paint', 'first-input', 'layout-shift']
+}));
+
+// Mock performance.getEntriesByType
+global.performance.getEntriesByType = jest.fn().mockReturnValue([]);
+
+// Mock performance.mark and measure
+global.performance.mark = jest.fn();
+global.performance.measure = jest.fn();
+global.performance.clearMarks = jest.fn();
+global.performance.clearMeasures = jest.fn();
+
+// Mock crypto for Node.js environment
+if (!global.crypto) {
+  global.crypto = {
+    randomUUID: jest.fn(() => 'test-uuid-' + Math.random().toString(36).substr(2, 9)),
+    getRandomValues: jest.fn((arr) => {
+      for (let i = 0; i < arr.length; i++) {
+        arr[i] = Math.floor(Math.random() * 256);
+      }
+      return arr;
+    }),
+  };
+}
+
+// Mock fetch if not available
+if (!global.fetch) {
+  global.fetch = jest.fn(() =>
+    Promise.resolve({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({}),
+      text: () => Promise.resolve(''),
+    })
+  );
+}

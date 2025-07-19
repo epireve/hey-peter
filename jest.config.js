@@ -11,8 +11,10 @@ const customJestConfig = {
   testEnvironment: 'jsdom',
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
-    '@supabase/auth-helpers-nextjs': '<rootDir>/src/__mocks__/supabase.js',
-    '^@/lib/supabase$': '<rootDir>/src/__mocks__/supabase.js',
+    '@supabase/auth-helpers-nextjs': '<rootDir>/src/lib/__mocks__/supabase.js',
+    '@supabase/supabase-js': '<rootDir>/src/lib/__mocks__/supabase.js',
+    '^@/lib/supabase$': '<rootDir>/src/lib/__mocks__/supabase.js',
+    '^@/lib/supabase-server$': '<rootDir>/src/lib/__mocks__/supabase.js',
   },
   testPathIgnorePatterns: ['<rootDir>/.next/', '<rootDir>/node_modules/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx'],

@@ -1,4 +1,4 @@
-// Mock for @supabase/auth-helpers-nextjs
+// Mock for src/lib/supabase.ts
 
 const createMockQueryBuilder = (defaultResponse = { data: [], error: null, count: 0 }) => {
   const builder = {
@@ -70,9 +70,20 @@ const createMockSupabaseClient = () => ({
   },
 });
 
-export const createClientComponentClient = jest.fn(() => createMockSupabaseClient());
+// Mock the createClient function
+const createClient = jest.fn(() => createMockSupabaseClient());
 
-export const createClient = jest.fn(() => createMockSupabaseClient());
+// Mock the default supabase client export
+const supabase = createMockSupabaseClient();
 
-// Default export for direct imports
-export default createMockSupabaseClient;
+// Export both named and default exports
+module.exports = {
+  createClient,
+  supabase,
+  __esModule: true,
+  default: { createClient, supabase }
+};
+
+// Also support ES6 named exports
+exports.createClient = createClient;
+exports.supabase = supabase;
